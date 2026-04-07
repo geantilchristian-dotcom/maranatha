@@ -4,11 +4,11 @@ services:
     env: node
     plan: free
     buildCommand: >
-      pnpm install &&
-      BASE_PATH=/ PORT=10000 pnpm --filter @workspace/maranatha run build &&
+      npm install -g pnpm &&
+      pnpm install --no-frozen-lockfile &&
+      BASE_PATH=/ pnpm --filter @workspace/maranatha run build &&
       pnpm --filter @workspace/api-server run build
-    startCommand: >
-      NODE_ENV=production node --enable-source-maps artifacts/api-server/dist/index.mjs
+    startCommand: NODE_ENV=production node --enable-source-maps artifacts/api-server/dist/index.mjs
     healthCheckPath: /api/healthz
     envVars:
       - key: NODE_ENV
@@ -16,13 +16,6 @@ services:
       - key: PORT
         value: 10000
       - key: DATABASE_URL
-        fromDatabase:
-          name: maranatha-db
-          property: connectionString
+        sync: false
       - key: SESSION_SECRET
         generateValue: true
-
-databases:
-  - name: maranatha-db
-    plan: free
-    databaseName: maranatha
