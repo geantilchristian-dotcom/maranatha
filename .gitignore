@@ -47,3 +47,7 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+# Uploads (audio files — not committed, managed at runtime)
+uploads/*
+!uploads/.gitkeep
