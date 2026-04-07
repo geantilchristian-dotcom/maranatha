@@ -5,47 +5,6 @@
  * Maranatha API specification
  * OpenAPI spec version: 0.1.0
  */
-export interface HealthStatus {
-  status: string;
-}
-
-export interface Diffusion {
-  id: number;
-  titre: string;
-  /** @nullable */
-  v_ref?: string | null;
-  /** @nullable */
-  v_txt?: string | null;
-  /** @nullable */
-  pochette?: string | null;
-  /** @nullable */
-  audio?: string | null;
-  /** @nullable */
-  q1?: string | null;
-  /** @nullable */
-  q2?: string | null;
-  /** @nullable */
-  q3?: string | null;
-  /** @nullable */
-  q4?: string | null;
-  /** @nullable */
-  h_matin?: string | null;
-  /** @nullable */
-  t_matin?: string | null;
-  /** @nullable */
-  h_soir?: string | null;
-  /** @nullable */
-  t_soir?: string | null;
-  /** @nullable */
-  n_airtel?: string | null;
-  /** @nullable */
-  n_orange?: string | null;
-  /** @nullable */
-  n_voda?: string | null;
-  /** @nullable */
-  n_whatsapp?: string | null;
-  updated_at: string;
-}
 
 export interface UpdateSermonBody {
   titre: string;

@@ -3,13 +3,15 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Maranatha API specification
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: diffusion
+    description: Sermon broadcast management
 paths:
   /healthz:
     get:
@@ -24,6 +26,41 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /prochaine-diffusion:
+    get:
+      operationId: getDiffusion
+      tags: [diffusion]
+      summary: Get current broadcast data
+      description: Returns the current sermon broadcast info
+      responses:
+        "200":
+          description: Current broadcast data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Diffusion"
+
+  /update-sermon:
+    post:
+      operationId: updateSermon
+      tags: [diffusion]
+      summary: Update sermon broadcast data
+      description: Updates the broadcast data (without file upload)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateSermonBody"
+      responses:
+        "200":
+          description: Updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Diffusion"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +71,88 @@ components:
       required:
         - status
 
+    Diffusion:
+      type: object
+      properties:
+        id:
+          type: integer
+        titre:
+          type: string
+        v_ref:
+          type: ["string", "null"]
+        v_txt:
+          type: ["string", "null"]
+        pochette:
+          type: ["string", "null"]
+        audio:
+          type: ["string", "null"]
+        q1:
+          type: ["string", "null"]
+        q2:
+          type: ["string", "null"]
+        q3:
+          type: ["string", "null"]
+        q4:
+          type: ["string", "null"]
+        h_matin:
+          type: ["string", "null"]
+        t_matin:
+          type: ["string", "null"]
+        h_soir:
+          type: ["string", "null"]
+        t_soir:
+          type: ["string", "null"]
+        n_airtel:
+          type: ["string", "null"]
+        n_orange:
+          type: ["string", "null"]
+        n_voda:
+          type: ["string", "null"]
+        n_whatsapp:
+          type: ["string", "null"]
+        updated_at:
+          type: string
+      required:
+        - id
+        - titre
+        - updated_at
+
+    UpdateSermonBody:
+      type: object
+      properties:
+        titre:
+          type: string
+        v_ref:
+          type: ["string", "null"]
+        v_txt:
+          type: ["string", "null"]
+        pochette:
+          type: ["string", "null"]
+        audio:
+          type: ["string", "null"]
+        q1:
+          type: ["string", "null"]
+        q2:
+          type: ["string", "null"]
+        q3:
+          type: ["string", "null"]
+        q4:
+          type: ["string", "null"]
+        h_matin:
+          type: ["string", "null"]
+        t_matin:
+          type: ["string", "null"]
+        h_soir:
+          type: ["string", "null"]
+        t_soir:
+          type: ["string", "null"]
+        n_airtel:
+          type: ["string", "null"]
+        n_orange:
+          type: ["string", "null"]
+        n_voda:
+          type: ["string", "null"]
+        n_whatsapp:
+          type: ["string", "null"]
+      required:
+        - titre
