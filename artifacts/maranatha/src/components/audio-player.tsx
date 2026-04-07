@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from "react";
-import { Play, Pause, SkipBack, Volume2, Radio } from "lucide-react";
+import { Play, Pause, SkipBack, Volume2, Radio, Loader2 } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 
 interface AudioPlayerProps {
@@ -11,6 +11,7 @@ interface AudioPlayerProps {
 export function AudioPlayer({ url, title, coverArt }: AudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const [autoplayBlocked, setAutoplayBlocked] = useState(false);
@@ -22,14 +23,16 @@ export function AudioPlayer({ url, title, coverArt }: AudioPlayerProps) {
 
     if (!url) {
       setIsPlaying(false);
+      setIsLoading(false);
       setProgress(0);
       setAutoplayBlocked(false);
       return;
     }
 
-    audioRef.current.load();
+    setIsLoading(true);
     setProgress(0);
     setAutoplayBlocked(false);
+    audioRef.current.load();
 
     const attemptPlay = () => {
       if (!audioRef.current) return;
@@ -37,10 +40,12 @@ export function AudioPlayer({ url, title, coverArt }: AudioPlayerProps) {
         .play()
         .then(() => {
           setIsPlaying(true);
+          setIsLoading(false);
           setAutoplayBlocked(false);
         })
         .catch(() => {
           setIsPlaying(false);
+          setIsLoading(false);
           setAutoplayBlocked(true);
         });
     };
@@ -58,28 +63,30 @@ export function AudioPlayer({ url, title, coverArt }: AudioPlayerProps) {
       audioRef.current.pause();
       setIsPlaying(false);
     } else {
-      audioRef.current.play().catch(console.error);
-      setIsPlaying(true);
-      setAutoplayBlocked(false);
+      setIsLoading(true);
+      audioRef.current
+        .play()
+        .then(() => {
+          setIsPlaying(true);
+          setIsLoading(false);
+          setAutoplayBlocked(false);
+        })
+        .catch(() => {
+          setIsLoading(false);
+        });
     }
   };
 
   const handleTimeUpdate = () => {
-    if (audioRef.current) {
-      setProgress(audioRef.current.currentTime);
-    }
+    if (audioRef.current) setProgress(audioRef.current.currentTime);
   };
 
   const handleLoadedMetadata = () => {
-    if (audioRef.current) {
-      setDuration(audioRef.current.duration);
-    }
+    if (audioRef.current) setDuration(audioRef.current.duration);
   };
 
   const skip = (amount: number) => {
-    if (audioRef.current) {
-      audioRef.current.currentTime += amount;
-    }
+    if (audioRef.current) audioRef.current.currentTime += amount;
   };
 
   const handleSliderChange = (value: number[]) => {
@@ -91,14 +98,28 @@ export function AudioPlayer({ url, title, coverArt }: AudioPlayerProps) {
 
   const formatTime = (time: number) => {
     if (!time || isNaN(time)) return "00:00";
-    const minutes = Math.floor(time / 60);
-    const seconds = Math.floor(time % 60);
-    return `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+    const m = Math.floor(time / 60);
+    const s = Math.floor(time % 60);
+    return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
   };
 
   return (
     <div className="bg-zinc-900 text-white rounded-2xl p-6 shadow-2xl relative overflow-hidden border border-zinc-800">
-      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-600 to-red-900"></div>
+
+      {/* Barre de chargement en haut */}
+      <div className="absolute top-0 left-0 w-full h-1 bg-zinc-800 overflow-hidden">
+        {isLoading ? (
+          <div
+            className="h-full bg-gradient-to-r from-red-600 via-red-400 to-red-600 absolute"
+            style={{
+              width: "45%",
+              animation: "loadingBar 1.2s ease-in-out infinite",
+            }}
+          />
+        ) : (
+          <div className="h-full bg-gradient-to-r from-red-600 to-red-900 w-full" />
+        )}
+      </div>
 
       {url && (
         <audio
@@ -106,20 +127,26 @@ export function AudioPlayer({ url, title, coverArt }: AudioPlayerProps) {
           src={url}
           onTimeUpdate={handleTimeUpdate}
           onLoadedMetadata={handleLoadedMetadata}
-          onEnded={() => setIsPlaying(false)}
-          onPlay={() => setIsPlaying(true)}
+          onEnded={() => { setIsPlaying(false); setIsLoading(false); }}
+          onPlay={() => { setIsPlaying(true); setIsLoading(false); }}
           onPause={() => setIsPlaying(false)}
+          onWaiting={() => setIsLoading(true)}
+          onCanPlay={() => setIsLoading(false)}
+          onPlaying={() => setIsLoading(false)}
         />
       )}
 
       <div className="flex flex-col items-center">
+        {/* Pochette */}
         <div className="w-48 h-48 rounded-xl overflow-hidden mb-6 shadow-lg shadow-black/50 border border-zinc-700 bg-zinc-800 flex items-center justify-center relative">
           {coverArt ? (
             <img src={coverArt} alt="Pochette" className="w-full h-full object-cover" />
           ) : (
             <Volume2 className="w-16 h-16 text-zinc-600" />
           )}
-          {isPlaying && (
+
+          {/* Barres d'égaliseur quand ça joue */}
+          {isPlaying && !isLoading && (
             <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-end gap-0.5">
               {[1, 2, 3, 4].map((i) => (
                 <div
@@ -133,14 +160,28 @@ export function AudioPlayer({ url, title, coverArt }: AudioPlayerProps) {
               ))}
             </div>
           )}
+
+          {/* Spinner sur la pochette quand chargement */}
+          {isLoading && (
+            <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+              <Loader2 className="w-10 h-10 text-red-500 animate-spin" />
+            </div>
+          )}
         </div>
 
         <h3 className="font-sans font-bold text-xl text-center mb-1 line-clamp-1">
           {title || "Aucune diffusion en cours"}
         </h3>
-        <p className="text-zinc-400 text-sm mb-2 uppercase tracking-wider">Maranatha Ministère</p>
 
-        {autoplayBlocked && url && (
+        <p className="text-zinc-400 text-sm mb-2 uppercase tracking-wider">
+          {isLoading ? (
+            <span className="text-red-400 animate-pulse">Chargement en cours...</span>
+          ) : (
+            "Maranatha Ministère"
+          )}
+        </p>
+
+        {autoplayBlocked && url && !isLoading && (
           <button
             onClick={togglePlay}
             className="mb-4 flex items-center gap-2 bg-red-600/20 border border-red-600/40 text-red-400 text-xs px-4 py-2 rounded-full animate-pulse hover:bg-red-600/30 transition-colors"
@@ -151,8 +192,9 @@ export function AudioPlayer({ url, title, coverArt }: AudioPlayerProps) {
           </button>
         )}
 
-        {!autoplayBlocked && <div className="mb-4" />}
+        {(!autoplayBlocked || isLoading) && <div className="mb-4" />}
 
+        {/* Barre de progression */}
         <div className="w-full space-y-2 mb-6">
           <Slider
             value={[progress]}
@@ -160,7 +202,7 @@ export function AudioPlayer({ url, title, coverArt }: AudioPlayerProps) {
             step={1}
             onValueChange={handleSliderChange}
             className="[&_[role=slider]]:bg-red-600 [&_[role=slider]]:border-red-600 [&_[role=slider]]:w-4 [&_[role=slider]]:h-4 [&>.relative>.absolute]:bg-red-600"
-            disabled={!url}
+            disabled={!url || isLoading}
           />
           <div className="flex justify-between text-xs text-zinc-500 font-mono">
             <span>{formatTime(progress)}</span>
@@ -168,23 +210,44 @@ export function AudioPlayer({ url, title, coverArt }: AudioPlayerProps) {
           </div>
         </div>
 
+        {/* Contrôles */}
         <div className="flex items-center justify-center gap-6">
           <button
             onClick={() => skip(-10)}
-            disabled={!url}
-            className="text-zinc-400 hover:text-white transition-colors disabled:opacity-50"
+            disabled={!url || isLoading}
+            className="text-zinc-400 hover:text-white transition-colors disabled:opacity-40"
             data-testid="audio-skip-back"
           >
             <SkipBack className="w-8 h-8" />
           </button>
 
+          {/* Bouton play/pause avec spinner */}
           <button
             onClick={togglePlay}
             disabled={!url}
-            className="w-16 h-16 rounded-full bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center text-white shadow-lg shadow-red-900/20 hover:scale-105 transition-transform disabled:opacity-50 disabled:hover:scale-100"
+            className="w-16 h-16 rounded-full bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center text-white shadow-lg shadow-red-900/20 hover:scale-105 transition-transform disabled:opacity-50 disabled:hover:scale-100 relative"
             data-testid="audio-play-pause"
           >
-            {isPlaying ? (
+            {/* Anneau de chargement animé */}
+            {isLoading && (
+              <svg
+                className="absolute inset-0 w-full h-full animate-spin"
+                viewBox="0 0 64 64"
+                fill="none"
+              >
+                <circle
+                  cx="32" cy="32" r="28"
+                  stroke="white"
+                  strokeWidth="4"
+                  strokeLinecap="round"
+                  strokeDasharray="44 132"
+                  opacity="0.8"
+                />
+              </svg>
+            )}
+            {isLoading ? (
+              <span className="w-3 h-3 bg-white rounded-full opacity-80" />
+            ) : isPlaying ? (
               <Pause className="w-8 h-8 fill-current" />
             ) : (
               <Play className="w-8 h-8 fill-current ml-1" />
@@ -193,8 +256,8 @@ export function AudioPlayer({ url, title, coverArt }: AudioPlayerProps) {
 
           <button
             onClick={() => skip(10)}
-            disabled={!url}
-            className="text-zinc-400 hover:text-white transition-colors disabled:opacity-50"
+            disabled={!url || isLoading}
+            className="text-zinc-400 hover:text-white transition-colors disabled:opacity-40"
             data-testid="audio-skip-forward"
           >
             <SkipBack className="w-8 h-8 rotate-180" />
@@ -205,7 +268,11 @@ export function AudioPlayer({ url, title, coverArt }: AudioPlayerProps) {
       <style>{`
         @keyframes equalizer {
           from { transform: scaleY(0.3); }
-          to { transform: scaleY(1); }
+          to   { transform: scaleY(1); }
+        }
+        @keyframes loadingBar {
+          0%   { left: -45%; }
+          100% { left: 100%; }
         }
       `}</style>
     </div>
