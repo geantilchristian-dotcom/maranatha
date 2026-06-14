@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Maranatha — Espace Pasteur</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #001220;
+      color: #fff;
+      min-height: 100vh;
+    }
+
+    /* ===== LOGIN ===== */
+    #login-page {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    .login-card {
+      background: #0A2535;
+      border-radius: 20px;
+      padding: 48px 40px;
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+      border: 1px solid rgba(212,175,55,0.2);
+    }
+
+    .logo-icon { font-size: 60px; margin-bottom: 8px; }
+
+    .logo-title {
+      color: #D4AF37;
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: 4px;
+      margin-bottom: 4px;
+    }
+
+    .logo-sub {
+      color: rgba(255,255,255,0.5);
+      font-size: 13px;
+      margin-bottom: 36px;
+    }
+
+    .login-card input {
+      width: 100%;
+      padding: 14px 18px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(212,175,55,0.3);
+      border-radius: 10px;
+      color: #fff;
+      font-size: 15px;
+      margin-bottom: 16px;
+      outline: none;
+      transition: border-color .2s;
+    }
+
+    .login-card input:focus { border-color: #D4AF37; }
+
+    .btn-gold {
+      width: 100%;
+      padding: 14px;
+      background: #D4AF37;
+      color: #001220;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 1px;
+      transition: opacity .2s;
+    }
+
+    .btn-gold:hover { opacity: 0.85; }
+
+    .login-error {
+      color: #ff6b6b;
+      font-size: 13px;
+      margin-top: 12px;
+      display: none;
+    }
+
+    /* ===== DASHBOARD ===== */
+    #dashboard { display: none; }
+
+    header {
+      background: #0A2535;
+      border-bottom: 1px solid rgba(212,175,55,0.15);
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .header-left { display: flex; align-items: center; gap: 12px; }
+    .header-logo { font-size: 28px; }
+    .header-title { color: #D4AF37; font-size: 18px; font-weight: 800; letter-spacing: 2px; }
+    .header-sub { color: rgba(255,255,255,0.4); font-size: 12px; }
+
+    .btn-logout {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.6);
+      padding: 8px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all .2s;
+    }
+    .btn-logout:hover { background: rgba(255,0,0,0.15); color: #ff6b6b; border-color: rgba(255,0,0,0.3); }
+
+    .main { padding: 32px; max-width: 1100px; margin: 0 auto; }
+
+    /* Stats */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .stat-card {
+      background: #0A2535;
+      border-radius: 14px;
+      padding: 24px;
+      border: 1px solid rgba(212,175,55,0.1);
+      text-align: center;
+    }
+
+    .stat-icon { font-size: 32px; margin-bottom: 8px; }
+    .stat-value { font-size: 36px; font-weight: 800; color: #D4AF37; }
+    .stat-label { color: rgba(255,255,255,0.5); font-size: 13px; margin-top: 4px; }
+
+    /* Form */
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #D4AF37;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card {
+      background: #0A2535;
+      border-radius: 16px;
+      padding: 28px;
+      border: 1px solid rgba(212,175,55,0.1);
+      margin-bottom: 32px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group.full { grid-column: 1 / -1; }
+
+    label { font-size: 13px; color: rgba(255,255,255,0.6); font-weight: 500; }
+
+    input[type="text"],
+    input[type="datetime-local"],
+    input[type="url"],
+    textarea {
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      color: #fff;
+      font-size: 14px;
+      outline: none;
+      transition: border-color .2s;
+      font-family: inherit;
+    }
+
+    input[type="text"]:focus,
+    input[type="datetime-local"]:focus,
+    input[type="url"]:focus,
+    textarea:focus { border-color: #D4AF37; }
+
+    textarea { resize: vertical; min-height: 80px; }
+
+    .btn-submit {
+      padding: 14px 32px;
+      background: #D4AF37;
+      color: #001220;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: opacity .2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-submit:hover { opacity: 0.85; }
+    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* Sermons list */
+    .sermon-item {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      transition: border-color .2s;
+    }
+    .sermon-item:hover { border-color: rgba(212,175,55,0.2); }
+
+    .sermon-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+
+    .icon-planifie { background: rgba(212,175,55,0.15); }
+    .icon-en_cours { background: rgba(0,200,100,0.15); }
+    .icon-termine { background: rgba(255,255,255,0.07); }
+
+    .sermon-info { flex: 1; min-width: 0; }
+    .sermon-titre { font-weight: 700; font-size: 16px; margin-bottom: 4px; }
+    .sermon-desc { color: rgba(255,255,255,0.5); font-size: 13px; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sermon-meta { display: flex; gap: 12px; flex-wrap: wrap; }
+
+    .badge {
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    .badge-planifie { background: rgba(212,175,55,0.15); color: #D4AF37; }
+    .badge-en_cours { background: rgba(0,200,100,0.15); color: #00c864; }
+    .badge-termine { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.4); }
+
+    .sermon-date { color: rgba(255,255,255,0.4); font-size: 12px; display: flex; align-items: center; gap: 4px; }
+
+    .btn-delete {
+      background: rgba(255,80,80,0.1);
+      border: 1px solid rgba(255,80,80,0.2);
+      color: #ff6b6b;
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      flex-shrink: 0;
+      transition: all .2s;
+    }
+    .btn-delete:hover { background: rgba(255,80,80,0.2); }
+
+    .empty-state {
+      text-align: center;
+      padding: 48px;
+      color: rgba(255,255,255,0.3);
+    }
+    .empty-state div { font-size: 48px; margin-bottom: 12px; }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 32px;
+      right: 32px;
+      padding: 14px 24px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 14px;
+      z-index: 1000;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all .3s;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.success { background: #0A2535; border: 1px solid #00c864; color: #00c864; }
+    .toast.error { background: #0A2535; border: 1px solid #ff6b6b; color: #ff6b6b; }
+
+    .loading { opacity: 0.5; pointer-events: none; }
+
+    @media (max-width: 600px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .main { padding: 16px; }
+      header { padding: 12px 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- PAGE LOGIN -->
+<div id="login-page">
+  <div class="login-card">
+    <div class="logo-icon">⛪</div>
+    <div class="logo-title">MARANATHA</div>
+    <div class="logo-sub">Espace réservé au Pasteur</div>
+    <input type="password" id="password-input" placeholder="Mot de passe" onkeydown="if(event.key==='Enter')login()" />
+    <button class="btn-gold" onclick="login()">ACCÉDER</button>
+    <div class="login-error" id="login-error">❌ Mot de passe incorrect</div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <header>
+    <div class="header-left">
+      <div class="header-logo">⛪</div>
+      <div>
+        <div class="header-title">MARANATHA</div>
+        <div class="header-sub">Tableau de bord du Pasteur</div>
+      </div>
+    </div>
+    <button class="btn-logout" onclick="logout()">Déconnexion</button>
+  </header>
+
+  <div class="main">
+
+    <!-- Stats -->
+    <div class="stats" id="stats">
+      <div class="stat-card">
+        <div class="stat-icon">📅</div>
+        <div class="stat-value" id="stat-planifie">—</div>
+        <div class="stat-label">Planifiées</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🔴</div>
+        <div class="stat-value" id="stat-en-cours">—</div>
+        <div class="stat-label">En direct</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">✅</div>
+        <div class="stat-value" id="stat-termine">—</div>
+        <div class="stat-label">Terminées</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">👥</div>
+        <div class="stat-value" id="stat-fideles">—</div>
+        <div class="stat-label">Fidèles inscrits</div>
+      </div>
+    </div>
+
+    <!-- Formulaire nouvelle prédication -->
+    <div class="card">
+      <div class="section-title">🎙️ Planifier une nouvelle prédication</div>
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>Titre de la prédication *</label>
+          <input type="text" id="f-titre" placeholder="Ex: Jésus revient bientôt" />
+        </div>
+        <div class="form-group full">
+          <label>Description (optionnel)</label>
+          <textarea id="f-desc" placeholder="Résumé de la prédication..."></textarea>
+        </div>
+        <div class="form-group full">
+          <label>Lien audio MP3 * <span style="color:rgba(255,255,255,0.3); font-weight:400">(Google Drive, Dropbox, Firebase Storage, etc.)</span></label>
+          <input type="url" id="f-audio" placeholder="https://drive.google.com/uc?id=..." />
+        </div>
+        <div class="form-group">
+          <label>Date et heure de diffusion *</label>
+          <input type="datetime-local" id="f-date" />
+        </div>
+        <div class="form-group" style="justify-content:flex-end">
+          <label>&nbsp;</label>
+          <button class="btn-submit" onclick="planifierSermon()" id="btn-submit">
+            <span>⏰</span> Planifier la prédication
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Liste des prédications -->
+    <div class="section-title">📋 Toutes les prédications</div>
+    <div id="sermons-list">
+      <div class="empty-state"><div>🔄</div>Chargement...</div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const API = window.location.origin + '/api';
+  // Mot de passe stocké comme variable d'environnement côté serveur
+  // Ici on vérifie via l'API
+  let adminPassword = '';
+
+  function login() {
+    const pwd = document.getElementById('password-input').value;
+    if (!pwd) return;
+    adminPassword = pwd;
+
+    // Tester le mot de passe en appelant une route protégée
+    fetch(`${API}/admin/verify`, {
+      headers: { 'x-admin-password': pwd }
+    }).then(r => {
+      if (r.ok) {
+        document.getElementById('login-page').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+        chargerTout();
+      } else {
+        document.getElementById('login-error').style.display = 'block';
+        adminPassword = '';
+      }
+    }).catch(() => {
+      document.getElementById('login-error').style.display = 'block';
+    });
+  }
+
+  function logout() {
+    adminPassword = '';
+    document.getElementById('dashboard').style.display = 'none';
+    document.getElementById('login-page').style.display = 'flex';
+    document.getElementById('password-input').value = '';
+  }
+
+  function headers() {
+    return { 'Content-Type': 'application/json', 'x-admin-password': adminPassword };
+  }
+
+  async function chargerTout() {
+    await Promise.all([chargerSermons(), chargerStats()]);
+  }
+
+  async function chargerStats() {
+    try {
+      const [sRes, uRes] = await Promise.all([
+        fetch(`${API}/sermons`, { headers: headers() }),
+        fetch(`${API}/users/count`, { headers: headers() })
+      ]);
+      const sermons = await sRes.json();
+      const users = await uRes.json();
+
+      document.getElementById('stat-planifie').textContent =
+        sermons.filter(s => s.statut === 'planifie').length;
+      document.getElementById('stat-en-cours').textContent =
+        sermons.filter(s => s.statut === 'en_cours').length;
+      document.getElementById('stat-termine').textContent =
+        sermons.filter(s => s.statut === 'termine').length;
+      document.getElementById('stat-fideles').textContent =
+        users.count ?? '—';
+    } catch(e) { console.error(e); }
+  }
+
+  async function chargerSermons() {
+    try {
+      const res = await fetch(`${API}/sermons`, { headers: headers() });
+      const sermons = await res.json();
+      const container = document.getElementById('sermons-list');
+
+      if (!sermons.length) {
+        container.innerHTML = `<div class="empty-state"><div>🎙️</div>Aucune prédication planifiée<br><small style="font-size:12px;margin-top:8px;display:block">Utilisez le formulaire ci-dessus pour en créer une</small></div>`;
+        return;
+      }
+
+      container.innerHTML = sermons.map(s => {
+        const date = new Date(s.dateDiffusion);
+        const dateStr = date.toLocaleDateString('fr-FR', { day:'2-digit', month:'long', year:'numeric' });
+        const timeStr = date.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
+        const icons = { planifie: '⏰', en_cours: '🔴', termine: '✅' };
+        const iconClass = { planifie: 'icon-planifie', en_cours: 'icon-en_cours', termine: 'icon-termine' };
+        return `
+          <div class="sermon-item">
+            <div class="sermon-icon ${iconClass[s.statut] || 'icon-planifie'}">${icons[s.statut] || '🎙️'}</div>
+            <div class="sermon-info">
+              <div class="sermon-titre">${s.titre}</div>
+              ${s.description ? `<div class="sermon-desc">${s.description}</div>` : ''}
+              <div class="sermon-meta">
+                <span class="badge badge-${s.statut}">${s.statut === 'planifie' ? 'PLANIFIÉ' : s.statut === 'en_cours' ? 'EN DIRECT' : 'TERMINÉ'}</span>
+                <span class="sermon-date">📅 ${dateStr} à ${timeStr}</span>
+                ${s.audioUrl ? `<a href="${s.audioUrl}" target="_blank" style="color:#D4AF37;font-size:12px;text-decoration:none;">🎵 Écouter</a>` : ''}
+              </div>
+            </div>
+            ${s.statut === 'planifie' ? `<button class="btn-delete" onclick="supprimerSermon('${s._id}')">🗑️ Supprimer</button>` : ''}
+          </div>`;
+      }).join('');
+    } catch(e) {
+      document.getElementById('sermons-list').innerHTML = `<div class="empty-state"><div>❌</div>Erreur de chargement</div>`;
+    }
+  }
+
+  async function planifierSermon() {
+    const titre = document.getElementById('f-titre').value.trim();
+    const desc = document.getElementById('f-desc').value.trim();
+    const audioUrl = document.getElementById('f-audio').value.trim();
+    const date = document.getElementById('f-date').value;
+
+    if (!titre || !audioUrl || !date) {
+      toast('⚠️ Remplissez tous les champs obligatoires (*)', 'error');
+      return;
+    }
+
+    const btn = document.getElementById('btn-submit');
+    btn.disabled = true;
+    btn.innerHTML = '<span>⏳</span> Planification...';
+
+    try {
+      const res = await fetch(`${API}/sermons/schedule`, {
+        method: 'POST',
+        headers: headers(),
+        body: JSON.stringify({
+          titre,
+          description: desc,
+          audioUrl,
+          dateDiffusion: new Date(date).toISOString(),
+          creePar: '000000000000000000000000'
+        })
+      });
+
+      if (res.ok) {
+        toast('✅ Prédication planifiée avec succès !', 'success');
+        document.getElementById('f-titre').value = '';
+        document.getElementById('f-desc').value = '';
+        document.getElementById('f-audio').value = '';
+        document.getElementById('f-date').value = '';
+        chargerTout();
+      } else {
+        const err = await res.json();
+        toast('❌ Erreur : ' + (err.error || 'inconnue'), 'error');
+      }
+    } catch(e) {
+      toast('❌ Impossible de joindre le serveur', 'error');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<span>⏰</span> Planifier la prédication';
+    }
+  }
+
+  async function supprimerSermon(id) {
+    if (!confirm('Supprimer cette prédication ?')) return;
+    try {
+      const res = await fetch(`${API}/sermons/${id}`, {
+        method: 'DELETE',
+        headers: headers()
+      });
+      if (res.ok) {
+        toast('🗑️ Prédication supprimée', 'success');
+        chargerTout();
+      }
+    } catch(e) { toast('❌ Erreur de suppression', 'error'); }
+  }
+
+  function toast(msg, type) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = `toast ${type} show`;
+    setTimeout(() => el.classList.remove('show'), 3500);
+  }
+
+  // Définir l'heure minimum = maintenant
+  const now = new Date();
+  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+  document.getElementById('f-date').min = now.toISOString().slice(0, 16);
+</script>
+</body>
+</html>
