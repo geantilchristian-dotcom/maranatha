@@ -589,16 +589,19 @@
     const desc = document.getElementById('f-desc').value.trim();
     const date = document.getElementById('f-date').value;
 
-    if (!titre || !date) { toast('⚠️ Titre et date obligatoires', 'error'); return; }
-    if (!selectedFile) { toast('⚠️ Sélectionnez un fichier audio', 'error'); return; }
+    if (!titre || !date) { toast('Titre et date obligatoires', 'error'); return; }
+    if (!selectedFile) { toast('Selectionnez un fichier audio', 'error'); return; }
 
     const btn = document.getElementById('btn-submit');
     btn.disabled = true;
     btn.innerHTML = '<span>⏳</span> Upload en cours…';
 
-    // Afficher la barre de progression
     document.getElementById('upload-progress').classList.add('visible');
-    animerProgression();
+    const stopAnim = animerProgression();
+
+    // Timeout de 3 minutes (180s) pour les gros fichiers
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 180000);
 
     try {
       const formData = new FormData();
@@ -611,44 +614,60 @@
         method: 'POST',
         headers: { 'x-admin-password': adminPassword },
         body: formData,
+        signal: controller.signal,
       });
+
+      clearTimeout(timeout);
+      stopAnim();
+
+      // Lire le corps de la reponse (texte brut d'abord pour eviter les erreurs JSON)
+      const body = await res.text();
+      let json = {};
+      try { json = JSON.parse(body); } catch(e) {}
 
       if (res.ok) {
         document.getElementById('progress-fill').style.width = '100%';
-        document.getElementById('progress-text').textContent = '✅ Upload terminé !';
-        toast('✅ Prédication planifiée avec succès !', 'success');
-        // Réinitialiser le formulaire
+        document.getElementById('progress-text').textContent = 'Upload termine !';
+        toast('Predication planifiee avec succes !', 'success');
         document.getElementById('f-titre').value = '';
         document.getElementById('f-desc').value = '';
         document.getElementById('f-date').value = '';
         retirerFichier();
         chargerTout();
       } else {
-        const err = await res.json();
-        toast('❌ ' + (err.error || 'Erreur inconnue'), 'error');
+        const msg = json.error || json.message || ('Erreur serveur ' + res.status + ' : ' + body.substring(0, 120));
+        toast(msg, 'error');
       }
     } catch(e) {
-      toast('❌ Impossible de joindre le serveur', 'error');
+      clearTimeout(timeout);
+      stopAnim();
+      if (e.name === 'AbortError') {
+        toast('Timeout : le serveur met trop de temps. Reessayez.', 'error');
+      } else {
+        toast('Erreur reseau : ' + (e.message || 'verifiez votre connexion'), 'error');
+      }
     } finally {
       btn.disabled = false;
-      btn.innerHTML = '<span>⏰</span> Planifier la prédication';
+      btn.innerHTML = '<span>⏰</span> Planifier la predication';
       setTimeout(() => {
         document.getElementById('upload-progress').classList.remove('visible');
         document.getElementById('progress-fill').style.width = '0%';
-      }, 3000);
+      }, 4000);
     }
   }
 
-  // Animation de progression (simulée pendant l'upload)
+  // Animation de progression — retourne une fonction stop()
   function animerProgression() {
     let pct = 0;
     const interval = setInterval(() => {
       if (pct >= 90) { clearInterval(interval); return; }
-      pct += Math.random() * 8;
+      pct += Math.random() * 6;
       pct = Math.min(pct, 90);
       document.getElementById('progress-fill').style.width = pct + '%';
-      document.getElementById('progress-text').textContent = `Upload en cours… ${Math.round(pct)}%`;
-    }, 400);
+      document.getElementById('progress-text').textContent = 'Upload en cours… ' + Math.round(pct) + '%';
+    }, 500);
+    // Retourne une fonction pour arreter l'animation
+    return () => clearInterval(interval);
   }
 
   // ===== SUPPRESSION =====
