@@ -459,26 +459,64 @@
       position: fixed; inset: 0; z-index: 9999;
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
-      gap: 0;
       background: #ffffff;
       transition: opacity .5s ease;
     }
     #splash-screen.fade-out { opacity: 0; pointer-events: none; }
 
     .splash-logo {
-      width: 160px; height: 160px;
+      width: 150px; height: 150px;
       object-fit: contain;
+      margin-bottom: 20px;
+    }
+
+    .splash-church-name {
+      font-size: 12px;
+      font-weight: 300;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      text-align: center;
+      line-height: 1.6;
+      max-width: 220px;
       margin-bottom: 48px;
     }
 
     .splash-spinner {
-      width: 32px; height: 32px;
+      width: 28px; height: 28px;
       border: 3px solid rgba(0,0,0,0.08);
       border-top-color: #6B4EFF;
       border-radius: 50%;
       animation: spin .8s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ============================
+       BIENVENUE SCREEN
+    ============================ */
+    #bienvenue-screen {
+      position: fixed; inset: 0; z-index: 9998;
+      display: none;
+      flex-direction: column;
+      align-items: center; justify-content: center;
+      background: #ffffff;
+      transition: opacity .5s ease;
+    }
+    #bienvenue-screen.visible { display: flex; }
+    #bienvenue-screen.fade-out { opacity: 0; pointer-events: none; }
+
+    .bvn-text {
+      font-size: 42px;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -1px;
+    }
+    .bvn-sub {
+      font-size: 15px;
+      color: var(--text-sub);
+      margin-top: 10px;
+      font-weight: 400;
+    }
   </style>
 </head>
 <body>
@@ -486,19 +524,20 @@
 <!-- ===================== SPLASH SCREEN ===================== -->
 <div id="splash-screen">
   <img id="splash-logo" class="splash-logo" src="/logo.jpg" alt="Logo Maranatha" />
+  <div class="splash-church-name">Communauté des Églises<br>Missionnaire Maranatha</div>
   <div class="splash-spinner"></div>
+</div>
+
+<!-- ===================== BIENVENUE ===================== -->
+<div id="bienvenue-screen">
+  <div class="bvn-text">Bienvenue !</div>
+  <div class="bvn-sub">Que la grâce soit avec vous 🙏</div>
 </div>
 
 <!-- ===================== INSCRIPTION ===================== -->
 <div id="register-page">
 
   <img class="reg-logo-img" src="/logo.jpg" alt="Logo Maranatha" />
-
-  <div class="reg-church-name">Communauté des Églises<br>Missionnaire Maranatha</div>
-
-  <div class="reg-welcome">Bienvenue&nbsp;! 🙏</div>
-
-  <div class="reg-divider"></div>
 
   <div class="reg-form">
     <label class="reg-label">Votre prénom</label>
@@ -769,9 +808,11 @@
   let activeAudioUrl = '';
   let sseSource = null;
 
-  // ============ SPLASH SCREEN ============
+  // ============ SPLASH → BIENVENUE → LOGIN ============
   async function lancerSplash() {
     const splash = document.getElementById('splash-screen');
+    const bvn    = document.getElementById('bienvenue-screen');
+    const saved  = localStorage.getItem('maranatha_user');
     let duree = 2500;
     try {
       const res = await fetch(API + '/settings/splash');
@@ -781,20 +822,37 @@
         if (cfg.dureeSplash) duree = cfg.dureeSplash * 1000;
       }
     } catch(e) {}
+
     setTimeout(() => {
+      // Fade out splash
       splash.classList.add('fade-out');
-      setTimeout(() => splash.remove(), 600);
+      setTimeout(() => {
+        splash.remove();
+
+        if (saved) {
+          // Utilisateur déjà connecté → app directement
+          userName = saved;
+          lancerApp();
+        } else {
+          // Nouvel utilisateur → écran Bienvenue puis login
+          bvn.classList.add('visible');
+          setTimeout(() => {
+            bvn.classList.add('fade-out');
+            setTimeout(() => {
+              bvn.remove();
+              document.getElementById('register-page').style.display = 'flex';
+            }, 500);
+          }, 1800);
+        }
+      }, 600);
     }, duree);
   }
 
   // ============ SESSION PERSISTANTE ============
   window.addEventListener('DOMContentLoaded', () => {
+    // Cacher la page de login jusqu'à la fin de la séquence splash
+    document.getElementById('register-page').style.display = 'none';
     lancerSplash();
-    const saved = localStorage.getItem('maranatha_user');
-    if (saved) {
-      userName = saved;
-      lancerApp();
-    }
   });
 
   // ============ INSCRIPTION ============
