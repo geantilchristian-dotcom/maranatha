@@ -688,6 +688,17 @@
   let userName = '';
   let sermons = [];
   let activeAudioUrl = '';
+  let sseSource = null;
+
+  // ============ SESSION PERSISTANTE ============
+  // Restaurer la session au chargement (evite la deconnexion au refresh)
+  window.addEventListener('DOMContentLoaded', () => {
+    const saved = localStorage.getItem('maranatha_user');
+    if (saved) {
+      userName = saved;
+      lancerApp();
+    }
+  });
 
   // ============ INSCRIPTION ============
   function entrer() {
@@ -709,20 +720,53 @@
   }
 
   function lancerApp() {
+    // Sauvegarder la session dans localStorage
+    localStorage.setItem('maranatha_user', userName);
+
     document.getElementById('register-page').style.display = 'none';
     document.getElementById('app').style.display = 'block';
     document.getElementById('greeting-name').textContent = 'Bonjour, ' + userName + ' !';
     document.getElementById('more-username').textContent = userName;
     chargerSermons();
+    connecterSSE();
   }
 
   function logout() {
+    localStorage.removeItem('maranatha_user');
     userName = '';
+    if (sseSource) { sseSource.close(); sseSource = null; }
     document.getElementById('app').style.display = 'none';
     document.getElementById('register-page').style.display = 'flex';
     document.getElementById('reg-nom').value = '';
     document.getElementById('reg-tel').value = '';
     switchTab('home');
+  }
+
+  // ============ SSE — MISES A JOUR EN TEMPS REEL ============
+  function connecterSSE() {
+    if (sseSource) sseSource.close();
+    sseSource = new EventSource(API + '/sermons/events');
+
+    // Sermon passe en direct : afficher et lancer immediatement
+    sseSource.addEventListener('sermon_live', e => {
+      const sermon = JSON.parse(e.data);
+      // Mettre a jour la liste locale
+      const idx = sermons.findIndex(s => String(s._id) === String(sermon._id));
+      if (idx >= 0) sermons[idx] = sermon; else sermons.unshift(sermon);
+      afficherAccueil();
+      showToast('La predication commence !');
+    });
+
+    // Mise a jour generale (nouveau sermon, suppression, nettoyage)
+    sseSource.addEventListener('sermon_update', () => {
+      chargerSermons();
+    });
+
+    // Reconnexion automatique si la connexion est perdue
+    sseSource.onerror = () => {
+      sseSource.close();
+      setTimeout(connecterSSE, 5000);
+    };
   }
 
   // ============ NAVIGATION ============
