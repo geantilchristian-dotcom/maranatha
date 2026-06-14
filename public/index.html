@@ -951,7 +951,8 @@
   }
 
   // Rafraichissement automatique
-  setInterval(chargerSermons, 120000);
+  // Poll toutes les 10 secondes pour detecter le passage "en_cours" rapidement
+  setInterval(chargerSermons, 10000);
 </script>
 </body>
 </html>
