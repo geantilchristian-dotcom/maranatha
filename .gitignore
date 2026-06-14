@@ -1,0 +1,7 @@
+node_modules/
+.env
+*.json.key
+maranatha-app/build/
+maranatha-app/.dart_tool/
+maranatha-app/.flutter-plugins
+maranatha-app/.flutter-plugins-dependencies
