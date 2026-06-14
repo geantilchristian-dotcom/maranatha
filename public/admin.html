@@ -479,6 +479,27 @@
       <div class="empty-state"><div>🔄</div>Chargement…</div>
     </div>
 
+    <!-- ===== VIDÉO YOUTUBE ===== -->
+    <div class="section-title" style="margin-top:40px">📺 Vidéo en vedette (Accueil)</div>
+    <div class="card">
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>Lien YouTube (ex : https://www.youtube.com/watch?v=...)</label>
+          <input type="text" id="yt-url" placeholder="https://www.youtube.com/watch?v=xxxxx" />
+        </div>
+        <div class="form-group">
+          <label>Texte du bouton</label>
+          <input type="text" id="yt-label" placeholder="Regarder sur YouTube" />
+        </div>
+        <div class="form-group" style="justify-content:flex-end">
+          <label>&nbsp;</label>
+          <button class="btn-submit" onclick="sauvegarderHome()" id="btn-home">
+            <span>💾</span> Enregistrer la vidéo
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- ===== PARAMÈTRES SPLASH ===== -->
     <div class="section-title" style="margin-top:40px">🎨 Écran de bienvenue</div>
     <div class="card">
@@ -583,6 +604,25 @@
       try { document.getElementById('s-fond-picker').value   = fond;   } catch(e) {}
       try { document.getElementById('s-accent-picker').value = accent; } catch(e) {}
     } catch(e) {}
+  }
+
+  async function sauvegarderHome() {
+    const btn = document.getElementById('btn-home');
+    btn.disabled = true; btn.innerHTML = '<span>⏳</span> Enregistrement…';
+    try {
+      const body = {
+        youtubeUrl: document.getElementById('yt-url').value.trim() || undefined,
+        ytLabel:    document.getElementById('yt-label').value.trim() || undefined,
+      };
+      const res = await fetch(API + '/settings/home', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        body: JSON.stringify(body),
+      });
+      if (res.ok) toast('Vidéo YouTube enregistrée !', 'success');
+      else toast('Erreur lors de la sauvegarde', 'error');
+    } catch(e) { toast('Erreur réseau', 'error'); }
+    finally { btn.disabled = false; btn.innerHTML = '<span>💾</span> Enregistrer la vidéo'; }
   }
 
   async function sauvegarderSplash() {
