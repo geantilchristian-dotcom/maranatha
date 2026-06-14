@@ -41,26 +41,43 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 40px 28px;
+      padding: 48px 28px 40px;
       background: #fff;
     }
 
-    .reg-logo {
-      width: 72px; height: 72px;
-      border-radius: 50%;
+    .reg-logo-img {
+      width: 110px; height: 110px;
+      object-fit: contain;
+      margin-bottom: 18px;
+    }
+
+    .reg-church-name {
+      font-size: 13px;
+      font-weight: 300;
+      color: var(--text-sub);
+      text-align: center;
+      letter-spacing: 0.3px;
+      line-height: 1.5;
+      max-width: 260px;
+      text-transform: uppercase;
+      margin-bottom: 22px;
+    }
+
+    .reg-welcome {
+      font-size: 30px;
+      font-weight: 800;
+      color: var(--text);
+      text-align: center;
+      letter-spacing: -0.5px;
+      margin-bottom: 32px;
+      line-height: 1.2;
+    }
+
+    .reg-divider {
+      width: 40px; height: 3px;
       background: var(--primary);
-      display: flex; align-items: center; justify-content: center;
-      margin-bottom: 20px;
-    }
-
-    .reg-title {
-      font-size: 26px; font-weight: 800;
-      color: var(--text); margin-bottom: 6px; letter-spacing: -0.3px;
-    }
-
-    .reg-sub {
-      font-size: 14px; color: var(--text-sub);
-      text-align: center; margin-bottom: 40px; line-height: 1.5;
+      border-radius: 2px;
+      margin-bottom: 32px;
     }
 
     .reg-form { width: 100%; max-width: 340px; }
@@ -87,10 +104,11 @@
     .btn-primary:active { opacity: 0.85; }
 
     .skip-link {
-      color: var(--primary); font-size: 14px;
-      margin-top: 18px; cursor: pointer; text-align: center;
-      font-weight: 500;
+      color: var(--text-muted); font-size: 14px;
+      margin-top: 16px; cursor: pointer; text-align: center;
+      font-weight: 400;
     }
+    .skip-link:active { color: var(--primary); }
 
     /* ============================
        APP
@@ -105,9 +123,12 @@
     }
 
     .logo-circle {
-      width: 46px; height: 46px; border-radius: 50%;
-      background: var(--primary);
+      width: 40px; height: 40px; border-radius: 10px;
+      overflow: hidden;
       display: flex; align-items: center; justify-content: center;
+    }
+    .logo-circle img {
+      width: 100%; height: 100%; object-fit: contain;
     }
 
     .header-right { display: flex; align-items: center; gap: 10px; }
@@ -470,27 +491,26 @@
 
 <!-- ===================== INSCRIPTION ===================== -->
 <div id="register-page">
-  <div class="reg-logo">
-    <!-- Cross SVG -->
-    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-      <rect x="14" y="4" width="4" height="24" rx="2" fill="white"/>
-      <rect x="6" y="11" width="20" height="4" rx="2" fill="white"/>
-    </svg>
-  </div>
 
-  <div class="reg-title">Maranatha</div>
-  <div class="reg-sub">Viens, Seigneur Jesus<br>Apocalypse 22 : 20</div>
+  <img class="reg-logo-img" src="/logo.jpg" alt="Logo Maranatha" />
+
+  <div class="reg-church-name">Communauté des Églises<br>Missionnaire Maranatha</div>
+
+  <div class="reg-welcome">Bienvenue&nbsp;! 🙏</div>
+
+  <div class="reg-divider"></div>
 
   <div class="reg-form">
-    <label class="reg-label">Prenom</label>
+    <label class="reg-label">Votre prénom</label>
     <input class="reg-input" type="text" id="reg-nom" placeholder="Ex : Marie, Jean, Pierre"
            onkeydown="if(event.key==='Enter')entrer()" />
-    <label class="reg-label">Telephone (facultatif)</label>
+    <label class="reg-label">Téléphone (facultatif)</label>
     <input class="reg-input" type="tel" id="reg-tel" placeholder="+243"
            onkeydown="if(event.key==='Enter')entrer()" />
-    <button class="btn-primary" onclick="entrer()">Entrer dans l'Eglise</button>
-    <div class="skip-link" onclick="entrerSansNom()">Continuer sans s'identifier</div>
+    <button class="btn-primary" onclick="entrer()">Se connecter</button>
+    <div class="skip-link" onclick="entrerSansNom()">Continuer en visiteur</div>
   </div>
+
 </div>
 
 <!-- ===================== APP ===================== -->
@@ -499,10 +519,7 @@
   <!-- Header -->
   <header class="app-header">
     <div class="logo-circle">
-      <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-        <rect x="9.5" y="2" width="3" height="18" rx="1.5" fill="white"/>
-        <rect x="2" y="8" width="18" height="3" rx="1.5" fill="white"/>
-      </svg>
+      <img src="/logo.jpg" alt="Maranatha" />
     </div>
 
     <div class="header-right">
