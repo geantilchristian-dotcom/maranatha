@@ -1,40 +1,31 @@
 const mongoose = require('mongoose');
 
 const sermonSchema = new mongoose.Schema({
-  titre: { 
-    type: String, 
-    required: true,
-    trim: true 
-  },
-  description: { 
+  titre: {
     type: String,
-    trim: true 
+    required: true,
+    trim: true
   },
-  // L'URL du fichier MP3 stocké en ligne (ex: Firebase Storage, Cloudinary, etc.)
-  audioUrl: { 
-    type: String, 
-    required: true 
+  description: {
+    type: String,
+    trim: true
   },
-  // La date et l'heure exactes de diffusion (ex: 2026-06-15T16:00:00)
-  dateDiffusion: { 
-    type: Date, 
-    required: true 
-  },
-  // Suivi de l'état de la prédication
-  statut: { 
-    type: String, 
-    enum: ['planifie', 'en_cours', 'termine'], 
-    default: 'planifie' 
-  },
-  // Référence vers le Pasteur qui a publié la prédication
-  creePar: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'User',
+  audioUrl: {
+    type: String,
     required: true
   },
-  dateCreation: { 
-    type: Date, 
-    default: Date.now 
+  dateDiffusion: {
+    type: Date,
+    required: true
+  },
+  statut: {
+    type: String,
+    enum: ['planifie', 'en_cours', 'termine'],
+    default: 'planifie'
+  },
+  dateCreation: {
+    type: Date,
+    default: Date.now
   }
 });
 
