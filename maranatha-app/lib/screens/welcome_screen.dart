@@ -7,7 +7,7 @@ import 'player_screen.dart';
 
 // Remplacez par l'URL de votre serveur une fois déployé
 // En développement local : utilisez l'IP de votre ordinateur (ex: http://192.168.1.10:5000/api)
-const String API_URL = 'http://VOTRE_IP:5000/api';
+const String API_URL = 'https://maranatha-2vgy.onrender.com/api';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({Key? key}) : super(key: key);
