@@ -430,9 +430,78 @@
       border: none; border-radius: var(--radius);
       font-size: 14px; font-weight: 700; cursor: pointer;
     }
+
+    /* ============================
+       SPLASH SCREEN
+    ============================ */
+    #splash-screen {
+      position: fixed; inset: 0; z-index: 9999;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 0;
+      background: #001220;
+      transition: opacity .6s ease;
+    }
+    #splash-screen.fade-out { opacity: 0; pointer-events: none; }
+
+    .splash-logo {
+      width: 130px; height: 130px;
+      object-fit: contain;
+      border-radius: 20px;
+      background: #fff;
+      padding: 12px;
+      margin-bottom: 28px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+
+    .splash-nom {
+      color: #D4AF37;
+      font-size: 32px; font-weight: 900;
+      letter-spacing: 6px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+    }
+
+    .splash-sous {
+      color: rgba(255,255,255,0.55);
+      font-size: 14px; letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+    }
+
+    .splash-verset {
+      color: rgba(255,255,255,0.35);
+      font-size: 13px;
+      font-style: italic;
+      text-align: center;
+      max-width: 280px;
+      line-height: 1.6;
+      margin-top: 20px;
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+    }
+
+    .splash-bar {
+      width: 48px; height: 3px;
+      background: #D4AF37;
+      border-radius: 2px;
+      margin: 18px 0;
+      animation: splash-grow 1s ease forwards;
+    }
+    @keyframes splash-grow { from { width: 0 } to { width: 48px } }
   </style>
 </head>
 <body>
+
+<!-- ===================== SPLASH SCREEN ===================== -->
+<div id="splash-screen">
+  <img id="splash-logo" class="splash-logo" src="/logo.jpg" alt="Logo" />
+  <div class="splash-nom" id="splash-nom">Maranatha</div>
+  <div class="splash-sous" id="splash-sous">Ministère Évangélique</div>
+  <div class="splash-bar"></div>
+  <div class="splash-verset" id="splash-verset">Viens, Seigneur Jésus<br>— Apocalypse 22 : 20</div>
+</div>
 
 <!-- ===================== INSCRIPTION ===================== -->
 <div id="register-page">
@@ -718,9 +787,40 @@
   let activeAudioUrl = '';
   let sseSource = null;
 
+  // ============ SPLASH SCREEN ============
+  async function lancerSplash() {
+    try {
+      const res = await fetch(API + '/settings/splash');
+      if (res.ok) {
+        const cfg = await res.json();
+        document.getElementById('splash-nom').textContent = cfg.nomEglise || 'Maranatha';
+        document.getElementById('splash-sous').textContent = cfg.sousTitre || '';
+        document.getElementById('splash-verset').innerHTML = (cfg.verset || '').replace(/\n/g, '<br>');
+        const logo = document.getElementById('splash-logo');
+        if (cfg.logoUrl) logo.src = cfg.logoUrl;
+        const splash = document.getElementById('splash-screen');
+        splash.style.background = cfg.couleurFond || '#001220';
+        document.querySelector('.splash-nom').style.color = cfg.couleurAccent || '#D4AF37';
+        document.querySelector('.splash-bar').style.background = cfg.couleurAccent || '#D4AF37';
+        const duree = (cfg.dureeSplash || 3) * 1000;
+        setTimeout(() => {
+          splash.classList.add('fade-out');
+          setTimeout(() => splash.remove(), 700);
+        }, duree);
+        return;
+      }
+    } catch(e) {}
+    // Fallback : splash 3s sans config
+    const splash = document.getElementById('splash-screen');
+    setTimeout(() => {
+      splash.classList.add('fade-out');
+      setTimeout(() => splash.remove(), 700);
+    }, 3000);
+  }
+
   // ============ SESSION PERSISTANTE ============
-  // Restaurer la session au chargement (evite la deconnexion au refresh)
   window.addEventListener('DOMContentLoaded', () => {
+    lancerSplash();
     const saved = localStorage.getItem('maranatha_user');
     if (saved) {
       userName = saved;
