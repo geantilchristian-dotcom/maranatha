@@ -171,6 +171,30 @@
 
     audio { display: none; }
 
+    /* Bandeau "Appuyez pour ecouter" — affiché quand l'autoplay est bloqué */
+    .tap-to-play {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background: linear-gradient(135deg, #6B4EFF, #4B2FD4);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      padding: 12px 20px;
+      border-radius: 12px;
+      margin: 10px 0 4px;
+      cursor: pointer;
+      animation: pulse-tap 1.5s infinite;
+      border: none;
+      width: 100%;
+    }
+    .tap-to-play.visible { display: flex; }
+    @keyframes pulse-tap {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.85; transform: scale(0.98); }
+    }
+
     .player-body { padding: 16px; }
 
     .player-row {
@@ -489,6 +513,10 @@
     <!-- Player -->
     <div class="player-card" id="player-card">
       <audio id="main-audio" preload="none"></audio>
+      <button class="tap-to-play" id="tap-to-play" onclick="demarrerLecture()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Appuyez pour ecouter la predication
+      </button>
       <div class="player-body">
         <div class="player-row">
           <div class="player-thumb">
@@ -944,7 +972,39 @@
       audio.ontimeupdate = updatePlayer;
       audio.onended = () => setPlayIcon(false);
     }
-    audio.play().then(() => setPlayIcon(true)).catch(() => {});
+    audio.play()
+      .then(() => {
+        setPlayIcon(true);
+        cacherTapToPlay();
+      })
+      .catch(err => {
+        // Autoplay bloque par le navigateur — montrer le bouton "Appuyez pour ecouter"
+        if (err.name === 'NotAllowedError' || err.name === 'AbortError') {
+          afficherTapToPlay();
+        }
+      });
+  }
+
+  function afficherTapToPlay() {
+    document.getElementById('tap-to-play').classList.add('visible');
+    document.getElementById('player-status').textContent = 'Appuyez pour ecouter';
+    setPlayIcon(false);
+  }
+
+  function cacherTapToPlay() {
+    document.getElementById('tap-to-play').classList.remove('visible');
+  }
+
+  // Appele quand l'utilisateur appuie sur le bouton "Appuyez pour ecouter"
+  function demarrerLecture() {
+    const audio = document.getElementById('main-audio');
+    if (!audio.src) return;
+    audio.play()
+      .then(() => {
+        setPlayIcon(true);
+        cacherTapToPlay();
+      })
+      .catch(() => showToast('Lecture impossible — verifiez votre connexion'));
   }
 
   function togglePlay() {
