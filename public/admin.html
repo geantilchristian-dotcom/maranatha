@@ -33,20 +33,8 @@
     }
 
     .logo-icon { font-size: 60px; margin-bottom: 8px; }
-
-    .logo-title {
-      color: #D4AF37;
-      font-size: 22px;
-      font-weight: 800;
-      letter-spacing: 4px;
-      margin-bottom: 4px;
-    }
-
-    .logo-sub {
-      color: rgba(255,255,255,0.5);
-      font-size: 13px;
-      margin-bottom: 36px;
-    }
+    .logo-title { color: #D4AF37; font-size: 22px; font-weight: 800; letter-spacing: 4px; margin-bottom: 4px; }
+    .logo-sub { color: rgba(255,255,255,0.5); font-size: 13px; margin-bottom: 36px; }
 
     .login-card input {
       width: 100%;
@@ -60,7 +48,6 @@
       outline: none;
       transition: border-color .2s;
     }
-
     .login-card input:focus { border-color: #D4AF37; }
 
     .btn-gold {
@@ -73,18 +60,11 @@
       font-size: 15px;
       font-weight: 700;
       cursor: pointer;
-      letter-spacing: 1px;
       transition: opacity .2s;
     }
-
     .btn-gold:hover { opacity: 0.85; }
 
-    .login-error {
-      color: #ff6b6b;
-      font-size: 13px;
-      margin-top: 12px;
-      display: none;
-    }
+    .login-error { color: #ff6b6b; font-size: 13px; margin-top: 12px; display: none; }
 
     /* ===== DASHBOARD ===== */
     #dashboard { display: none; }
@@ -118,12 +98,7 @@
     .main { padding: 32px; max-width: 1100px; margin: 0 auto; }
 
     /* Stats */
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
-      margin-bottom: 32px;
-    }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 32px; }
 
     .stat-card {
       background: #0A2535;
@@ -156,12 +131,7 @@
       margin-bottom: 32px;
     }
 
-    .form-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-    }
-
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
     .form-group { display: flex; flex-direction: column; gap: 6px; }
     .form-group.full { grid-column: 1 / -1; }
 
@@ -169,7 +139,6 @@
 
     input[type="text"],
     input[type="datetime-local"],
-    input[type="url"],
     textarea {
       padding: 12px 16px;
       background: rgba(255,255,255,0.06);
@@ -181,13 +150,85 @@
       transition: border-color .2s;
       font-family: inherit;
     }
-
     input[type="text"]:focus,
     input[type="datetime-local"]:focus,
-    input[type="url"]:focus,
     textarea:focus { border-color: #D4AF37; }
 
     textarea { resize: vertical; min-height: 80px; }
+
+    /* Zone upload fichier */
+    .upload-zone {
+      border: 2px dashed rgba(212,175,55,0.3);
+      border-radius: 14px;
+      padding: 32px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all .2s;
+      position: relative;
+      background: rgba(212,175,55,0.03);
+    }
+    .upload-zone:hover, .upload-zone.drag-over {
+      border-color: #D4AF37;
+      background: rgba(212,175,55,0.07);
+    }
+
+    .upload-zone input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+
+    .upload-icon { font-size: 40px; margin-bottom: 10px; }
+    .upload-title { font-size: 15px; font-weight: 700; color: #D4AF37; margin-bottom: 4px; }
+    .upload-sub { font-size: 12px; color: rgba(255,255,255,0.4); }
+
+    /* Fichier sélectionné */
+    .file-preview {
+      display: none;
+      background: rgba(212,175,55,0.08);
+      border: 1px solid rgba(212,175,55,0.25);
+      border-radius: 12px;
+      padding: 14px 18px;
+      margin-top: 12px;
+      align-items: center;
+      gap: 12px;
+    }
+    .file-preview.visible { display: flex; }
+    .file-icon { font-size: 28px; }
+    .file-info { flex: 1; min-width: 0; }
+    .file-name { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .file-size { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 2px; }
+    .btn-remove-file {
+      background: rgba(255,80,80,0.15);
+      border: none;
+      color: #ff6b6b;
+      border-radius: 8px;
+      padding: 6px 10px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    /* Barre de progression upload */
+    .upload-progress { display: none; margin-top: 12px; }
+    .upload-progress.visible { display: block; }
+    .progress-bar {
+      width: 100%;
+      height: 6px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 6px;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #D4AF37, #F0D060);
+      border-radius: 3px;
+      transition: width .3s;
+    }
+    .progress-text { font-size: 12px; color: rgba(255,255,255,0.5); text-align: center; }
 
     .btn-submit {
       padding: 14px 32px;
@@ -222,8 +263,7 @@
     .sermon-item:hover { border-color: rgba(212,175,55,0.2); }
 
     .sermon-icon {
-      width: 48px;
-      height: 48px;
+      width: 48px; height: 48px;
       border-radius: 12px;
       display: flex;
       align-items: center;
@@ -231,28 +271,23 @@
       font-size: 22px;
       flex-shrink: 0;
     }
-
     .icon-planifie { background: rgba(212,175,55,0.15); }
     .icon-en_cours { background: rgba(0,200,100,0.15); }
     .icon-termine { background: rgba(255,255,255,0.07); }
 
     .sermon-info { flex: 1; min-width: 0; }
     .sermon-titre { font-weight: 700; font-size: 16px; margin-bottom: 4px; }
-    .sermon-desc { color: rgba(255,255,255,0.5); font-size: 13px; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .sermon-meta { display: flex; gap: 12px; flex-wrap: wrap; }
+    .sermon-desc { color: rgba(255,255,255,0.5); font-size: 13px; margin-bottom: 8px; }
+    .sermon-meta { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
 
-    .badge {
-      padding: 3px 10px;
-      border-radius: 20px;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-    }
+    .badge { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
     .badge-planifie { background: rgba(212,175,55,0.15); color: #D4AF37; }
     .badge-en_cours { background: rgba(0,200,100,0.15); color: #00c864; }
     .badge-termine { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.4); }
 
-    .sermon-date { color: rgba(255,255,255,0.4); font-size: 12px; display: flex; align-items: center; gap: 4px; }
+    .sermon-date { color: rgba(255,255,255,0.4); font-size: 12px; }
+    .audio-link { color: #D4AF37; font-size: 12px; text-decoration: none; }
+    .audio-link:hover { text-decoration: underline; }
 
     .btn-delete {
       background: rgba(255,80,80,0.1);
@@ -267,18 +302,13 @@
     }
     .btn-delete:hover { background: rgba(255,80,80,0.2); }
 
-    .empty-state {
-      text-align: center;
-      padding: 48px;
-      color: rgba(255,255,255,0.3);
-    }
+    .empty-state { text-align: center; padding: 48px; color: rgba(255,255,255,0.3); }
     .empty-state div { font-size: 48px; margin-bottom: 12px; }
 
     /* Toast */
     .toast {
       position: fixed;
-      bottom: 32px;
-      right: 32px;
+      bottom: 32px; right: 32px;
       padding: 14px 24px;
       border-radius: 12px;
       font-weight: 600;
@@ -292,8 +322,6 @@
     .toast.show { opacity: 1; transform: translateY(0); }
     .toast.success { background: #0A2535; border: 1px solid #00c864; color: #00c864; }
     .toast.error { background: #0A2535; border: 1px solid #ff6b6b; color: #ff6b6b; }
-
-    .loading { opacity: 0.5; pointer-events: none; }
 
     @media (max-width: 600px) {
       .form-grid { grid-template-columns: 1fr; }
@@ -332,7 +360,7 @@
   <div class="main">
 
     <!-- Stats -->
-    <div class="stats" id="stats">
+    <div class="stats">
       <div class="stat-card">
         <div class="stat-icon">📅</div>
         <div class="stat-value" id="stat-planifie">—</div>
@@ -355,39 +383,72 @@
       </div>
     </div>
 
-    <!-- Formulaire nouvelle prédication -->
+    <!-- Formulaire -->
     <div class="card">
       <div class="section-title">🎙️ Planifier une nouvelle prédication</div>
       <div class="form-grid">
+
         <div class="form-group full">
           <label>Titre de la prédication *</label>
           <input type="text" id="f-titre" placeholder="Ex: Jésus revient bientôt" />
         </div>
+
         <div class="form-group full">
           <label>Description (optionnel)</label>
-          <textarea id="f-desc" placeholder="Résumé de la prédication..."></textarea>
+          <textarea id="f-desc" placeholder="Résumé de la prédication…"></textarea>
         </div>
+
         <div class="form-group full">
-          <label>Lien audio MP3 * <span style="color:rgba(255,255,255,0.3); font-weight:400">(Google Drive, Dropbox, Firebase Storage, etc.)</span></label>
-          <input type="url" id="f-audio" placeholder="https://drive.google.com/uc?id=..." />
+          <label>Fichier audio MP3 *</label>
+
+          <!-- Zone de dépôt -->
+          <div class="upload-zone" id="upload-zone"
+               ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event)">
+            <input type="file" id="f-audio-file" accept="audio/*,.mp3,.m4a,.ogg,.wav"
+                   onchange="fileSelectionne(event)" />
+            <div class="upload-icon">🎵</div>
+            <div class="upload-title">Cliquez ou glissez-déposez votre fichier audio</div>
+            <div class="upload-sub">MP3, M4A, OGG, WAV — jusqu'à 200 Mo</div>
+          </div>
+
+          <!-- Aperçu fichier sélectionné -->
+          <div class="file-preview" id="file-preview">
+            <div class="file-icon">🎵</div>
+            <div class="file-info">
+              <div class="file-name" id="file-name">—</div>
+              <div class="file-size" id="file-size">—</div>
+            </div>
+            <button class="btn-remove-file" onclick="retirerFichier()">✕</button>
+          </div>
+
+          <!-- Barre de progression -->
+          <div class="upload-progress" id="upload-progress">
+            <div class="progress-bar">
+              <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+            </div>
+            <div class="progress-text" id="progress-text">Upload en cours…</div>
+          </div>
         </div>
+
         <div class="form-group">
           <label>Date et heure de diffusion *</label>
           <input type="datetime-local" id="f-date" />
         </div>
+
         <div class="form-group" style="justify-content:flex-end">
           <label>&nbsp;</label>
           <button class="btn-submit" onclick="planifierSermon()" id="btn-submit">
             <span>⏰</span> Planifier la prédication
           </button>
         </div>
+
       </div>
     </div>
 
-    <!-- Liste des prédications -->
+    <!-- Liste -->
     <div class="section-title">📋 Toutes les prédications</div>
     <div id="sermons-list">
-      <div class="empty-state"><div>🔄</div>Chargement...</div>
+      <div class="empty-state"><div>🔄</div>Chargement…</div>
     </div>
 
   </div>
@@ -397,30 +458,27 @@
 
 <script>
   const API = window.location.origin + '/api';
-  // Mot de passe stocké comme variable d'environnement côté serveur
-  // Ici on vérifie via l'API
   let adminPassword = '';
+  let selectedFile = null;
 
+  // ===== LOGIN =====
   function login() {
     const pwd = document.getElementById('password-input').value;
     if (!pwd) return;
     adminPassword = pwd;
 
-    // Tester le mot de passe en appelant une route protégée
-    fetch(`${API}/admin/verify`, {
-      headers: { 'x-admin-password': pwd }
-    }).then(r => {
-      if (r.ok) {
-        document.getElementById('login-page').style.display = 'none';
-        document.getElementById('dashboard').style.display = 'block';
-        chargerTout();
-      } else {
-        document.getElementById('login-error').style.display = 'block';
-        adminPassword = '';
-      }
-    }).catch(() => {
-      document.getElementById('login-error').style.display = 'block';
-    });
+    fetch(`${API}/admin/verify`, { headers: { 'x-admin-password': pwd } })
+      .then(r => {
+        if (r.ok) {
+          document.getElementById('login-page').style.display = 'none';
+          document.getElementById('dashboard').style.display = 'block';
+          chargerTout();
+        } else {
+          document.getElementById('login-error').style.display = 'block';
+          adminPassword = '';
+        }
+      })
+      .catch(() => document.getElementById('login-error').style.display = 'block');
   }
 
   function logout() {
@@ -430,10 +488,11 @@
     document.getElementById('password-input').value = '';
   }
 
-  function headers() {
-    return { 'Content-Type': 'application/json', 'x-admin-password': adminPassword };
+  function authHeaders() {
+    return { 'x-admin-password': adminPassword };
   }
 
+  // ===== STATS & CHARGEMENT =====
   async function chargerTout() {
     await Promise.all([chargerSermons(), chargerStats()]);
   }
@@ -441,31 +500,26 @@
   async function chargerStats() {
     try {
       const [sRes, uRes] = await Promise.all([
-        fetch(`${API}/sermons`, { headers: headers() }),
-        fetch(`${API}/users/count`, { headers: headers() })
+        fetch(`${API}/sermons`, { headers: authHeaders() }),
+        fetch(`${API}/users/count`, { headers: authHeaders() })
       ]);
       const sermons = await sRes.json();
       const users = await uRes.json();
-
-      document.getElementById('stat-planifie').textContent =
-        sermons.filter(s => s.statut === 'planifie').length;
-      document.getElementById('stat-en-cours').textContent =
-        sermons.filter(s => s.statut === 'en_cours').length;
-      document.getElementById('stat-termine').textContent =
-        sermons.filter(s => s.statut === 'termine').length;
-      document.getElementById('stat-fideles').textContent =
-        users.count ?? '—';
-    } catch(e) { console.error(e); }
+      document.getElementById('stat-planifie').textContent = sermons.filter(s => s.statut === 'planifie').length;
+      document.getElementById('stat-en-cours').textContent = sermons.filter(s => s.statut === 'en_cours').length;
+      document.getElementById('stat-termine').textContent = sermons.filter(s => s.statut === 'termine').length;
+      document.getElementById('stat-fideles').textContent = users.count ?? '—';
+    } catch(e) {}
   }
 
   async function chargerSermons() {
     try {
-      const res = await fetch(`${API}/sermons`, { headers: headers() });
+      const res = await fetch(`${API}/sermons`, { headers: authHeaders() });
       const sermons = await res.json();
       const container = document.getElementById('sermons-list');
 
       if (!sermons.length) {
-        container.innerHTML = `<div class="empty-state"><div>🎙️</div>Aucune prédication planifiée<br><small style="font-size:12px;margin-top:8px;display:block">Utilisez le formulaire ci-dessus pour en créer une</small></div>`;
+        container.innerHTML = `<div class="empty-state"><div>🎙️</div>Aucune prédication planifiée</div>`;
         return;
       }
 
@@ -473,21 +527,21 @@
         const date = new Date(s.dateDiffusion);
         const dateStr = date.toLocaleDateString('fr-FR', { day:'2-digit', month:'long', year:'numeric' });
         const timeStr = date.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
-        const icons = { planifie: '⏰', en_cours: '🔴', termine: '✅' };
-        const iconClass = { planifie: 'icon-planifie', en_cours: 'icon-en_cours', termine: 'icon-termine' };
+        const icons = { planifie:'⏰', en_cours:'🔴', termine:'✅' };
+        const iconClass = { planifie:'icon-planifie', en_cours:'icon-en_cours', termine:'icon-termine' };
         return `
           <div class="sermon-item">
-            <div class="sermon-icon ${iconClass[s.statut] || 'icon-planifie'}">${icons[s.statut] || '🎙️'}</div>
+            <div class="sermon-icon ${iconClass[s.statut]||'icon-planifie'}">${icons[s.statut]||'🎙️'}</div>
             <div class="sermon-info">
               <div class="sermon-titre">${s.titre}</div>
               ${s.description ? `<div class="sermon-desc">${s.description}</div>` : ''}
               <div class="sermon-meta">
                 <span class="badge badge-${s.statut}">${s.statut === 'planifie' ? 'PLANIFIÉ' : s.statut === 'en_cours' ? 'EN DIRECT' : 'TERMINÉ'}</span>
                 <span class="sermon-date">📅 ${dateStr} à ${timeStr}</span>
-                ${s.audioUrl ? `<a href="${s.audioUrl}" target="_blank" style="color:#D4AF37;font-size:12px;text-decoration:none;">🎵 Écouter</a>` : ''}
+                ${s.audioUrl ? `<a class="audio-link" href="${s.audioUrl}" target="_blank">🔊 Écouter</a>` : ''}
               </div>
             </div>
-            ${s.statut === 'planifie' ? `<button class="btn-delete" onclick="supprimerSermon('${s._id}')">🗑️ Supprimer</button>` : ''}
+            ${s.statut !== 'en_cours' ? `<button class="btn-delete" onclick="supprimer('${s._id}')">🗑️</button>` : ''}
           </div>`;
       }).join('');
     } catch(e) {
@@ -495,67 +549,121 @@
     }
   }
 
+  // ===== UPLOAD FICHIER =====
+  function dragOver(e) { e.preventDefault(); document.getElementById('upload-zone').classList.add('drag-over'); }
+  function dragLeave() { document.getElementById('upload-zone').classList.remove('drag-over'); }
+  function dropFile(e) {
+    e.preventDefault();
+    dragLeave();
+    const files = e.dataTransfer.files;
+    if (files.length > 0) appliquerFichier(files[0]);
+  }
+
+  function fileSelectionne(e) {
+    if (e.target.files.length > 0) appliquerFichier(e.target.files[0]);
+  }
+
+  function appliquerFichier(file) {
+    selectedFile = file;
+    document.getElementById('file-name').textContent = file.name;
+    document.getElementById('file-size').textContent = formatBytes(file.size);
+    document.getElementById('file-preview').classList.add('visible');
+    document.getElementById('upload-zone').style.display = 'none';
+  }
+
+  function retirerFichier() {
+    selectedFile = null;
+    document.getElementById('f-audio-file').value = '';
+    document.getElementById('file-preview').classList.remove('visible');
+    document.getElementById('upload-zone').style.display = 'block';
+  }
+
+  function formatBytes(bytes) {
+    if (bytes < 1024*1024) return (bytes/1024).toFixed(1) + ' Ko';
+    return (bytes/1024/1024).toFixed(1) + ' Mo';
+  }
+
+  // ===== PLANIFICATION =====
   async function planifierSermon() {
     const titre = document.getElementById('f-titre').value.trim();
     const desc = document.getElementById('f-desc').value.trim();
-    const audioUrl = document.getElementById('f-audio').value.trim();
     const date = document.getElementById('f-date').value;
 
-    if (!titre || !audioUrl || !date) {
-      toast('⚠️ Remplissez tous les champs obligatoires (*)', 'error');
-      return;
-    }
+    if (!titre || !date) { toast('⚠️ Titre et date obligatoires', 'error'); return; }
+    if (!selectedFile) { toast('⚠️ Sélectionnez un fichier audio', 'error'); return; }
 
     const btn = document.getElementById('btn-submit');
     btn.disabled = true;
-    btn.innerHTML = '<span>⏳</span> Planification...';
+    btn.innerHTML = '<span>⏳</span> Upload en cours…';
+
+    // Afficher la barre de progression
+    document.getElementById('upload-progress').classList.add('visible');
+    animerProgression();
 
     try {
+      const formData = new FormData();
+      formData.append('titre', titre);
+      formData.append('description', desc);
+      formData.append('dateDiffusion', new Date(date).toISOString());
+      formData.append('audio', selectedFile, selectedFile.name);
+
       const res = await fetch(`${API}/sermons/schedule`, {
         method: 'POST',
-        headers: headers(),
-        body: JSON.stringify({
-          titre,
-          description: desc,
-          audioUrl,
-          dateDiffusion: new Date(date).toISOString(),
-          creePar: '000000000000000000000000'
-        })
+        headers: { 'x-admin-password': adminPassword },
+        body: formData,
       });
 
       if (res.ok) {
+        document.getElementById('progress-fill').style.width = '100%';
+        document.getElementById('progress-text').textContent = '✅ Upload terminé !';
         toast('✅ Prédication planifiée avec succès !', 'success');
+        // Réinitialiser le formulaire
         document.getElementById('f-titre').value = '';
         document.getElementById('f-desc').value = '';
-        document.getElementById('f-audio').value = '';
         document.getElementById('f-date').value = '';
+        retirerFichier();
         chargerTout();
       } else {
         const err = await res.json();
-        toast('❌ Erreur : ' + (err.error || 'inconnue'), 'error');
+        toast('❌ ' + (err.error || 'Erreur inconnue'), 'error');
       }
     } catch(e) {
       toast('❌ Impossible de joindre le serveur', 'error');
     } finally {
       btn.disabled = false;
       btn.innerHTML = '<span>⏰</span> Planifier la prédication';
+      setTimeout(() => {
+        document.getElementById('upload-progress').classList.remove('visible');
+        document.getElementById('progress-fill').style.width = '0%';
+      }, 3000);
     }
   }
 
-  async function supprimerSermon(id) {
+  // Animation de progression (simulée pendant l'upload)
+  function animerProgression() {
+    let pct = 0;
+    const interval = setInterval(() => {
+      if (pct >= 90) { clearInterval(interval); return; }
+      pct += Math.random() * 8;
+      pct = Math.min(pct, 90);
+      document.getElementById('progress-fill').style.width = pct + '%';
+      document.getElementById('progress-text').textContent = `Upload en cours… ${Math.round(pct)}%`;
+    }, 400);
+  }
+
+  // ===== SUPPRESSION =====
+  async function supprimer(id) {
     if (!confirm('Supprimer cette prédication ?')) return;
     try {
       const res = await fetch(`${API}/sermons/${id}`, {
         method: 'DELETE',
-        headers: headers()
+        headers: authHeaders()
       });
-      if (res.ok) {
-        toast('🗑️ Prédication supprimée', 'success');
-        chargerTout();
-      }
-    } catch(e) { toast('❌ Erreur de suppression', 'error'); }
+      if (res.ok) { toast('🗑️ Supprimée', 'success'); chargerTout(); }
+    } catch(e) { toast('❌ Erreur', 'error'); }
   }
 
+  // ===== TOAST =====
   function toast(msg, type) {
     const el = document.getElementById('toast');
     el.textContent = msg;
@@ -563,7 +671,7 @@
     setTimeout(() => el.classList.remove('show'), 3500);
   }
 
-  // Définir l'heure minimum = maintenant
+  // Heure minimum = maintenant
   const now = new Date();
   now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
   document.getElementById('f-date').min = now.toISOString().slice(0, 16);
