@@ -113,56 +113,67 @@
     /* ============================
        APP
     ============================ */
-    #app { display: none; padding-bottom: var(--nav-h); }
+    body { background: #fff; }
+    #app { display: none; padding-bottom: var(--nav-h); background: #fff; }
 
-    /* Header */
+    /* ======= HEADER ======= */
     .app-header {
-      background: var(--bg);
-      padding: 54px 20px 12px;
-      display: flex; align-items: center; justify-content: space-between;
+      background: #fff;
+      padding: 52px 16px 10px;
+      display: flex; align-items: center; gap: 10px;
+      border-bottom: 1px solid var(--border);
     }
 
     .logo-circle {
-      width: 40px; height: 40px; border-radius: 10px;
-      overflow: hidden;
+      width: 36px; height: 36px; border-radius: 9px;
+      overflow: hidden; flex-shrink: 0;
       display: flex; align-items: center; justify-content: center;
     }
-    .logo-circle img {
-      width: 100%; height: 100%; object-fit: contain;
-    }
+    .logo-circle img { width: 100%; height: 100%; object-fit: contain; }
 
-    .header-right { display: flex; align-items: center; gap: 10px; }
+    /* Quick icon bar in header */
+    .header-quick {
+      display: flex; align-items: center; gap: 2px;
+      flex: 1; justify-content: center;
+    }
+    .hq-btn {
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+      background: none; border: none; cursor: pointer;
+      padding: 5px 9px; border-radius: 12px;
+      transition: background .15s;
+    }
+    .hq-btn:active { background: var(--bg); }
+    .hq-label { font-size: 9px; font-weight: 600; color: var(--text-sub); }
+
+    .header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 
     .icon-btn {
-      width: 40px; height: 40px; border-radius: 50%;
-      background: var(--card); border: none; cursor: pointer;
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--bg); border: none; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.07);
       position: relative;
     }
+    .icon-btn:active { opacity: 0.7; }
 
     .notif-dot {
-      position: absolute; top: 9px; right: 9px;
+      position: absolute; top: 7px; right: 7px;
       width: 7px; height: 7px;
       background: var(--primary); border-radius: 50%;
-      border: 2px solid var(--bg);
+      border: 2px solid #fff;
     }
 
     /* Greeting */
-    .greeting { padding: 6px 20px 22px; }
-    .greeting-name { font-size: 28px; font-weight: 800; color: var(--text); margin-bottom: 3px; letter-spacing: -0.5px; }
-    .greeting-verse { font-size: 14px; color: var(--text-sub); }
+    .greeting { padding: 18px 20px 10px; }
+    .greeting-name { font-size: 24px; font-weight: 800; color: var(--text); margin-bottom: 2px; letter-spacing: -0.5px; }
+    .greeting-verse { font-size: 13px; color: var(--text-sub); }
 
     /* Live banner */
     .live-banner {
-      margin: 0 20px 16px;
+      margin: 0 16px 16px;
       background: var(--primary);
-      border-radius: 18px;
-      padding: 18px 20px;
-      display: none;
-      cursor: pointer;
-      position: relative;
-      overflow: hidden;
+      border-radius: 16px;
+      padding: 16px 18px;
+      display: none; cursor: pointer;
     }
     .live-banner.visible { display: block; }
 
@@ -173,212 +184,145 @@
       padding: 3px 9px; border-radius: 20px;
       margin-bottom: 8px; letter-spacing: 0.5px;
     }
-
     .live-dot { width: 6px; height: 6px; background: #fff; border-radius: 50%; animation: blink 1s infinite; }
     @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
-
-    .live-title { color: #fff; font-size: 16px; font-weight: 700; margin-bottom: 2px; }
+    .live-title { color: #fff; font-size: 15px; font-weight: 700; margin-bottom: 2px; }
     .live-sub { color: rgba(255,255,255,0.65); font-size: 12px; }
 
-    /* Player */
+    /* Audio player card */
     .player-card {
-      margin: 0 20px 16px;
+      margin: 0 16px 16px;
       background: #1C1C2E;
-      border-radius: 18px;
-      overflow: hidden;
-      display: none;
+      border-radius: 16px;
+      overflow: hidden; display: none;
     }
     .player-card.visible { display: block; }
-
     audio { display: none; }
 
-    /* Bandeau "Appuyez pour ecouter" — affiché quand l'autoplay est bloqué */
     .tap-to-play {
-      display: none;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
+      display: none; align-items: center; justify-content: center; gap: 10px;
       background: linear-gradient(135deg, #6B4EFF, #4B2FD4);
-      color: #fff;
-      font-size: 15px;
-      font-weight: 700;
-      padding: 12px 20px;
-      border-radius: 12px;
-      margin: 10px 0 4px;
-      cursor: pointer;
-      animation: pulse-tap 1.5s infinite;
-      border: none;
-      width: 100%;
+      color: #fff; font-size: 15px; font-weight: 700;
+      padding: 12px 20px; border-radius: 12px; margin: 10px 0 4px;
+      cursor: pointer; animation: pulse-tap 1.5s infinite;
+      border: none; width: 100%;
     }
     .tap-to-play.visible { display: flex; }
-    @keyframes pulse-tap {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50%       { opacity: 0.85; transform: scale(0.98); }
-    }
+    @keyframes pulse-tap { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.85;transform:scale(.98)} }
 
-    .player-body { padding: 16px; }
-
-    .player-row {
-      display: flex; align-items: center; gap: 14px;
-      margin-bottom: 14px;
-    }
-
+    .player-body { padding: 14px; }
+    .player-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
     .player-thumb {
-      width: 52px; height: 52px; border-radius: 12px;
+      width: 48px; height: 48px; border-radius: 10px;
       background: var(--primary);
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
     }
-
     .player-info { flex: 1; min-width: 0; }
     .player-title { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .player-status { font-size: 12px; color: rgba(255,255,255,0.45); }
-
+    .player-status { font-size: 11px; color: rgba(255,255,255,0.45); }
     .btn-play-circle {
-      width: 44px; height: 44px; border-radius: 50%;
+      width: 42px; height: 42px; border-radius: 50%;
       background: var(--primary); border: none;
       display: flex; align-items: center; justify-content: center;
-      cursor: pointer; flex-shrink: 0;
-      transition: opacity .2s;
+      cursor: pointer; flex-shrink: 0; transition: opacity .2s;
     }
     .btn-play-circle:active { opacity: 0.8; }
-
-    .progress-track {
-      width: 100%; height: 4px;
-      background: rgba(255,255,255,0.12);
-      border-radius: 2px; cursor: pointer; margin-bottom: 6px;
-    }
-
-    .progress-fill {
-      height: 100%; background: var(--primary);
-      border-radius: 2px; transition: width .3s linear;
-    }
-
-    .time-row {
-      display: flex; justify-content: space-between;
-      color: rgba(255,255,255,0.4); font-size: 11px;
-    }
-
-    .player-controls-row {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-top: 12px;
-    }
-
-    .ctrl-btn {
-      background: none; border: none;
-      color: rgba(255,255,255,0.5);
-      cursor: pointer;
-      display: flex; align-items: center; gap: 4px;
-      font-size: 12px; font-weight: 600;
-    }
-
+    .progress-track { width: 100%; height: 4px; background: rgba(255,255,255,0.12); border-radius: 2px; cursor: pointer; margin-bottom: 5px; }
+    .progress-fill { height: 100%; background: var(--primary); border-radius: 2px; transition: width .3s linear; }
+    .time-row { display: flex; justify-content: space-between; color: rgba(255,255,255,0.4); font-size: 11px; }
+    .player-controls-row { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
+    .ctrl-btn { background: none; border: none; color: rgba(255,255,255,0.5); cursor: pointer; display: flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; }
     .volume-row { display: flex; align-items: center; gap: 6px; }
-    .volume-row svg { color: rgba(255,255,255,0.4); }
-    input[type="range"] { width: 72px; accent-color: var(--primary); }
+    input[type="range"] { width: 68px; accent-color: var(--primary); }
 
-    /* Quick actions */
-    .quick-actions {
-      display: grid; grid-template-columns: repeat(4,1fr);
-      gap: 10px; margin: 0 20px 24px;
+    /* ======= YOUTUBE CARD ======= */
+    .yt-card {
+      margin: 0 16px 20px;
+      border-radius: 16px;
+      overflow: hidden;
+      cursor: pointer;
+      position: relative;
+      background: #000;
+      display: none;
     }
-
-    .action-item {
+    .yt-card.visible { display: block; }
+    .yt-thumb {
+      width: 100%; aspect-ratio: 16/9;
+      object-fit: cover; display: block;
+    }
+    .yt-overlay {
+      position: absolute; inset: 0;
       display: flex; flex-direction: column;
-      align-items: center; gap: 7px; cursor: pointer;
+      align-items: center; justify-content: center;
+      background: rgba(0,0,0,0.3);
     }
-
-    .action-icon {
-      width: 56px; height: 56px; border-radius: 16px;
+    .yt-play-btn {
+      width: 54px; height: 54px; border-radius: 50%;
+      background: rgba(255,0,0,0.9);
       display: flex; align-items: center; justify-content: center;
+      margin-bottom: 10px;
+    }
+    .yt-label {
+      color: #fff; font-size: 13px; font-weight: 700;
+      background: rgba(0,0,0,0.4);
+      padding: 5px 14px; border-radius: 20px;
     }
 
-    .action-label { font-size: 12px; font-weight: 600; color: var(--text); }
-    .action-sub   { font-size: 10px; color: var(--text-muted); margin-top: -4px; text-align: center; }
-
-    /* Section row */
+    /* ======= SECTION ROW ======= */
     .section-row {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 0 20px; margin-bottom: 12px;
+      padding: 0 16px; margin-bottom: 12px;
     }
+    .section-title { font-size: 19px; font-weight: 800; color: var(--text); letter-spacing: -0.3px; }
+    .voir-tout { font-size: 13px; color: var(--primary); font-weight: 500; cursor: pointer; }
 
-    .section-title { font-size: 20px; font-weight: 800; color: var(--text); letter-spacing: -0.3px; }
-    .voir-tout { font-size: 14px; color: var(--primary); font-weight: 500; cursor: pointer; }
-
-    /* Sermon card */
-    .sermon-card {
-      margin: 0 20px 10px;
-      background: var(--card);
-      border-radius: var(--radius);
-      overflow: hidden;
-      display: flex;
-      box-shadow: 0 1px 6px rgba(0,0,0,0.05);
-      cursor: pointer;
+    /* ======= SERMON GRID (2 colonnes) ======= */
+    .sermon-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 12px; padding: 0 16px;
+    }
+    .sg-card {
+      background: var(--card); border-radius: 14px;
+      overflow: hidden; cursor: pointer;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.06);
       transition: transform .1s;
     }
-    .sermon-card:active { transform: scale(0.99); }
-
-    .sermon-thumb {
-      width: 100px; flex-shrink: 0;
+    .sg-card:active { transform: scale(0.97); }
+    .sg-thumb {
+      width: 100%; aspect-ratio: 1;
       background: var(--primary-bg);
       display: flex; align-items: center; justify-content: center;
+      position: relative; overflow: hidden;
     }
-
-    .sermon-info { padding: 14px 14px 12px; flex: 1; min-width: 0; }
-    .sermon-tag { font-size: 10px; font-weight: 700; color: var(--primary); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 5px; }
-    .sermon-title-txt { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 5px; line-height: 1.3; }
-    .sermon-meta-txt { font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 5px; }
-
-    /* A venir */
-    .avenir-card {
-      margin: 0 20px 10px;
-      background: var(--card);
-      border-radius: var(--radius);
-      padding: 15px 16px;
-      display: flex; align-items: center; gap: 14px;
-      box-shadow: 0 1px 6px rgba(0,0,0,0.05);
-    }
-
-    .avenir-icon {
-      width: 46px; height: 46px; border-radius: 12px;
-      background: var(--primary-bg);
+    .sg-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .sg-play-over {
+      position: absolute; inset: 0;
       display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
+      background: rgba(107,78,255,0.15);
     }
+    .sg-info { padding: 10px 10px 12px; }
+    .sg-title { font-size: 13px; font-weight: 700; color: var(--text); line-height: 1.3; margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .sg-meta { font-size: 11px; color: var(--text-muted); }
 
-    .avenir-info { flex: 1; }
-    .avenir-title { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
-    .avenir-date-txt { font-size: 12px; color: var(--text-muted); }
-
-    .avenir-badge {
-      background: var(--primary-bg); color: var(--primary);
-      font-size: 11px; font-weight: 800;
-      padding: 6px 10px; border-radius: 10px;
-      text-align: center; flex-shrink: 0;
-    }
-
-    /* Recordings list */
+    /* Bibliothèque list */
     .rec-item {
-      margin: 0 20px 10px;
-      background: var(--card);
-      border-radius: var(--radius);
-      padding: 14px 16px;
+      margin: 0 16px 10px;
+      background: var(--card); border-radius: var(--radius);
+      padding: 13px 14px;
       display: flex; align-items: center; gap: 12px;
       cursor: pointer; box-shadow: 0 1px 6px rgba(0,0,0,0.05);
       transition: transform .1s;
     }
     .rec-item:active { transform: scale(0.99); }
-
     .rec-icon {
-      width: 44px; height: 44px; border-radius: 12px;
+      width: 48px; height: 48px; border-radius: 12px;
       background: var(--primary-bg);
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
     }
-
+    .rec-icon img { width: 100%; height: 100%; object-fit: cover; border-radius: 12px; }
     .rec-info { flex: 1; min-width: 0; }
     .rec-title { font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .rec-meta  { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
-
     .rec-play {
       width: 36px; height: 36px; border-radius: 50%;
       background: var(--primary); color: #fff; border: none;
@@ -390,34 +334,31 @@
     .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
     .empty-state p { font-size: 14px; margin-top: 12px; }
 
-    /* Bottom nav */
+    /* ======= BOTTOM NAV (3 items) ======= */
     .bottom-nav {
       position: fixed; bottom: 0;
       left: 50%; transform: translateX(-50%);
       width: 100%; max-width: 430px;
       height: var(--nav-h);
-      background: var(--card);
+      background: #fff;
       border-top: 1px solid var(--border);
       display: flex; align-items: center; justify-content: space-around;
-      padding: 0 4px 8px; z-index: 100;
+      padding: 0 0 8px; z-index: 100;
     }
-
     .nav-item {
       display: flex; flex-direction: column; align-items: center;
-      gap: 4px; cursor: pointer; padding: 8px 14px;
+      gap: 4px; cursor: pointer; padding: 8px 24px;
       border-radius: var(--radius); flex: 1;
       transition: background .15s; position: relative;
     }
-
     .nav-label { font-size: 10px; font-weight: 600; color: var(--text-muted); }
     .nav-item.active .nav-label { color: var(--primary); }
-    .nav-item.active svg { stroke: var(--primary); fill: none; }
-    .nav-item svg { stroke: var(--text-muted); }
-
+    .nav-item.active svg { stroke: var(--primary); }
+    .nav-item svg { stroke: var(--text-muted); fill: none; }
     .nav-item.active::after {
       content: ''; position: absolute; bottom: -8px; left: 50%;
       transform: translateX(-50%);
-      width: 22px; height: 3px;
+      width: 20px; height: 3px;
       background: var(--primary); border-radius: 2px;
     }
 
@@ -437,19 +378,33 @@
     .tab-content { display: none; }
     .tab-content.active { display: block; }
 
-    /* Community / More placeholders */
-    .placeholder-section {
-      display: flex; flex-direction: column; align-items: center;
-      justify-content: center; padding: 64px 24px; gap: 12px;
+    /* Settings tab */
+    .settings-section { padding: 24px 16px; }
+    .settings-avatar {
+      width: 72px; height: 72px; border-radius: 50%;
+      background: var(--primary-bg);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 12px;
     }
-    .placeholder-section p { font-size: 15px; color: var(--text-sub); text-align: center; }
-    .placeholder-section .small { font-size: 13px; color: var(--text-muted); }
-
+    .settings-name { font-size: 20px; font-weight: 800; color: var(--text); text-align: center; margin-bottom: 4px; }
+    .settings-sub { font-size: 13px; color: var(--text-sub); text-align: center; margin-bottom: 28px; }
+    .settings-row {
+      display: flex; align-items: center; gap: 14px;
+      background: var(--card); border-radius: 14px;
+      padding: 15px 16px; margin-bottom: 10px;
+      cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    }
+    .settings-row-icon {
+      width: 38px; height: 38px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .settings-row-label { flex: 1; font-size: 15px; font-weight: 600; color: var(--text); }
+    .settings-row-arrow { color: var(--text-muted); font-size: 18px; }
     .btn-signout {
-      margin-top: 8px; padding: 12px 28px;
-      background: var(--primary); color: #fff;
+      width: 100%; margin-top: 16px; padding: 14px;
+      background: #FFE8EC; color: #D0021B;
       border: none; border-radius: var(--radius);
-      font-size: 14px; font-weight: 700; cursor: pointer;
+      font-size: 15px; font-weight: 700; cursor: pointer;
     }
 
     /* ============================
@@ -561,19 +516,49 @@
       <img src="/logo.jpg" alt="Maranatha" />
     </div>
 
+    <!-- Quick actions in header -->
+    <div class="header-quick">
+      <button class="hq-btn" onclick="showToast('Bible — Bientôt disponible')">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6B4EFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+        </svg>
+        <span class="hq-label">Bible</span>
+      </button>
+      <button class="hq-btn" onclick="showToast('Notes — Bientôt disponible')">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#E07A00" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/>
+          <line x1="16" y1="17" x2="8" y2="17"/>
+        </svg>
+        <span class="hq-label">Notes</span>
+      </button>
+      <button class="hq-btn" onclick="showToast('Prière — Bientôt disponible')">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#00897B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2v6M8.5 4.5C6.5 6.5 5 9.5 5 12c0 3.9 3.1 7 7 7s7-3.1 7-7c0-2.5-1.5-5.5-3.5-7.5"/>
+          <path d="M9 12c0 1.7 1.3 3 3 3s3-1.3 3-3"/>
+        </svg>
+        <span class="hq-label">Prière</span>
+      </button>
+      <button class="hq-btn" onclick="showToast('Offrande — Bientôt disponible')">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#D0021B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+        </svg>
+        <span class="hq-label">Offrande</span>
+      </button>
+    </div>
+
     <div class="header-right">
       <button class="icon-btn" id="notif-btn" onclick="showToast('Aucune nouvelle notification')">
-        <!-- Bell SVG -->
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6E6E73" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6E6E73" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
           <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
         </svg>
         <div class="notif-dot" id="notif-dot" style="display:none"></div>
       </button>
-
-      <button class="icon-btn" onclick="switchTab('more')">
-        <!-- User SVG -->
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6E6E73" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <button class="icon-btn" onclick="switchTab('settings')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6E6E73" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
           <circle cx="12" cy="7" r="4"/>
         </svg>
@@ -584,7 +569,7 @@
   <!-- Greeting -->
   <div class="greeting">
     <div class="greeting-name" id="greeting-name">Bonjour !</div>
-    <div class="greeting-verse">Que Dieu vous benisse aujourd'hui</div>
+    <div class="greeting-verse">Que Dieu vous bénisse aujourd'hui 🙏</div>
   </div>
 
   <!-- ===== TAB : ACCUEIL ===== -->
@@ -592,25 +577,22 @@
 
     <!-- Live banner -->
     <div class="live-banner" id="live-banner" onclick="scrollToPlayer()">
-      <div class="live-chip">
-        <div class="live-dot"></div>
-        LIVE
-      </div>
+      <div class="live-chip"><div class="live-dot"></div>LIVE</div>
       <div class="live-title" id="live-title-txt">Culte en direct</div>
       <div class="live-sub">Suivez la predication en temps reel</div>
     </div>
 
-    <!-- Player -->
+    <!-- Audio player -->
     <div class="player-card" id="player-card">
       <audio id="main-audio" preload="none"></audio>
       <button class="tap-to-play" id="tap-to-play" onclick="demarrerLecture()">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-        Appuyez pour ecouter la predication
+        Appuyez pour écouter
       </button>
       <div class="player-body">
         <div class="player-row">
           <div class="player-thumb">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
               <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
               <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
@@ -621,12 +603,9 @@
             <div class="player-status" id="player-status">En lecture</div>
           </div>
           <button class="btn-play-circle" id="btn-play" onclick="togglePlay()">
-            <svg id="play-icon" width="18" height="18" viewBox="0 0 24 24" fill="white">
-              <polygon points="5 3 19 12 5 21 5 3"/>
-            </svg>
+            <svg id="play-icon" width="18" height="18" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
           </button>
         </div>
-
         <div class="progress-track" id="progress-track" onclick="seekAudio(event)">
           <div class="progress-fill" id="progress-fill" style="width:0%"></div>
         </div>
@@ -634,167 +613,117 @@
           <span id="time-current">0:00</span>
           <span id="time-total">0:00</span>
         </div>
-
         <div class="player-controls-row">
           <button class="ctrl-btn" onclick="skipBack()">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2">
-              <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/>
-            </svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
             <span style="color:rgba(255,255,255,0.5)">10</span>
           </button>
           <div class="volume-row">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2" stroke-linecap="round">
-              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
-              <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
-            </svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2" stroke-linecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
             <input type="range" min="0" max="1" step="0.05" value="1" oninput="setVolume(this.value)" />
           </div>
           <button class="ctrl-btn" onclick="skipForward()">
             <span style="color:rgba(255,255,255,0.5)">10</span>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2">
-              <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.49-3.5"/>
-            </svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.49-3.5"/></svg>
           </button>
         </div>
       </div>
     </div>
 
-    <!-- Quick actions -->
-    <div class="quick-actions">
-      <div class="action-item" onclick="showToast('Bible — Bientot disponible')">
-        <div class="action-icon" style="background:var(--primary-bg)">
-          <!-- Book icon -->
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#6B4EFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
-            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
-          </svg>
+    <!-- YouTube featured card -->
+    <div class="yt-card" id="yt-card" onclick="ouvrirYoutube()">
+      <img class="yt-thumb" id="yt-thumb" src="" alt="Vidéo en vedette" />
+      <div class="yt-overlay">
+        <div class="yt-play-btn">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
         </div>
-        <div class="action-label">Bible</div>
-        <div class="action-sub">Lire la Parole</div>
-      </div>
-
-      <div class="action-item" onclick="showToast('Notes — Bientot disponible')">
-        <div class="action-icon" style="background:var(--orange-bg)">
-          <!-- Notes icon -->
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#E07A00" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-            <polyline points="14 2 14 8 20 8"/>
-            <line x1="16" y1="13" x2="8" y2="13"/>
-            <line x1="16" y1="17" x2="8" y2="17"/>
-            <polyline points="10 9 9 9 8 9"/>
-          </svg>
-        </div>
-        <div class="action-label">Notes</div>
-        <div class="action-sub">Mes notes</div>
-      </div>
-
-      <div class="action-item" onclick="showToast('Priere — Bientot disponible')">
-        <div class="action-icon" style="background:var(--teal-bg)">
-          <!-- Hands / pray icon -->
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#00897B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 2v6M8.5 4.5C6.5 6.5 5 9.5 5 12c0 3.9 3.1 7 7 7s7-3.1 7-7c0-2.5-1.5-5.5-3.5-7.5"/>
-            <path d="M9 12c0 1.7 1.3 3 3 3s3-1.3 3-3"/>
-          </svg>
-        </div>
-        <div class="action-label">Priere</div>
-        <div class="action-sub">Faire une priere</div>
-      </div>
-
-      <div class="action-item" onclick="showToast('Offrandes — Bientot disponible')">
-        <div class="action-icon" style="background:var(--pink-bg)">
-          <!-- Heart icon -->
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#D0021B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-          </svg>
-        </div>
-        <div class="action-label">Offrandes</div>
-        <div class="action-sub">Donner</div>
+        <div class="yt-label" id="yt-label">Regarder sur YouTube</div>
       </div>
     </div>
 
-    <!-- Aujourd'hui -->
+    <!-- Prédications -->
     <div class="section-row">
-      <div class="section-title">Aujourd'hui</div>
-      <div class="voir-tout" onclick="switchTab('recordings')">Voir tout ›</div>
+      <div class="section-title">Prédications</div>
+      <div class="voir-tout" onclick="switchTab('library')">Voir tout ›</div>
     </div>
-    <div id="today-section"></div>
+    <div class="sermon-grid" id="home-sermons"></div>
 
-    <!-- A venir -->
-    <div class="section-row" style="margin-top:20px">
-      <div class="section-title">A venir</div>
-      <div class="voir-tout" onclick="switchTab('recordings')">Voir tout ›</div>
-    </div>
-    <div id="upcoming-section"></div>
-
-    <div style="height:20px"></div>
+    <div style="height:24px"></div>
   </div>
 
-  <!-- ===== TAB : ENREGISTREMENTS ===== -->
-  <div id="tab-recordings" class="tab-content">
-    <div class="section-row" style="margin-top:28px; margin-bottom:16px">
-      <div class="section-title">Predications</div>
+  <!-- ===== TAB : BIBLIOTHÈQUE ===== -->
+  <div id="tab-library" class="tab-content">
+    <div class="section-row" style="margin-top:24px; margin-bottom:14px">
+      <div class="section-title">Toutes les prédications</div>
     </div>
     <div id="recordings-section"></div>
     <div style="height:20px"></div>
   </div>
 
-  <!-- ===== TAB : COMMUNAUTE ===== -->
-  <div id="tab-community" class="tab-content">
-    <div class="placeholder-section">
-      <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#AEAEB2" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-        <circle cx="9" cy="7" r="4"/>
-        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-      </svg>
-      <p>Communaute</p>
-      <p class="small">Bientot disponible</p>
+  <!-- ===== TAB : PARAMÈTRES ===== -->
+  <div id="tab-settings" class="tab-content">
+    <div class="settings-section">
+      <div class="settings-avatar">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#6B4EFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+      </div>
+      <div class="settings-name" id="more-username">Fidèle</div>
+      <div class="settings-sub">Communauté Maranatha</div>
+
+      <div class="settings-row" onclick="showToast('Bientôt disponible')">
+        <div class="settings-row-icon" style="background:var(--primary-bg)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B4EFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <div class="settings-row-label">Mon profil</div>
+        <div class="settings-row-arrow">›</div>
+      </div>
+
+      <div class="settings-row" onclick="showToast('Bientôt disponible')">
+        <div class="settings-row-icon" style="background:var(--orange-bg)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E07A00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        </div>
+        <div class="settings-row-label">Notifications</div>
+        <div class="settings-row-arrow">›</div>
+      </div>
+
+      <div class="settings-row" onclick="showToast('Bientôt disponible')">
+        <div class="settings-row-icon" style="background:var(--teal-bg)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00897B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </div>
+        <div class="settings-row-label">Paramètres</div>
+        <div class="settings-row-arrow">›</div>
+      </div>
+
+      <button class="btn-signout" onclick="logout()">Se déconnecter</button>
     </div>
   </div>
 
-  <!-- ===== TAB : PLUS ===== -->
-  <div id="tab-more" class="tab-content">
-    <div class="placeholder-section">
-      <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#AEAEB2" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-        <circle cx="12" cy="7" r="4"/>
-      </svg>
-      <p id="more-username">Fidele</p>
-      <p class="small">Maranatha — Eglise Vivante</p>
-      <button class="btn-signout" onclick="logout()">Se deconnecter</button>
-    </div>
-  </div>
-
-  <!-- Bottom nav -->
+  <!-- Bottom nav — 3 items -->
   <nav class="bottom-nav">
     <div class="nav-item active" id="nav-home" onclick="switchTab('home')">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <svg width="22" height="22" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
         <polyline points="9 22 9 12 15 12 15 22"/>
       </svg>
       <span class="nav-label">Accueil</span>
     </div>
 
-    <div class="nav-item" id="nav-recordings" onclick="switchTab('recordings')">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="10"/>
-        <polygon points="10 8 16 12 10 16 10 8"/>
+    <div class="nav-item" id="nav-library" onclick="switchTab('library')">
+      <svg width="22" height="22" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
       </svg>
-      <span class="nav-label">Enregistrements</span>
+      <span class="nav-label">Bibliothèque</span>
     </div>
 
-    <div class="nav-item" id="nav-community" onclick="switchTab('community')">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+    <div class="nav-item" id="nav-settings" onclick="switchTab('settings')">
+      <svg width="22" height="22" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
       </svg>
-      <span class="nav-label">Communaute</span>
-    </div>
-
-    <div class="nav-item" id="nav-more" onclick="switchTab('more')">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>
-      </svg>
-      <span class="nav-label">Plus</span>
+      <span class="nav-label">Paramètres</span>
     </div>
   </nav>
 </div>
@@ -875,14 +804,13 @@
   }
 
   function lancerApp() {
-    // Sauvegarder la session dans localStorage
     localStorage.setItem('maranatha_user', userName);
-
     document.getElementById('register-page').style.display = 'none';
     document.getElementById('app').style.display = 'block';
     document.getElementById('greeting-name').textContent = 'Bonjour, ' + userName + ' !';
     document.getElementById('more-username').textContent = userName;
     chargerSermons();
+    chargerYoutube();
     connecterSSE();
   }
 
@@ -925,7 +853,8 @@
   }
 
   // ============ NAVIGATION ============
-  const TABS = ['home', 'recordings', 'community', 'more'];
+  const TABS = ['home', 'library', 'settings'];
+  let youtubeUrl = '';
 
   function switchTab(tab) {
     TABS.forEach(t => {
@@ -933,7 +862,35 @@
       const nav = document.getElementById('nav-' + t);
       if (nav) nav.classList.toggle('active', t === tab);
     });
-    if (tab === 'recordings') afficherEnregistrements();
+    if (tab === 'library') afficherBibliotheque();
+  }
+
+  // ============ YOUTUBE ============
+  function ytVideoId(url) {
+    if (!url) return null;
+    const m = url.match(/(?:v=|youtu\.be\/)([^&?/]+)/);
+    return m ? m[1] : null;
+  }
+
+  function ouvrirYoutube() {
+    if (youtubeUrl) window.open(youtubeUrl, '_blank');
+  }
+
+  async function chargerYoutube() {
+    try {
+      const res = await fetch(API + '/settings/home');
+      if (!res.ok) return;
+      const cfg = await res.json();
+      if (cfg.youtubeUrl) {
+        youtubeUrl = cfg.youtubeUrl;
+        const vid = ytVideoId(youtubeUrl);
+        if (vid) {
+          document.getElementById('yt-thumb').src = `https://img.youtube.com/vi/${vid}/hqdefault.jpg`;
+          document.getElementById('yt-label').textContent = cfg.ytLabel || 'Regarder sur YouTube';
+          document.getElementById('yt-card').classList.add('visible');
+        }
+      }
+    } catch(e) {}
   }
 
   // ============ CHARGEMENT ============
@@ -948,14 +905,9 @@
   }
 
   function afficherAccueil() {
-    const now = new Date();
     const live = sermons.find(s => s.statut === 'en_cours');
-    const prochains = sermons
-      .filter(s => s.statut === 'planifie' && new Date(s.dateDiffusion) > now)
-      .sort((a, b) => new Date(a.dateDiffusion) - new Date(b.dateDiffusion));
-    const derniere = sermons.find(s => s.statut === 'termine');
 
-    // Live banner + player
+    // Live banner + player audio
     if (live) {
       document.getElementById('live-banner').classList.add('visible');
       document.getElementById('live-title-txt').textContent = live.titre;
@@ -968,106 +920,59 @@
       document.getElementById('player-card').classList.remove('visible');
     }
 
-    // Aujourd'hui
-    const sermonDuJour = live || derniere;
-    const todayEl = document.getElementById('today-section');
-    if (sermonDuJour) {
-      const d = new Date(sermonDuJour.dateDiffusion);
-      const dateStr = d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
-      todayEl.innerHTML = `
-        <div class="sermon-card" onclick="jouerSermon('${sermonDuJour._id}')">
-          <div class="sermon-thumb">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#6B4EFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
-              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
-            </svg>
-          </div>
-          <div class="sermon-info">
-            <div class="sermon-tag">Predication du jour</div>
-            <div class="sermon-title-txt">${sermonDuJour.titre}</div>
-            <div class="sermon-meta-txt">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-              ${dateStr}
-            </div>
-          </div>
-        </div>`;
+    // Grille 2 colonnes — 4 dernières prédications terminées
+    const termines = sermons.filter(s => s.statut === 'termine' || s.statut === 'en_cours').slice(0, 4);
+    const gridEl = document.getElementById('home-sermons');
+    if (!termines.length) {
+      gridEl.innerHTML = `<div class="empty-state" style="grid-column:span 2"><p>Les prédications apparaîtront ici</p></div>`;
     } else {
-      todayEl.innerHTML = `
-        <div class="empty-state">
-          <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="#AEAEB2" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M4.93 4.93l14.14 14.14M12 2a10 10 0 0 1 7.07 17.07"/>
-            <path d="M12 2A10 10 0 0 0 4.93 19.07"/>
-            <line x1="12" y1="8" x2="12" y2="12"/>
-            <line x1="12" y1="16" x2="12.01" y2="16"/>
-          </svg>
-          <p>Aucune predication pour aujourd'hui</p>
-        </div>`;
-    }
-
-    // A venir
-    const upcomingEl = document.getElementById('upcoming-section');
-    if (!prochains.length) {
-      upcomingEl.innerHTML = `<div class="empty-state"><p>Aucune predication planifiee</p></div>`;
-    } else {
-      upcomingEl.innerHTML = prochains.slice(0, 3).map(s => {
+      gridEl.innerHTML = termines.map(s => {
         const d = new Date(s.dateDiffusion);
-        const jour = d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }).toUpperCase();
-        const jourSem = d.toLocaleDateString('fr-FR', { weekday: 'long' });
-        const heure = d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+        const dateStr = d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
+        const thumb = s.coverUrl
+          ? `<img src="${s.coverUrl}" alt="" />`
+          : `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#6B4EFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>`;
         return `
-          <div class="avenir-card">
-            <div class="avenir-icon">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6B4EFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                <line x1="16" y1="2" x2="16" y2="6"/>
-                <line x1="8" y1="2" x2="8" y2="6"/>
-                <line x1="3" y1="10" x2="21" y2="10"/>
-              </svg>
+          <div class="sg-card" onclick="jouerSermon('${s._id}')">
+            <div class="sg-thumb">
+              ${thumb}
+              <div class="sg-play-over">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="rgba(107,78,255,0.9)"><circle cx="12" cy="12" r="12" fill="rgba(107,78,255,0.85)"/><polygon points="10 8 16 12 10 16 10 8" fill="white"/></svg>
+              </div>
             </div>
-            <div class="avenir-info">
-              <div class="avenir-title">${s.titre}</div>
-              <div class="avenir-date-txt">${jourSem.charAt(0).toUpperCase() + jourSem.slice(1)} ${heure}</div>
+            <div class="sg-info">
+              <div class="sg-title">${s.titre}</div>
+              <div class="sg-meta">${dateStr}</div>
             </div>
-            <div class="avenir-badge">${jour}</div>
           </div>`;
       }).join('');
     }
   }
 
   function afficherErreurConnexion() {
-    document.getElementById('today-section').innerHTML = `
-      <div class="empty-state">
-        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#AEAEB2" stroke-width="1.5" stroke-linecap="round">
-          <path d="M2 8.5C5.5 5 10 3.5 12 3.5s6.5 1.5 10 5"/><path d="M5 12c1.9-1.9 4.2-3 7-3s5.1 1.1 7 3"/>
-          <path d="M8.5 15.5c1-1 2.2-1.5 3.5-1.5s2.5.5 3.5 1.5"/>
-          <line x1="12" y1="19" x2="12.01" y2="19" stroke-width="2.5"/>
-          <line x1="2" y1="2" x2="22" y2="22"/>
-        </svg>
-        <p>Verifiez votre connexion</p>
-      </div>`;
+    const gridEl = document.getElementById('home-sermons');
+    if (gridEl) gridEl.innerHTML = `<div class="empty-state" style="grid-column:span 2"><p>Vérifiez votre connexion</p></div>`;
   }
 
-  function afficherEnregistrements() {
+  function afficherBibliotheque() {
     const termines = sermons.filter(s => s.statut === 'termine' || s.statut === 'en_cours');
     const el = document.getElementById('recordings-section');
     if (!termines.length) {
-      el.innerHTML = `<div class="empty-state"><p>Les predications apparaitront ici</p></div>`;
+      el.innerHTML = `<div class="empty-state"><p>Les prédications apparaîtront ici</p></div>`;
       return;
     }
     el.innerHTML = termines.map(s => {
       const d = new Date(s.dateDiffusion);
       const dateStr = d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
+      const iconContent = s.coverUrl
+        ? `<img src="${s.coverUrl}" alt="" />`
+        : `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B4EFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>`;
       return `
         <div class="rec-item" onclick="jouerSermon('${s._id}')">
-          <div class="rec-icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B4EFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
-              <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
-            </svg>
-          </div>
+          <div class="rec-icon">${iconContent}</div>
           <div class="rec-info">
             <div class="rec-title">${s.titre}</div>
-            <div class="rec-meta">${dateStr}${s.description ? ' · ' + s.description.substring(0, 30) : ''}</div>
+            <div class="rec-meta">${dateStr}${s.description ? ' · ' + s.description.substring(0, 28) : ''}</div>
           </div>
           <button class="rec-play" onclick="event.stopPropagation();jouerSermon('${s._id}')">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
