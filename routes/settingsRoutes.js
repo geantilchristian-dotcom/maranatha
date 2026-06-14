@@ -39,4 +39,34 @@ router.put('/splash', adminOnly, async (req, res) => {
   }
 });
 
+// GET /api/settings/home — public
+router.get('/home', async (req, res) => {
+  try {
+    let s = await Settings.findOne({ key: 'home' });
+    if (!s) s = await Settings.create({ key: 'home' });
+    res.json(s);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// PUT /api/settings/home — admin only
+router.put('/home', adminOnly, async (req, res) => {
+  try {
+    const allowed = ['youtubeUrl', 'ytLabel'];
+    const update = {};
+    for (const k of allowed) {
+      if (req.body[k] !== undefined) update[k] = req.body[k];
+    }
+    const s = await Settings.findOneAndUpdate(
+      { key: 'home' },
+      { $set: update },
+      { new: true, upsert: true }
+    );
+    res.json(s);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 module.exports = router;
