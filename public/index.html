@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Maranatha — Église Vivante</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --gold: #D4AF37;
+      --gold-light: #F0D060;
+      --dark: #001220;
+      --card: #0A2535;
+      --card2: #0D2D42;
+      --text-muted: rgba(255,255,255,0.45);
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: var(--dark);
+      color: #fff;
+      min-height: 100vh;
+    }
+
+    /* ===== INSCRIPTION ===== */
+    #register-page {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px;
+      background: radial-gradient(ellipse at top, #0a2535 0%, #001220 60%);
+    }
+
+    .register-card {
+      background: rgba(10,37,53,0.9);
+      border: 1px solid rgba(212,175,55,0.25);
+      border-radius: 24px;
+      padding: 48px 36px;
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+      backdrop-filter: blur(10px);
+    }
+
+    .church-cross { font-size: 56px; margin-bottom: 12px; line-height: 1; }
+
+    .church-name {
+      font-size: 28px;
+      font-weight: 900;
+      color: var(--gold);
+      letter-spacing: 5px;
+      margin-bottom: 4px;
+    }
+
+    .church-verse {
+      color: var(--text-muted);
+      font-size: 13px;
+      font-style: italic;
+      margin-bottom: 40px;
+      line-height: 1.5;
+    }
+
+    .register-label {
+      color: rgba(255,255,255,0.6);
+      font-size: 13px;
+      text-align: left;
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .register-card input {
+      width: 100%;
+      padding: 14px 18px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(212,175,55,0.2);
+      border-radius: 12px;
+      color: #fff;
+      font-size: 15px;
+      margin-bottom: 12px;
+      outline: none;
+      transition: border-color .2s;
+    }
+    .register-card input:focus { border-color: var(--gold); }
+    .register-card input::placeholder { color: rgba(255,255,255,0.25); }
+
+    .btn-enter {
+      width: 100%;
+      padding: 15px;
+      background: linear-gradient(135deg, #D4AF37, #F0D060);
+      color: #001220;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      letter-spacing: 1px;
+      margin-top: 4px;
+      transition: opacity .2s, transform .1s;
+    }
+    .btn-enter:hover { opacity: 0.9; transform: scale(1.01); }
+    .btn-enter:active { transform: scale(0.99); }
+
+    .skip-link {
+      color: var(--text-muted);
+      font-size: 12px;
+      margin-top: 16px;
+      cursor: pointer;
+      text-decoration: underline;
+      display: block;
+    }
+    .skip-link:hover { color: rgba(255,255,255,0.7); }
+
+    /* ===== APP ===== */
+    #app { display: none; }
+
+    /* Header */
+    .app-header {
+      background: linear-gradient(180deg, #0A2535 0%, rgba(10,37,53,0.95) 100%);
+      border-bottom: 1px solid rgba(212,175,55,0.1);
+      padding: 14px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .header-brand { display: flex; align-items: center; gap: 10px; }
+    .header-cross { font-size: 24px; }
+    .header-name { color: var(--gold); font-size: 16px; font-weight: 800; letter-spacing: 3px; }
+
+    .greeting {
+      color: var(--text-muted);
+      font-size: 13px;
+      text-align: right;
+    }
+
+    .greeting strong { color: rgba(255,255,255,0.85); font-size: 14px; }
+
+    /* Content */
+    .content { padding: 24px 20px; max-width: 680px; margin: 0 auto; }
+
+    /* Section Hero — Prochaine Prédication */
+    .hero-card {
+      background: linear-gradient(135deg, #0D2D42 0%, #0A2535 100%);
+      border: 1px solid rgba(212,175,55,0.2);
+      border-radius: 20px;
+      padding: 28px;
+      margin-bottom: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-card::before {
+      content: '⛪';
+      position: absolute;
+      right: -10px;
+      top: -10px;
+      font-size: 120px;
+      opacity: 0.04;
+    }
+
+    .hero-label {
+      color: var(--gold);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .hero-title {
+      font-size: 22px;
+      font-weight: 800;
+      margin-bottom: 6px;
+      line-height: 1.3;
+    }
+
+    .hero-desc {
+      color: var(--text-muted);
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+
+    /* Countdown */
+    .countdown {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .count-box {
+      background: rgba(0,0,0,0.3);
+      border: 1px solid rgba(212,175,55,0.15);
+      border-radius: 12px;
+      padding: 12px 16px;
+      text-align: center;
+      min-width: 60px;
+    }
+
+    .count-num {
+      font-size: 28px;
+      font-weight: 900;
+      color: var(--gold);
+      line-height: 1;
+    }
+
+    .count-unit {
+      color: var(--text-muted);
+      font-size: 10px;
+      margin-top: 4px;
+      letter-spacing: 1px;
+    }
+
+    /* Status badge */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+    .status-live { background: rgba(255,80,80,0.15); color: #ff6464; }
+    .status-soon { background: rgba(212,175,55,0.1); color: var(--gold); }
+    .status-past { background: rgba(255,255,255,0.06); color: var(--text-muted); }
+
+    .dot-live {
+      width: 8px; height: 8px;
+      background: #ff6464;
+      border-radius: 50%;
+      animation: pulse 1s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    /* Player audio */
+    .player {
+      background: rgba(0,0,0,0.3);
+      border-radius: 14px;
+      padding: 16px;
+      margin-top: 4px;
+    }
+
+    .player-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .btn-play {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold), var(--gold-light));
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+      transition: opacity .2s, transform .1s;
+    }
+    .btn-play:hover { opacity: 0.85; }
+    .btn-play:active { transform: scale(0.95); }
+
+    .player-info { flex: 1; }
+    .player-name { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+    .player-time { color: var(--text-muted); font-size: 12px; }
+
+    .progress-bar {
+      width: 100%;
+      height: 4px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 2px;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--gold), var(--gold-light));
+      border-radius: 2px;
+      transition: width .5s linear;
+    }
+
+    audio { display: none; }
+
+    /* Volume */
+    .volume-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .volume-icon { font-size: 14px; color: var(--text-muted); }
+    input[type="range"] {
+      flex: 1;
+      accent-color: var(--gold);
+      height: 4px;
+    }
+
+    /* Section — Toutes les prédications */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.85);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sermon-count {
+      background: rgba(212,175,55,0.15);
+      color: var(--gold);
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-weight: 700;
+    }
+
+    /* Sermon Card */
+    .sermon-card {
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 14px;
+      padding: 18px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      cursor: pointer;
+      transition: border-color .2s, background .2s;
+    }
+    .sermon-card:hover { border-color: rgba(212,175,55,0.25); background: var(--card2); }
+    .sermon-card.active-card { border-color: rgba(212,175,55,0.4); background: var(--card2); }
+
+    .sermon-thumb {
+      width: 52px;
+      height: 52px;
+      border-radius: 12px;
+      background: rgba(212,175,55,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+
+    .sermon-text { flex: 1; min-width: 0; }
+    .sermon-title { font-weight: 700; font-size: 15px; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sermon-meta { display: flex; align-items: center; gap: 10px; }
+    .sermon-date { color: var(--text-muted); font-size: 12px; }
+
+    .btn-listen {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: rgba(212,175,55,0.12);
+      border: 1px solid rgba(212,175,55,0.2);
+      color: var(--gold);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+      transition: background .2s;
+    }
+    .btn-listen:hover { background: rgba(212,175,55,0.25); }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--text-muted);
+    }
+    .empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; }
+
+    /* Footer */
+    .app-footer {
+      text-align: center;
+      padding: 32px 20px 48px;
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+
+    /* Loading */
+    .spinner {
+      display: inline-block;
+      width: 20px; height: 20px;
+      border: 2px solid rgba(212,175,55,0.2);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: #0A2535;
+      border: 1px solid rgba(212,175,55,0.3);
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 500;
+      z-index: 200;
+      opacity: 0;
+      transition: all .3s;
+      white-space: nowrap;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    @media (max-width: 480px) {
+      .register-card { padding: 36px 24px; }
+      .hero-title { font-size: 18px; }
+      .count-num { font-size: 22px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- PAGE INSCRIPTION -->
+<div id="register-page">
+  <div class="register-card">
+    <div class="church-cross">✝️</div>
+    <div class="church-name">MARANATHA</div>
+    <div class="church-verse">"Viens, Seigneur Jésus !"<br>Apocalypse 22:20</div>
+
+    <label class="register-label">Votre prénom *</label>
+    <input type="text" id="reg-nom" placeholder="Ex: Marie, Jean, Pierre…"
+           onkeydown="if(event.key==='Enter') entrer()" />
+
+    <label class="register-label">Téléphone (optionnel)</label>
+    <input type="tel" id="reg-tel" placeholder="+243 …"
+           onkeydown="if(event.key==='Enter') entrer()" />
+
+    <button class="btn-enter" onclick="entrer()">✝ ENTRER DANS L'ÉGLISE</button>
+    <span class="skip-link" onclick="entrerSansNom()">Continuer sans s'identifier</span>
+  </div>
+</div>
+
+<!-- APP PRINCIPALE -->
+<div id="app">
+  <header class="app-header">
+    <div class="header-brand">
+      <span class="header-cross">✝️</span>
+      <span class="header-name">MARANATHA</span>
+    </div>
+    <div class="greeting">
+      <div style="font-size:11px;color:var(--text-muted)">Bienvenue</div>
+      <strong id="user-greeting">Fidèle</strong>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- Héro : Prochaine / En cours -->
+    <div class="hero-card" id="hero-section">
+      <div class="hero-label">🎙️ Prochaine prédication</div>
+      <div class="hero-title" id="hero-titre">Chargement…</div>
+      <div class="hero-desc" id="hero-desc"></div>
+
+      <div id="hero-status"></div>
+      <div class="countdown" id="countdown-box" style="display:none">
+        <div class="count-box"><div class="count-num" id="c-jours">0</div><div class="count-unit">JOURS</div></div>
+        <div class="count-box"><div class="count-num" id="c-heures">00</div><div class="count-unit">HEURES</div></div>
+        <div class="count-box"><div class="count-num" id="c-min">00</div><div class="count-unit">MIN</div></div>
+        <div class="count-box"><div class="count-num" id="c-sec">00</div><div class="count-unit">SEC</div></div>
+      </div>
+
+      <!-- Lecteur audio -->
+      <div class="player" id="hero-player" style="display:none">
+        <audio id="main-audio" preload="none"></audio>
+        <div class="player-controls">
+          <button class="btn-play" id="btn-play" onclick="togglePlay()">▶</button>
+          <div class="player-info">
+            <div class="player-name" id="player-sermon-name">—</div>
+            <div class="player-time" id="player-time">0:00 / 0:00</div>
+          </div>
+        </div>
+        <div class="progress-bar" id="progress-bar" onclick="seekAudio(event)">
+          <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+        </div>
+        <div class="volume-row">
+          <span class="volume-icon">🔊</span>
+          <input type="range" min="0" max="1" step="0.05" value="1" id="volume-slider" oninput="setVolume(this.value)" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Liste des prédications -->
+    <div class="section-header">
+      <div class="section-title">📋 Toutes les prédications <span class="sermon-count" id="sermon-count">…</span></div>
+    </div>
+
+    <div id="sermons-list">
+      <div class="empty-state"><div class="spinner"></div></div>
+    </div>
+
+  </div>
+
+  <div class="app-footer">
+    ✝ Maranatha — Église Vivante<br>
+    <span style="font-size:11px;margin-top:4px;display:block">Que le Seigneur revienne bientôt</span>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const API = window.location.origin + '/api';
+  let userName = '';
+  let sermons = [];
+  let activeSermonId = null;
+  let countdownInterval = null;
+
+  // ===== INSCRIPTION =====
+  function entrer() {
+    const nom = document.getElementById('reg-nom').value.trim();
+    const tel = document.getElementById('reg-tel').value.trim();
+    if (!nom) { toast('Entrez votre prénom pour continuer'); return; }
+
+    userName = nom;
+    document.getElementById('user-greeting').textContent = nom;
+
+    // Enregistrement silencieux (sans token FCM pour la version web)
+    if (nom) {
+      fetch(`${API}/users/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nom, telephone: tel || 'web-' + Date.now(), role: 'fidele', fcmToken: 'web-user' })
+      }).catch(() => {});
+    }
+
+    lancerApp();
+  }
+
+  function entrerSansNom() {
+    userName = 'Fidèle';
+    document.getElementById('user-greeting').textContent = 'Fidèle';
+    lancerApp();
+  }
+
+  function lancerApp() {
+    document.getElementById('register-page').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    chargerSermons();
+  }
+
+  // ===== CHARGEMENT DES SERMONS =====
+  async function chargerSermons() {
+    try {
+      const res = await fetch(`${API}/sermons`);
+      sermons = await res.json();
+      document.getElementById('sermon-count').textContent = sermons.length;
+      afficherHero();
+      afficherListe();
+    } catch(e) {
+      document.getElementById('hero-titre').textContent = 'Impossible de charger les prédications';
+      document.getElementById('sermons-list').innerHTML = `<div class="empty-state"><div class="empty-icon">📡</div>Vérifiez votre connexion</div>`;
+    }
+  }
+
+  // ===== SECTION HÉRO =====
+  function afficherHero() {
+    const now = new Date();
+
+    // Chercher la prédication en cours
+    const enCours = sermons.find(s => s.statut === 'en_cours');
+    // Chercher la prochaine planifiée
+    const prochaine = sermons
+      .filter(s => s.statut === 'planifie' && new Date(s.dateDiffusion) > now)
+      .sort((a,b) => new Date(a.dateDiffusion) - new Date(b.dateDiffusion))[0];
+    // La dernière terminée si rien d'autre
+    const derniere = sermons.find(s => s.statut === 'termine');
+
+    if (enCours) {
+      afficherHeroSermon(enCours, 'live');
+    } else if (prochaine) {
+      afficherHeroSermon(prochaine, 'soon');
+      lancerCompteur(prochaine.dateDiffusion);
+    } else if (derniere) {
+      afficherHeroSermon(derniere, 'past');
+    } else {
+      document.getElementById('hero-titre').textContent = 'Aucune prédication planifiée';
+      document.getElementById('hero-desc').textContent = 'Revenez bientôt, Dieu vous bénit !';
+      document.getElementById('hero-label').textContent = '✝ Bienvenue';
+    }
+  }
+
+  function afficherHeroSermon(s, mode) {
+    document.getElementById('hero-titre').textContent = s.titre;
+    document.getElementById('hero-desc').textContent = s.description || '';
+
+    const statusEl = document.getElementById('hero-status');
+    const date = new Date(s.dateDiffusion);
+    const dateStr = date.toLocaleDateString('fr-FR', { weekday:'long', day:'numeric', month:'long' });
+    const timeStr = date.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
+
+    if (mode === 'live') {
+      statusEl.innerHTML = `<div class="status-badge status-live"><div class="dot-live"></div>EN DIRECT MAINTENANT</div>`;
+      ouvrirPlayer(s);
+    } else if (mode === 'soon') {
+      statusEl.innerHTML = `<div class="status-badge status-soon">⏰ Le ${dateStr} à ${timeStr}</div>`;
+      document.getElementById('countdown-box').style.display = 'flex';
+    } else {
+      statusEl.innerHTML = `<div class="status-badge status-past">✅ Diffusée le ${dateStr} à ${timeStr}</div>`;
+      if (s.audioUrl) ouvrirPlayer(s);
+    }
+  }
+
+  function lancerCompteur(dateStr) {
+    if (countdownInterval) clearInterval(countdownInterval);
+    countdownInterval = setInterval(() => {
+      const now = new Date();
+      const target = new Date(dateStr);
+      const diff = target - now;
+      if (diff <= 0) { clearInterval(countdownInterval); chargerSermons(); return; }
+      const j = Math.floor(diff / 86400000);
+      const h = Math.floor((diff % 86400000) / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+      document.getElementById('c-jours').textContent = j;
+      document.getElementById('c-heures').textContent = String(h).padStart(2,'0');
+      document.getElementById('c-min').textContent = String(m).padStart(2,'0');
+      document.getElementById('c-sec').textContent = String(s).padStart(2,'0');
+    }, 1000);
+  }
+
+  // ===== LISTE DES SERMONS =====
+  function afficherListe() {
+    const container = document.getElementById('sermons-list');
+    const termines = sermons.filter(s => s.statut === 'termine' || s.statut === 'en_cours');
+
+    if (!termines.length) {
+      container.innerHTML = `<div class="empty-state"><div class="empty-icon">🎙️</div>Les prédications terminées<br>apparaîtront ici pour réécoute</div>`;
+      return;
+    }
+
+    container.innerHTML = termines.map(s => {
+      const date = new Date(s.dateDiffusion);
+      const dateStr = date.toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric' });
+      const icon = s.statut === 'en_cours' ? '🔴' : '🎵';
+      return `
+        <div class="sermon-card ${activeSermonId === s._id ? 'active-card' : ''}" onclick="jouerSermon('${s._id}')">
+          <div class="sermon-thumb">${icon}</div>
+          <div class="sermon-text">
+            <div class="sermon-title">${s.titre}</div>
+            <div class="sermon-meta">
+              <span class="sermon-date">📅 ${dateStr}</span>
+              ${s.statut === 'en_cours' ? '<span class="status-badge status-live" style="font-size:10px;padding:2px 8px"><div class="dot-live"></div>EN DIRECT</span>' : ''}
+            </div>
+          </div>
+          <div class="btn-listen">${activeSermonId === s._id ? '⏸' : '▶'}</div>
+        </div>`;
+    }).join('');
+  }
+
+  function jouerSermon(id) {
+    const s = sermons.find(x => x._id === id);
+    if (!s) return;
+    if (!s.audioUrl) { toast('Lien audio non disponible pour cette prédication'); return; }
+    ouvrirPlayer(s);
+    activeSermonId = id;
+    afficherListe();
+    // Scroll vers le player
+    document.getElementById('hero-section').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  // ===== LECTEUR AUDIO =====
+  function ouvrirPlayer(s) {
+    const audio = document.getElementById('main-audio');
+    document.getElementById('hero-player').style.display = 'block';
+    document.getElementById('player-sermon-name').textContent = s.titre;
+
+    if (audio.dataset.src !== s.audioUrl) {
+      audio.dataset.src = s.audioUrl;
+      audio.src = s.audioUrl;
+      audio.load();
+    }
+
+    audio.ontimeupdate = mettreAJourPlayer;
+    audio.onended = () => { document.getElementById('btn-play').textContent = '▶'; };
+    activeSermonId = s._id;
+  }
+
+  function togglePlay() {
+    const audio = document.getElementById('main-audio');
+    const btn = document.getElementById('btn-play');
+    if (!audio.src) { toast('Aucune prédication sélectionnée'); return; }
+
+    if (audio.paused) {
+      audio.play().then(() => { btn.textContent = '⏸'; }).catch(() => toast('Impossible de lire le fichier audio'));
+    } else {
+      audio.pause();
+      btn.textContent = '▶';
+    }
+  }
+
+  function mettreAJourPlayer() {
+    const audio = document.getElementById('main-audio');
+    if (!audio.duration) return;
+    const pct = (audio.currentTime / audio.duration) * 100;
+    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('player-time').textContent =
+      formatTime(audio.currentTime) + ' / ' + formatTime(audio.duration);
+  }
+
+  function seekAudio(e) {
+    const audio = document.getElementById('main-audio');
+    if (!audio.duration) return;
+    const bar = document.getElementById('progress-bar');
+    const pct = e.offsetX / bar.offsetWidth;
+    audio.currentTime = pct * audio.duration;
+  }
+
+  function setVolume(v) {
+    document.getElementById('main-audio').volume = v;
+  }
+
+  function formatTime(s) {
+    const m = Math.floor(s / 60);
+    const sec = Math.floor(s % 60);
+    return m + ':' + String(sec).padStart(2,'0');
+  }
+
+  // ===== TOAST =====
+  function toast(msg) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 3000);
+  }
+
+  // Rafraîchir toutes les 2 minutes
+  setInterval(chargerSermons, 120000);
+</script>
+</body>
+</html>
