@@ -1,53 +1,77 @@
 const cron = require('node-cron');
 const Sermon = require('../models/Sermon');
 const User = require('../models/User');
+const { envoyerNotificationMasse } = require('./firebase');
 
-// Cette fonction va tourner TOUTES LES MINUTES (la chaîne '* * * * *' signifie chaque minute)
+// Cette tâche tourne TOUTES LES MINUTES
 cron.schedule('* * * * *', async () => {
   try {
     const maintenant = new Date();
-    
-    // On arrondi à la minute près pour correspondre aux planifications du Pasteur
-    const debutMinute = new Date(maintenant.setSeconds(0, 0));
-    const finMinute = new Date(maintenant.setSeconds(59, 999));
 
-    // 1. Chercher s'il y a une prédication planifiée pour cette minute exacte et qui n'a pas encore débuté
+    const debutMinute = new Date(maintenant);
+    debutMinute.setSeconds(0, 0);
+
+    const finMinute = new Date(maintenant);
+    finMinute.setSeconds(59, 999);
+
+    // 1. Chercher une prédication planifiée pour cette minute exacte
     const sermonAEnvoyer = await Sermon.findOne({
       dateDiffusion: { $gte: debutMinute, $lte: finMinute },
-      statut: 'planifie'
+      statut: 'planifie',
     });
 
-    if (sermonAEnvoyer) {
-      console.log(`\n⏰ [HORLOGE] L'heure a sonné ! Prédication trouvée : "${sermonAEnvoyer.titre}"`);
+    if (!sermonAEnvoyer) return;
 
-      // Pas de modification ici : on passe le statut à "en_cours" pour éviter les doublons
-      sermonAEnvoyer.statut = 'en_cours';
-      await sermonAEnvoyer.save();
+    console.log(`\n⏰ [HORLOGE] Heure sonnée ! Prédication : "${sermonAEnvoyer.titre}"`);
 
-      // 2. Récupérer tous les fidèles qui ont activé le mode "Maranatha"
-      const fideles = await User.find({ modeMaranathaActif: true, role: 'fidele' });
-      
-      if (fideles.length === 0) {
-        console.log("[HORLOGE] Aucun fidèle disponible avec le mode Maranatha actif.");
-        sermonAEnvoyer.statut = 'termine';
-        await sermonAEnvoyer.save();
-        return;
-      }
+    // Marquer "en cours" immédiatement pour éviter les doublons
+    sermonAEnvoyer.statut = 'en_cours';
+    await sermonAEnvoyer.save();
 
-      console.log(`[HORLOGE] Envoi du signal de réveil à ${fideles.length} fidèles...`);
+    // 2. Récupérer tous les fidèles avec le mode Maranatha actif
+    const fideles = await User.find({ modeMaranathaActif: true, role: 'fidele' });
 
-      // 3. Boucler sur les jetons des fidèles (Ici on simulera l'envoi Firebase)
-      fideles.forEach(fidele => {
-        console.log(`🚀 [SIGNAL ENVOYÉ] Mobile de ${fidele.nom} réveillé ! Lecture de l'audio : ${sermonAEnvoyer.audioUrl}`);
-      });
-
-      // Une fois le signal envoyé, on marque la prédication comme terminée
+    if (fideles.length === 0) {
+      console.log('[HORLOGE] Aucun fidèle disponible avec le mode Maranatha actif.');
       sermonAEnvoyer.statut = 'termine';
       await sermonAEnvoyer.save();
-      console.log(`[HORLOGE] Diffusion de la prédication "${sermonAEnvoyer.titre}" terminée avec succès.\n`);
+      return;
     }
 
+    // 3. Extraire les tokens FCM valides
+    const tokens = fideles
+      .map((f) => f.fcmToken)
+      .filter((t) => t && t.length > 0);
+
+    if (tokens.length === 0) {
+      console.log('[HORLOGE] Aucun token FCM valide trouvé.');
+      sermonAEnvoyer.statut = 'termine';
+      await sermonAEnvoyer.save();
+      return;
+    }
+
+    console.log(`[HORLOGE] Envoi Firebase à ${tokens.length} fidèle(s)...`);
+
+    // 4. ENVOI RÉEL Firebase à tous les fidèles d'un seul coup
+    const resultat = await envoyerNotificationMasse(tokens, sermonAEnvoyer);
+
+    console.log(
+      `🚀 [FIREBASE] Envoi terminé ! Succès: ${resultat.successCount} | Échecs: ${resultat.failureCount}`
+    );
+
+    if (resultat.tokensEchoues.length > 0) {
+      console.log('[FIREBASE] Tokens en échec :', resultat.tokensEchoues);
+    }
+
+    // 5. Marquer la prédication comme terminée
+    sermonAEnvoyer.statut = 'termine';
+    await sermonAEnvoyer.save();
+
+    console.log(`[HORLOGE] Diffusion de "${sermonAEnvoyer.titre}" terminée.\n`);
+
   } catch (error) {
-    console.error("Erreur dans le planificateur automatique :", error);
+    console.error('[HORLOGE] Erreur dans le planificateur :', error.message);
   }
 });
+
+console.log('⏰ Planificateur Maranatha démarré — vérification chaque minute.');
