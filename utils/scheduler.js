@@ -1,9 +1,9 @@
 const cron = require('node-cron');
 const Sermon = require('../models/Sermon');
-const User = require('../models/User');
 const { envoyerNotificationMasse } = require('./firebase');
 
-// Cette tâche tourne TOUTES LES MINUTES
+// Tache principale — toutes les minutes
+// Cherche un sermon planifie dont l'heure est arrivee
 cron.schedule('* * * * *', async () => {
   try {
     const maintenant = new Date();
@@ -14,7 +14,6 @@ cron.schedule('* * * * *', async () => {
     const finMinute = new Date(maintenant);
     finMinute.setSeconds(59, 999);
 
-    // 1. Chercher une prédication planifiée pour cette minute exacte
     const sermonAEnvoyer = await Sermon.findOne({
       dateDiffusion: { $gte: debutMinute, $lte: finMinute },
       statut: 'planifie',
@@ -22,56 +21,51 @@ cron.schedule('* * * * *', async () => {
 
     if (!sermonAEnvoyer) return;
 
-    console.log(`\n⏰ [HORLOGE] Heure sonnée ! Prédication : "${sermonAEnvoyer.titre}"`);
+    console.log(`[HORLOGE] Heure sonnee ! Predication : "${sermonAEnvoyer.titre}"`);
 
-    // Marquer "en cours" immédiatement pour éviter les doublons
+    // Marquer "en_cours" — reste en_cours pendant 3h
+    // (la tache de nettoyage ci-dessous le marquera "termine" apres)
     sermonAEnvoyer.statut = 'en_cours';
     await sermonAEnvoyer.save();
+    console.log(`[HORLOGE] Sermon "${sermonAEnvoyer.titre}" -> en_cours`);
 
-    // 2. Récupérer tous les fidèles avec le mode Maranatha actif
-    const fideles = await User.find({ modeMaranathaActif: true, role: 'fidele' });
+    // Tentative d'envoi FCM (si des utilisateurs sont enregistres)
+    try {
+      const User = require('../models/User');
+      const fideles = await User.find({ modeMaranathaActif: true, role: 'fidele' });
+      const tokens = fideles.map(f => f.fcmToken).filter(t => t && t.length > 0);
 
-    if (fideles.length === 0) {
-      console.log('[HORLOGE] Aucun fidèle disponible avec le mode Maranatha actif.');
-      sermonAEnvoyer.statut = 'termine';
-      await sermonAEnvoyer.save();
-      return;
+      if (tokens.length > 0) {
+        const resultat = await envoyerNotificationMasse(tokens, sermonAEnvoyer);
+        console.log(`[FIREBASE] Succes: ${resultat.successCount} | Echecs: ${resultat.failureCount}`);
+      } else {
+        console.log('[HORLOGE] Aucun token FCM — diffusion web uniquement.');
+      }
+    } catch (fcmErr) {
+      console.error('[FCM] Erreur non bloquante :', fcmErr.message);
+      // On ne bloque pas — le sermon reste "en_cours" quand meme
     }
-
-    // 3. Extraire les tokens FCM valides
-    const tokens = fideles
-      .map((f) => f.fcmToken)
-      .filter((t) => t && t.length > 0);
-
-    if (tokens.length === 0) {
-      console.log('[HORLOGE] Aucun token FCM valide trouvé.');
-      sermonAEnvoyer.statut = 'termine';
-      await sermonAEnvoyer.save();
-      return;
-    }
-
-    console.log(`[HORLOGE] Envoi Firebase à ${tokens.length} fidèle(s)...`);
-
-    // 4. ENVOI RÉEL Firebase à tous les fidèles d'un seul coup
-    const resultat = await envoyerNotificationMasse(tokens, sermonAEnvoyer);
-
-    console.log(
-      `🚀 [FIREBASE] Envoi terminé ! Succès: ${resultat.successCount} | Échecs: ${resultat.failureCount}`
-    );
-
-    if (resultat.tokensEchoues.length > 0) {
-      console.log('[FIREBASE] Tokens en échec :', resultat.tokensEchoues);
-    }
-
-    // 5. Marquer la prédication comme terminée
-    sermonAEnvoyer.statut = 'termine';
-    await sermonAEnvoyer.save();
-
-    console.log(`[HORLOGE] Diffusion de "${sermonAEnvoyer.titre}" terminée.\n`);
 
   } catch (error) {
-    console.error('[HORLOGE] Erreur dans le planificateur :', error.message);
+    console.error('[HORLOGE] Erreur planificateur :', error.message);
   }
 });
 
-console.log('⏰ Planificateur Maranatha démarré — vérification chaque minute.');
+// Tache de nettoyage — toutes les 5 minutes
+// Marque "termine" les sermons "en_cours" depuis plus de 3 heures
+cron.schedule('*/5 * * * *', async () => {
+  try {
+    const limite = new Date(Date.now() - 3 * 60 * 60 * 1000); // il y a 3h
+    const result = await Sermon.updateMany(
+      { statut: 'en_cours', dateDiffusion: { $lt: limite } },
+      { $set: { statut: 'termine' } }
+    );
+    if (result.modifiedCount > 0) {
+      console.log(`[NETTOYAGE] ${result.modifiedCount} sermon(s) marques "termine".`);
+    }
+  } catch (err) {
+    console.error('[NETTOYAGE] Erreur :', err.message);
+  }
+});
+
+console.log('Planificateur Maranatha demarre — verification chaque minute.');
