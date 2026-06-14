@@ -37,21 +37,22 @@
       position: fixed; inset: 0; z-index: 9999;
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
-      background: #001220;
-      transition: opacity .6s ease;
+      background: #ffffff;
+      transition: opacity .5s ease;
     }
     #splash-admin.fade-out { opacity: 0; pointer-events: none; }
     .splash-admin-logo {
-      width: 120px; height: 120px; object-fit: contain;
-      background: #fff; border-radius: 18px; padding: 10px;
-      margin-bottom: 24px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      width: 160px; height: 160px; object-fit: contain;
+      margin-bottom: 48px;
     }
-    .splash-admin-nom { color: #D4AF37; font-size: 28px; font-weight: 900; letter-spacing: 5px; margin-bottom: 8px; }
-    .splash-admin-sous { color: rgba(255,255,255,0.5); font-size: 13px; letter-spacing: 1.5px; text-transform: uppercase; }
-    .splash-admin-bar { width: 40px; height: 3px; background: #D4AF37; border-radius: 2px; margin: 16px 0; animation: sg 1s ease forwards; }
-    .splash-admin-verset { color: rgba(255,255,255,0.3); font-size: 13px; font-style: italic; text-align: center; max-width: 260px; line-height: 1.6; }
-    @keyframes sg { from { width: 0 } to { width: 40px } }
+    .splash-admin-spinner {
+      width: 32px; height: 32px;
+      border: 3px solid rgba(0,0,0,0.08);
+      border-top-color: #D4AF37;
+      border-radius: 50%;
+      animation: spin-a .8s linear infinite;
+    }
+    @keyframes spin-a { to { transform: rotate(360deg); } }
 
     .logo-icon { font-size: 60px; margin-bottom: 8px; }
     .logo-title { color: #D4AF37; font-size: 22px; font-weight: 800; letter-spacing: 4px; margin-bottom: 4px; }
@@ -356,10 +357,7 @@
 <!-- SPLASH ADMIN -->
 <div id="splash-admin">
   <img id="sadmin-logo" class="splash-admin-logo" src="/logo.jpg" alt="Logo Maranatha" />
-  <div class="splash-admin-nom" id="sadmin-nom">Maranatha</div>
-  <div class="splash-admin-sous" id="sadmin-sous">Espace Pasteur</div>
-  <div class="splash-admin-bar"></div>
-  <div class="splash-admin-verset" id="sadmin-verset">Viens, Seigneur Jésus<br>— Apocalypse 22 : 20</div>
+  <div class="splash-admin-spinner"></div>
 </div>
 
 <!-- PAGE LOGIN -->
@@ -550,21 +548,19 @@
   // ===== SPLASH =====
   async function lancerSplashAdmin() {
     const splash = document.getElementById('splash-admin');
+    let duree = 2500;
     try {
       const res = await fetch(API + '/settings/splash');
       if (res.ok) {
         const cfg = await res.json();
-        document.getElementById('sadmin-nom').textContent = cfg.nomEglise || 'Maranatha';
-        document.getElementById('sadmin-sous').textContent = cfg.sousTitre || 'Espace Pasteur';
-        document.getElementById('sadmin-verset').innerHTML = (cfg.verset || '').replace(/\n/g, '<br>');
         if (cfg.logoUrl) document.getElementById('sadmin-logo').src = cfg.logoUrl;
-        splash.style.background = cfg.couleurFond || '#001220';
+        if (cfg.dureeSplash) duree = cfg.dureeSplash * 1000;
       }
     } catch(e) {}
     setTimeout(() => {
       splash.classList.add('fade-out');
-      setTimeout(() => splash.remove(), 700);
-    }, 2500);
+      setTimeout(() => splash.remove(), 600);
+    }, duree);
   }
 
   window.addEventListener('DOMContentLoaded', lancerSplashAdmin);
