@@ -6,6 +6,7 @@ require('dotenv').config();
 
 const userRoutes = require('./routes/userRoutes');
 const sermonRoutes = require('./routes/sermonRoutes');
+const settingsRoutes = require('./routes/settingsRoutes');
 
 const app = express();
 
@@ -31,9 +32,10 @@ app.get('/api/admin/verify', adminAuth, (req, res) => {
   res.json({ ok: true });
 });
 
-// Routes de l'API (les routes sermon et user sont publiques pour les appareils mobile)
+// Routes de l'API
 app.use('/api/users', userRoutes);
 app.use('/api/sermons', sermonRoutes);
+app.use('/api/settings', settingsRoutes);
 
 // Initialisation du planificateur automatique (L'Horloge)
 require('./utils/scheduler');
