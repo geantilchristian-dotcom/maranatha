@@ -50,12 +50,36 @@ app.get('/', (req, res) => {
 
 // Connexion MongoDB et démarrage du serveur
 const PORT = process.env.PORT || 5000;
-const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/maranathaDB";
+const MONGO_URI = process.env.MONGO_URI;
 
-app.listen(PORT, () => {
-  console.log(`Serveur démarré sur le port ${PORT}`);
+if (!MONGO_URI) {
+  console.error("ERREUR FATALE : La variable d'environnement MONGO_URI n'est pas definie !");
+  console.error("Configurez MONGO_URI dans les variables d'environnement Render.");
+  process.exit(1);
+}
+
+// Endpoint de sante — utile pour debugger
+app.get('/api/health', (req, res) => {
+  const states = { 0: 'disconnected', 1: 'connected', 2: 'connecting', 3: 'disconnecting' };
+  res.json({
+    status: 'ok',
+    mongo: states[mongoose.connection.readyState] || 'unknown',
+    env: {
+      MONGO_URI: MONGO_URI ? 'defini (' + MONGO_URI.substring(0, 20) + '...)' : 'MANQUANT',
+      CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME || 'MANQUANT',
+    }
+  });
 });
 
-mongoose.connect(MONGO_URI)
-  .then(() => console.log("MongoDB connecté ✓"))
-  .catch(err => console.error("Erreur MongoDB :", err.message));
+mongoose.connect(MONGO_URI, {
+  serverSelectionTimeoutMS: 10000,
+  socketTimeoutMS: 45000,
+})
+  .then(() => {
+    console.log("MongoDB connecte ✓");
+    app.listen(PORT, () => console.log(`Serveur demarre sur le port ${PORT}`));
+  })
+  .catch(err => {
+    console.error("Erreur connexion MongoDB :", err.message);
+    process.exit(1);
+  });
