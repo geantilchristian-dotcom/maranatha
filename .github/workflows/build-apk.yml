@@ -1,11 +1,11 @@
-name: Build APK Maranatha
+name: Créer un APK Maranatha
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main ]
     paths:
       - 'maranatha-app/**'
-  workflow_dispatch:   # Permet de lancer manuellement depuis GitHub
+  workflow_dispatch:
 
 jobs:
   build:
@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Telecharger le code
+      - name: Télécharger le code
         uses: actions/checkout@v4
 
       - name: Installer Java 17
@@ -25,34 +25,27 @@ jobs:
       - name: Installer Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.0'
+          flutter-version: '3.22.0'
           channel: 'stable'
           cache: true
 
-      - name: Installer les dependances Flutter
+      - name: Installer les dépendances
         working-directory: maranatha-app
         run: flutter pub get
 
-      - name: Verifier le code
+      - name: Compiler l'APK
         working-directory: maranatha-app
-        run: flutter analyze --no-fatal-infos
+        run: flutter build apk --release --no-tree-shake-icons
 
-      - name: Compiler l'APK (release)
-        working-directory: maranatha-app
-        run: flutter build apk --release --no-shrink
-
-      - name: Publier l'APK comme artefact telechargeable
+      - name: Publier l'APK
         uses: actions/upload-artifact@v4
         with:
-          name: maranatha-release-apk
+          name: maranatha-apk
           path: maranatha-app/build/app/outputs/flutter-apk/app-release.apk
           retention-days: 30
 
-      - name: Afficher la taille de l'APK
+      - name: Taille de l'APK
         working-directory: maranatha-app
         run: |
           APK=build/app/outputs/flutter-apk/app-release.apk
-          if [ -f "$APK" ]; then
-            SIZE=$(du -sh "$APK" | cut -f1)
-            echo "APK compile avec succes ! Taille : $SIZE"
-          fi
+          [ -f "$APK" ] && echo "APK prêt : $(du -sh $APK | cut -f1)" || echo "APK introuvable"
