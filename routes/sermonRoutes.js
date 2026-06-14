@@ -3,6 +3,7 @@ const router = express.Router();
 const multer = require('multer');
 const Sermon = require('../models/Sermon');
 const { uploadAudio } = require('../utils/cloudinary');
+const { sseHandler } = require('../utils/sse');
 
 // Multer : stockage en memoire (pas sur disque Render)
 const upload = multer({
@@ -15,6 +16,9 @@ const upload = multer({
     ok ? cb(null, true) : cb(new Error('Format non supporte. Utilisez MP3, M4A, OGG ou WAV.'));
   },
 });
+
+// ROUTE SSE — mises a jour en temps reel pour les navigateurs
+router.get('/events', sseHandler);
 
 // ROUTE 1 : Upload audio + planifier une predication
 router.post('/schedule', upload.single('audio'), async (req, res) => {
@@ -37,6 +41,10 @@ router.post('/schedule', upload.single('audio'), async (req, res) => {
 
     const sermon = new Sermon({ titre, description, audioUrl, dateDiffusion });
     await sermon.save();
+
+    // Notifier tous les clients SSE en temps reel
+    const { broadcast } = require('../utils/sse');
+    broadcast('sermon_update', { action: 'new', sermon });
 
     res.status(201).json({ message: "Predication planifiee avec succes !", sermon });
 
@@ -61,6 +69,10 @@ router.delete('/:id', async (req, res) => {
   try {
     const sermon = await Sermon.findByIdAndDelete(req.params.id);
     if (!sermon) return res.status(404).json({ error: "Predication introuvable" });
+
+    const { broadcast } = require('../utils/sse');
+    broadcast('sermon_update', { action: 'deleted', id: req.params.id });
+
     res.status(200).json({ message: "Predication supprimee" });
   } catch (error) {
     res.status(500).json({ error: "Erreur lors de la suppression" });
