@@ -32,6 +32,27 @@
       border: 1px solid rgba(212,175,55,0.2);
     }
 
+    /* ===== SPLASH ===== */
+    #splash-admin {
+      position: fixed; inset: 0; z-index: 9999;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      background: #001220;
+      transition: opacity .6s ease;
+    }
+    #splash-admin.fade-out { opacity: 0; pointer-events: none; }
+    .splash-admin-logo {
+      width: 120px; height: 120px; object-fit: contain;
+      background: #fff; border-radius: 18px; padding: 10px;
+      margin-bottom: 24px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    }
+    .splash-admin-nom { color: #D4AF37; font-size: 28px; font-weight: 900; letter-spacing: 5px; margin-bottom: 8px; }
+    .splash-admin-sous { color: rgba(255,255,255,0.5); font-size: 13px; letter-spacing: 1.5px; text-transform: uppercase; }
+    .splash-admin-bar { width: 40px; height: 3px; background: #D4AF37; border-radius: 2px; margin: 16px 0; animation: sg 1s ease forwards; }
+    .splash-admin-verset { color: rgba(255,255,255,0.3); font-size: 13px; font-style: italic; text-align: center; max-width: 260px; line-height: 1.6; }
+    @keyframes sg { from { width: 0 } to { width: 40px } }
+
     .logo-icon { font-size: 60px; margin-bottom: 8px; }
     .logo-title { color: #D4AF37; font-size: 22px; font-weight: 800; letter-spacing: 4px; margin-bottom: 4px; }
     .logo-sub { color: rgba(255,255,255,0.5); font-size: 13px; margin-bottom: 36px; }
@@ -332,6 +353,15 @@
 </head>
 <body>
 
+<!-- SPLASH ADMIN -->
+<div id="splash-admin">
+  <img id="sadmin-logo" class="splash-admin-logo" src="/logo.jpg" alt="Logo Maranatha" />
+  <div class="splash-admin-nom" id="sadmin-nom">Maranatha</div>
+  <div class="splash-admin-sous" id="sadmin-sous">Espace Pasteur</div>
+  <div class="splash-admin-bar"></div>
+  <div class="splash-admin-verset" id="sadmin-verset">Viens, Seigneur Jésus<br>— Apocalypse 22 : 20</div>
+</div>
+
 <!-- PAGE LOGIN -->
 <div id="login-page">
   <div class="login-card">
@@ -451,6 +481,62 @@
       <div class="empty-state"><div>🔄</div>Chargement…</div>
     </div>
 
+    <!-- ===== PARAMÈTRES SPLASH ===== -->
+    <div class="section-title" style="margin-top:40px">🎨 Écran de bienvenue</div>
+    <div class="card">
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label>Nom de l'église</label>
+          <input type="text" id="s-nom" placeholder="Maranatha" />
+        </div>
+
+        <div class="form-group">
+          <label>Sous-titre</label>
+          <input type="text" id="s-sous" placeholder="Ministère Évangélique" />
+        </div>
+
+        <div class="form-group full">
+          <label>Verset biblique affiché</label>
+          <textarea id="s-verset" rows="2" placeholder="Viens, Seigneur Jésus — Apocalypse 22 : 20"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>URL du logo (laisser vide = logo actuel)</label>
+          <input type="text" id="s-logo" placeholder="/logo.jpg" />
+        </div>
+
+        <div class="form-group">
+          <label>Durée d'affichage (secondes)</label>
+          <input type="text" id="s-duree" placeholder="3" />
+        </div>
+
+        <div class="form-group">
+          <label>Couleur de fond</label>
+          <div style="display:flex;gap:10px;align-items:center">
+            <input type="color" id="s-fond-picker" value="#001220" style="width:44px;height:44px;border:none;border-radius:8px;cursor:pointer;background:none;padding:0" oninput="document.getElementById('s-fond').value=this.value" />
+            <input type="text" id="s-fond" placeholder="#001220" style="flex:1" oninput="document.getElementById('s-fond-picker').value=this.value" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Couleur accent (titre, barre)</label>
+          <div style="display:flex;gap:10px;align-items:center">
+            <input type="color" id="s-accent-picker" value="#D4AF37" style="width:44px;height:44px;border:none;border-radius:8px;cursor:pointer;background:none;padding:0" oninput="document.getElementById('s-accent').value=this.value" />
+            <input type="text" id="s-accent" placeholder="#D4AF37" style="flex:1" oninput="document.getElementById('s-accent-picker').value=this.value" />
+          </div>
+        </div>
+
+        <div class="form-group full" style="justify-content:flex-end">
+          <label>&nbsp;</label>
+          <button class="btn-submit" onclick="sauvegarderSplash()" id="btn-splash">
+            <span>💾</span> Enregistrer les paramètres
+          </button>
+        </div>
+
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -460,6 +546,76 @@
   const API = window.location.origin + '/api';
   let adminPassword = '';
   let selectedFile = null;
+
+  // ===== SPLASH =====
+  async function lancerSplashAdmin() {
+    const splash = document.getElementById('splash-admin');
+    try {
+      const res = await fetch(API + '/settings/splash');
+      if (res.ok) {
+        const cfg = await res.json();
+        document.getElementById('sadmin-nom').textContent = cfg.nomEglise || 'Maranatha';
+        document.getElementById('sadmin-sous').textContent = cfg.sousTitre || 'Espace Pasteur';
+        document.getElementById('sadmin-verset').innerHTML = (cfg.verset || '').replace(/\n/g, '<br>');
+        if (cfg.logoUrl) document.getElementById('sadmin-logo').src = cfg.logoUrl;
+        splash.style.background = cfg.couleurFond || '#001220';
+      }
+    } catch(e) {}
+    setTimeout(() => {
+      splash.classList.add('fade-out');
+      setTimeout(() => splash.remove(), 700);
+    }, 2500);
+  }
+
+  window.addEventListener('DOMContentLoaded', lancerSplashAdmin);
+
+  // ===== PARAMÈTRES SPLASH =====
+  async function chargerSplash() {
+    try {
+      const res = await fetch(API + '/settings/splash');
+      if (!res.ok) return;
+      const cfg = await res.json();
+      document.getElementById('s-nom').value   = cfg.nomEglise   || '';
+      document.getElementById('s-sous').value  = cfg.sousTitre   || '';
+      document.getElementById('s-verset').value= cfg.verset      || '';
+      document.getElementById('s-logo').value  = cfg.logoUrl     || '';
+      document.getElementById('s-duree').value = cfg.dureeSplash != null ? cfg.dureeSplash : 3;
+      const fond   = cfg.couleurFond   || '#001220';
+      const accent = cfg.couleurAccent || '#D4AF37';
+      document.getElementById('s-fond').value   = fond;
+      document.getElementById('s-accent').value = accent;
+      try { document.getElementById('s-fond-picker').value   = fond;   } catch(e) {}
+      try { document.getElementById('s-accent-picker').value = accent; } catch(e) {}
+    } catch(e) {}
+  }
+
+  async function sauvegarderSplash() {
+    const btn = document.getElementById('btn-splash');
+    btn.disabled = true;
+    btn.innerHTML = '<span>⏳</span> Enregistrement…';
+    try {
+      const body = {
+        nomEglise:    document.getElementById('s-nom').value.trim()   || undefined,
+        sousTitre:    document.getElementById('s-sous').value.trim()  || undefined,
+        verset:       document.getElementById('s-verset').value.trim()|| undefined,
+        logoUrl:      document.getElementById('s-logo').value.trim()  || undefined,
+        dureeSplash:  parseFloat(document.getElementById('s-duree').value) || 3,
+        couleurFond:  document.getElementById('s-fond').value.trim()  || undefined,
+        couleurAccent:document.getElementById('s-accent').value.trim()|| undefined,
+      };
+      const res = await fetch(API + '/settings/splash', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        body: JSON.stringify(body),
+      });
+      if (res.ok) { toast('Paramètres sauvegardés !', 'success'); }
+      else { toast('Erreur lors de la sauvegarde', 'error'); }
+    } catch(e) { toast('Erreur réseau', 'error'); }
+    finally {
+      btn.disabled = false;
+      btn.innerHTML = '<span>💾</span> Enregistrer les paramètres';
+    }
+  }
 
   // ===== LOGIN =====
   function login() {
@@ -494,7 +650,7 @@
 
   // ===== STATS & CHARGEMENT =====
   async function chargerTout() {
-    await Promise.all([chargerSermons(), chargerStats()]);
+    await Promise.all([chargerSermons(), chargerStats(), chargerSplash()]);
   }
 
   async function chargerStats() {
