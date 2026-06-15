@@ -175,7 +175,7 @@
     .tab-content { display: none; }
     .tab-content.active { display: block; }
 
-    /* ======= HERO CARD (live) ======= */
+    /* ======= HERO CARD (live ou YouTube) ======= */
     .hero-card {
       margin: 0 16px 20px;
       border-radius: 20px; overflow: hidden;
@@ -520,13 +520,13 @@
     <div class="hero-card" id="hero-card" onclick="scrollToPlayer()">
       <img class="hero-img" id="hero-img" src="" alt="" />
       <div class="hero-content">
-        <div class="hero-badge">
+        <div class="hero-badge" id="hero-badge">
           <div class="hero-badge-dot"></div>
           EN DIRECT
         </div>
         <div class="hero-title" id="hero-title">Culte en direct</div>
-        <div class="hero-sub">Rejoignez-nous maintenant<br>et adorons ensemble !</div>
-        <button class="hero-btn">
+        <div class="hero-sub" id="hero-sub">Rejoignez-nous maintenant<br>et adorons ensemble !</div>
+        <button class="hero-btn" id="hero-btn">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
           Regarder maintenant
         </button>
@@ -776,6 +776,8 @@
   let sermons = [];
   let activeAudioUrl = '';
   let sseSource = null;
+  let youtubeUrl = '';
+  let ytLabel = 'Regarder sur YouTube';
 
   // ============ SPLASH ============
   async function lancerSplash() {
@@ -841,6 +843,7 @@
     document.getElementById('greeting-name').textContent = 'Bonjour, ' + userName + ' ! 👋';
     document.getElementById('more-username').textContent = userName;
     chargerSermons();
+    chargerYoutube();
     connecterSSE();
   }
 
@@ -853,6 +856,27 @@
     document.getElementById('reg-nom').value = '';
     document.getElementById('reg-tel').value = '';
     switchTab('home');
+  }
+
+  // ============ YOUTUBE ============
+  async function chargerYoutube() {
+    try {
+      const res = await fetch(API + '/settings/home');
+      if (!res.ok) return;
+      const cfg = await res.json();
+      if (cfg.youtubeUrl) {
+        youtubeUrl = cfg.youtubeUrl;
+        ytLabel = cfg.ytLabel || 'Regarder sur YouTube';
+      }
+      // Rafraîchir l'affichage si les sermons sont déjà chargés
+      if (sermons !== null) afficherAccueil();
+    } catch(e) {}
+  }
+
+  function ytVideoId(url) {
+    if (!url) return null;
+    const m = url.match(/(?:v=|youtu\.be\/|embed\/)([^&?/]+)/);
+    return m ? m[1] : null;
   }
 
   // ============ SSE ============
@@ -898,19 +922,36 @@
   // ============ ACCUEIL ============
   function afficherAccueil() {
     const live = sermons.find(s => s.statut === 'en_cours');
-
-    // Hero card live
     const hero = document.getElementById('hero-card');
     const mini = document.getElementById('mini-player');
+
     if (live) {
+      // ── Culte en direct ──
       document.getElementById('hero-title').textContent = live.titre || 'Culte en direct';
-      hero.classList.add('visible');
-      // Utiliser la photo de couverture comme fond si disponible
+      document.getElementById('hero-sub').textContent = 'Rejoignez-nous maintenant\net adorons ensemble !';
+      document.getElementById('hero-badge').style.display = 'inline-flex';
+      document.getElementById('hero-btn').textContent = '▶  Regarder maintenant';
       if (live.coverUrl) document.getElementById('hero-img').src = live.coverUrl;
+      hero.onclick = scrollToPlayer;
+      hero.classList.add('visible');
+      // Player audio
       mini.classList.add('visible');
       document.getElementById('mp-title').textContent = live.titre;
       document.getElementById('mp-status').textContent = 'En direct';
       ouvrirAudio(live.audioUrl);
+
+    } else if (youtubeUrl) {
+      // ── Vidéo YouTube vedette (aucun direct) ──
+      const vid = ytVideoId(youtubeUrl);
+      if (vid) document.getElementById('hero-img').src = `https://img.youtube.com/vi/${vid}/hqdefault.jpg`;
+      document.getElementById('hero-title').textContent = ytLabel || 'Regarder sur YouTube';
+      document.getElementById('hero-sub').textContent = 'Regardez notre dernière vidéo\nsur notre chaîne YouTube';
+      document.getElementById('hero-badge').style.display = 'none';
+      document.getElementById('hero-btn').innerHTML = '▶  ' + (ytLabel || 'Regarder sur YouTube');
+      hero.onclick = () => window.open(youtubeUrl, '_blank');
+      hero.classList.add('visible');
+      mini.classList.remove('visible');
+
     } else {
       hero.classList.remove('visible');
       mini.classList.remove('visible');
