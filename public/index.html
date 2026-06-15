@@ -158,7 +158,11 @@
       position: absolute; inset: 0;
       width: 100%; height: 100%;
       object-fit: cover; opacity: 0.5;
+      transition: opacity 0.55s ease;
     }
+    .hero-img.hero-fading { opacity: 0 !important; }
+    .hero-content { transition: opacity 0.45s ease; }
+    .hero-content.hero-fading { opacity: 0; }
     .hero-content {
       position: relative; z-index: 1;
       padding: 18px 18px 18px;
@@ -1822,30 +1826,43 @@
     }, 6000);
   }
 
-  // Met à jour seulement le bloc YouTube du hero (sans toucher au reste)
+  // Met à jour seulement le bloc YouTube du hero avec fondu
   function afficherAccueilYT() {
     const live = sermons.find(s => s.statut === 'en_cours');
-    if (live) return; // sermon prioritaire
+    if (live) return;
     const hero = document.getElementById('hero-card');
     if (!youtubeUrl) return;
-    hero.style.background = '#111827';
-    const vid = ytVideoId(youtubeUrl);
-    const img = document.getElementById('hero-img');
-    img.src = vid ? `https://img.youtube.com/vi/${vid}/hqdefault.jpg` : '';
-    document.getElementById('hero-title').textContent = ytLabel;
-    const btn = document.getElementById('hero-btn');
-    btn.style.background = 'rgba(255,255,255,0.92)';
-    btn.style.color = '#111827';
-    btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg> ${ytLabel}`;
-    hero.onclick = () => window.open(youtubeUrl, '_blank');
-    // Dots de pagination si plusieurs liens
-    const dots = document.getElementById('yt-dots');
-    if (dots && youtubeLinks.length > 1) {
-      dots.innerHTML = youtubeLinks.map((_, i) =>
-        `<span style="width:${i===ytCarouselIdx?'18px':'6px'};height:6px;border-radius:3px;background:${i===ytCarouselIdx?'#fff':'rgba(255,255,255,0.35)'};display:inline-block;transition:width .3s"></span>`
-      ).join('');
-      dots.style.display = 'flex';
-    }
+
+    const img     = document.getElementById('hero-img');
+    const content = hero.querySelector('.hero-content');
+
+    // Phase 1 : fondu sortant
+    img.classList.add('hero-fading');
+    if (content) content.classList.add('hero-fading');
+
+    setTimeout(() => {
+      // Phase 2 : mise à jour du contenu
+      hero.style.background = '#111827';
+      const vid = ytVideoId(youtubeUrl);
+      img.src = vid ? `https://img.youtube.com/vi/${vid}/hqdefault.jpg` : '';
+      document.getElementById('hero-title').textContent = ytLabel;
+      const btn = document.getElementById('hero-btn');
+      btn.style.background = 'rgba(255,255,255,0.92)';
+      btn.style.color = '#111827';
+      btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg> ${ytLabel}`;
+      hero.onclick = () => window.open(youtubeUrl, '_blank');
+      const dots = document.getElementById('yt-dots');
+      if (dots && youtubeLinks.length > 1) {
+        dots.innerHTML = youtubeLinks.map((_, i) =>
+          `<span style="width:${i===ytCarouselIdx?'18px':'6px'};height:6px;border-radius:3px;background:${i===ytCarouselIdx?'#fff':'rgba(255,255,255,0.35)'};display:inline-block;transition:width .3s"></span>`
+        ).join('');
+        dots.style.display = 'flex';
+      }
+
+      // Phase 3 : fondu entrant
+      img.classList.remove('hero-fading');
+      if (content) content.classList.remove('hero-fading');
+    }, 480);
   }
 
   function ytVideoId(url) {
