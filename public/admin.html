@@ -733,7 +733,7 @@
                 ${s.audioUrl ? `<a class="audio-link" href="${s.audioUrl}" target="_blank">🔊 Écouter</a>` : ''}
               </div>
             </div>
-            ${s.statut !== 'en_cours' ? `<button class="btn-delete" onclick="supprimer('${s._id}')">🗑️</button>` : ''}
+            <button class="btn-delete" onclick="supprimer('${s._id}')">🗑️</button>
           </div>`;
       }).join('');
     } catch(e) {
