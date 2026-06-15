@@ -19,7 +19,6 @@ class _WebScreenState extends State<WebScreen> {
   bool _erreur   = false;
   int  _progress = 0;
 
-  // Canal système partagé (batterie + service audio)
   static const _sysChannel = MethodChannel('maranatha/system');
 
   @override
@@ -31,14 +30,11 @@ class _WebScreenState extends State<WebScreen> {
       statusBarIconBrightness: Brightness.dark,
     ));
 
+    // ── 1. Créer le controller et configurer les options statiques ────────
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setBackgroundColor(Colors.white)
-
-      // ── Canal JS → Flutter : état audio ──────────────────────────────────
-      // index.html appelle FlutterAudio.postMessage({action, titre})
-      // quand l'utilisateur joue / met en pause / arrête l'audio.
-      // Flutter démarre/arrête le foreground service Android en réponse.
+      // Canal JS → Flutter : état audio (play / pause / stop)
       ..addJavaScriptChannel(
         'FlutterAudio',
         onMessageReceived: (JavaScriptMessage msg) async {
@@ -59,14 +55,25 @@ class _WebScreenState extends State<WebScreen> {
             }
           } catch (_) {}
         },
-      )
+      );
 
+    // ── 2. CRITIQUE : autoriser l'autoplay AVANT le chargement ───────────
+    // setMediaPlaybackRequiresUserGesture doit être appelé avant loadRequest
+    // pour que l'audio démarre automatiquement dès la première page.
+    if (_controller.platform is AndroidWebViewController) {
+      (_controller.platform as AndroidWebViewController)
+          .setMediaPlaybackRequiresUserGesture(false);
+    }
+
+    // ── 3. Configurer la navigation et démarrer le chargement ────────────
+    _controller
       ..setNavigationDelegate(
         NavigationDelegate(
           onPageStarted: (_) => setState(() { _loading = true; _erreur = false; }),
           onProgress: (p) => setState(() => _progress = p),
           onPageFinished: (_) async {
             setState(() => _loading = false);
+            // Injecter le token FCM pour les notifications push
             final token = await NotificationService.instance.obtenirTokenFCM();
             if (token != null && token.isNotEmpty) {
               await _controller.runJavaScript(
@@ -83,12 +90,6 @@ class _WebScreenState extends State<WebScreen> {
         ),
       )
       ..loadRequest(Uri.parse(APP_URL));
-
-    // Autoriser l'autoplay audio/vidéo (WebView Android bloque par défaut)
-    if (_controller.platform is AndroidWebViewController) {
-      (_controller.platform as AndroidWebViewController)
-          .setMediaPlaybackRequiresUserGesture(false);
-    }
   }
 
   Future<bool> _onWillPop() async {
