@@ -18,7 +18,8 @@ const bibleRoutes   = require('./routes/bibleRoutes');
 const app = express();
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '5mb' }));
+app.use(express.urlencoded({ extended: true, limit: '5mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 const adminAuth = (req, res, next) => {
