@@ -4043,32 +4043,35 @@
     } catch(_) {}
   }
 
-  // Patch setPlayIcon — Media Session + notification Flutter foreground service
+  // Patch setPlayIcon — met à jour la Media Session ET notifie le service audio Android
   const _origSetPlayIcon = setPlayIcon;
   function setPlayIcon(playing) {
     _origSetPlayIcon(playing);
     const title = document.getElementById('mp-title')?.textContent || 'Maranatha';
     updateMediaSession(title, playing);
-    // Notifier l'app Android (si WebView Flutter) → démarre/arrête le foreground service
+    // Notifier Flutter → démarre/arrête le foreground service Android
+    // FlutterAudio est injecté par webview_flutter quand l'app tourne dans le WebView Flutter
     try {
       if (typeof window.FlutterAudio !== 'undefined') {
-        window.FlutterAudio.postMessage(JSON.stringify({ action: playing ? 'play' : 'pause', titre: title }));
+        window.FlutterAudio.postMessage(JSON.stringify({
+          action: playing ? 'play' : 'pause',
+          titre: title
+        }));
       }
-    } catch(_) {}
+    } catch (_) {}
   }
 
-  // Arrêt naturel de l'audio → stopper le foreground service
-  (function() {
+  // Audio terminé naturellement → arrêter le foreground service
+  (function _bindAudioEnded() {
     const audio = document.getElementById('main-audio');
-    if (audio) {
-      audio.addEventListener('ended', function() {
-        try {
-          if (typeof window.FlutterAudio !== 'undefined') {
-            window.FlutterAudio.postMessage(JSON.stringify({ action: 'stop' }));
-          }
-        } catch(_) {}
-      });
-    }
+    if (!audio) return;
+    audio.addEventListener('ended', function () {
+      try {
+        if (typeof window.FlutterAudio !== 'undefined') {
+          window.FlutterAudio.postMessage(JSON.stringify({ action: 'stop' }));
+        }
+      } catch (_) {}
+    });
   })();
 
   // ═══════════════════════════════════════════════════════
