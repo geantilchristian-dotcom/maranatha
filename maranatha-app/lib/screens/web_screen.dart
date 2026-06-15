@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -8,16 +9,18 @@ const String APP_URL = 'https://maranatha-2vgy.onrender.com';
 
 class WebScreen extends StatefulWidget {
   const WebScreen({Key? key}) : super(key: key);
-
   @override
   State<WebScreen> createState() => _WebScreenState();
 }
 
 class _WebScreenState extends State<WebScreen> {
   late final WebViewController _controller;
-  bool _loading = true;
-  bool _erreur = false;
-  int _progress = 0;
+  bool _loading  = true;
+  bool _erreur   = false;
+  int  _progress = 0;
+
+  // Canal système partagé (batterie + service audio)
+  static const _sysChannel = MethodChannel('maranatha/system');
 
   @override
   void initState() {
@@ -31,13 +34,39 @@ class _WebScreenState extends State<WebScreen> {
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setBackgroundColor(Colors.white)
+
+      // ── Canal JS → Flutter : état audio ──────────────────────────────────
+      // index.html appelle FlutterAudio.postMessage({action, titre})
+      // quand l'utilisateur joue / met en pause / arrête l'audio.
+      // Flutter démarre/arrête le foreground service Android en réponse.
+      ..addJavaScriptChannel(
+        'FlutterAudio',
+        onMessageReceived: (JavaScriptMessage msg) async {
+          try {
+            final data   = jsonDecode(msg.message) as Map<String, dynamic>;
+            final action = data['action'] as String? ?? '';
+            final titre  = data['titre']  as String? ?? 'Maranatha';
+            switch (action) {
+              case 'play':
+                await _sysChannel.invokeMethod('startAudioService', {'titre': titre});
+                break;
+              case 'pause':
+                await _sysChannel.invokeMethod('pauseAudioService');
+                break;
+              case 'stop':
+                await _sysChannel.invokeMethod('stopAudioService');
+                break;
+            }
+          } catch (_) {}
+        },
+      )
+
       ..setNavigationDelegate(
         NavigationDelegate(
           onPageStarted: (_) => setState(() { _loading = true; _erreur = false; }),
           onProgress: (p) => setState(() => _progress = p),
           onPageFinished: (_) async {
             setState(() => _loading = false);
-            // Injecter le token FCM dans la WebView pour l'inscription
             final token = await NotificationService.instance.obtenirTokenFCM();
             if (token != null && token.isNotEmpty) {
               await _controller.runJavaScript(
@@ -55,8 +84,7 @@ class _WebScreenState extends State<WebScreen> {
       )
       ..loadRequest(Uri.parse(APP_URL));
 
-    // ── Autoriser l'autoplay audio/vidéo sur Android ──
-    // (le WebView Android bloque par défaut la lecture sans geste)
+    // Autoriser l'autoplay audio/vidéo (WebView Android bloque par défaut)
     if (_controller.platform is AndroidWebViewController) {
       (_controller.platform as AndroidWebViewController)
           .setMediaPlaybackRequiresUserGesture(false);
@@ -64,10 +92,7 @@ class _WebScreenState extends State<WebScreen> {
   }
 
   Future<bool> _onWillPop() async {
-    if (await _controller.canGoBack()) {
-      await _controller.goBack();
-      return false;
-    }
+    if (await _controller.canGoBack()) { await _controller.goBack(); return false; }
     return true;
   }
 
@@ -79,25 +104,19 @@ class _WebScreenState extends State<WebScreen> {
         backgroundColor: Colors.white,
         body: Stack(
           children: [
-            // ── WebView ──
             SafeArea(
               top: false,
               child: _erreur ? _buildErreur() : WebViewWidget(controller: _controller),
             ),
-
-            // ── Barre de progression ──
             if (_loading && _progress < 100 && _progress > 0)
               Positioned(
                 top: 0, left: 0, right: 0,
                 child: LinearProgressIndicator(
-                  value: _progress / 100,
-                  minHeight: 3,
+                  value: _progress / 100, minHeight: 3,
                   backgroundColor: Colors.transparent,
-                  color: const Color(0xFF5C5CFF),
+                  color: const Color(0xFFC0001A),
                 ),
               ),
-
-            // ── Écran de chargement initial ──
             if (_loading && _progress < 15)
               Container(
                 color: Colors.white,
@@ -105,16 +124,16 @@ class _WebScreenState extends State<WebScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.local_fire_department, size: 90, color: Color(0xFF5C5CFF)),
-                      const SizedBox(height: 12),
+                      const Icon(Icons.church, size: 90, color: Color(0xFFC0001A)),
+                      const SizedBox(height: 16),
                       const Text('MARANATHA', style: TextStyle(
                         fontSize: 18, fontWeight: FontWeight.w900,
-                        letterSpacing: 3, color: Color(0xFF5C5CFF),
+                        letterSpacing: 3, color: Color(0xFFC0001A),
                       )),
                       const SizedBox(height: 40),
                       const SizedBox(
                         width: 32, height: 32,
-                        child: CircularProgressIndicator(strokeWidth: 3, color: Color(0xFF5C5CFF)),
+                        child: CircularProgressIndicator(strokeWidth: 3, color: Color(0xFFC0001A)),
                       ),
                       const SizedBox(height: 16),
                       const Text('Chargement…', style: TextStyle(color: Colors.grey, fontSize: 13)),
@@ -135,21 +154,21 @@ class _WebScreenState extends State<WebScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.wifi_off, size: 64, color: Color(0xFF5C5CFF)),
+            const Icon(Icons.wifi_off, size: 64, color: Color(0xFFC0001A)),
             const SizedBox(height: 24),
-            const Text('Impossible de charger l\'application',
+            const Text("Impossible de charger l'application",
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1A1A2E)),
             ),
             const SizedBox(height: 12),
-            const Text('Vérifiez votre connexion Internet\net réessayez.',
+            const Text('Vérifiez votre connexion Internet et réessayez.',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 14, color: Colors.grey),
             ),
             const SizedBox(height: 32),
             ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF5C5CFF),
+                backgroundColor: const Color(0xFFC0001A),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
