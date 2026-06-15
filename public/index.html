@@ -48,6 +48,47 @@
     }
     #splash-screen.fade-out { opacity: 0; pointer-events: none; }
     .splash-logo { width: 140px; height: 140px; object-fit: contain; margin-bottom: 16px; }
+
+    /* ============================
+       LOADER CENTRÉ (actualisation)
+    ============================ */
+    #page-loader {
+      position: fixed; left: 50%; top: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 8000;
+      pointer-events: none;
+      opacity: 0; transition: opacity .25s;
+    }
+    #page-loader.visible { opacity: 1; }
+    .loader-bubble {
+      background: #fff;
+      border-radius: 24px;
+      padding: 22px 32px;
+      display: flex; flex-direction: column; align-items: center; gap: 14px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+    }
+    .loader-spinner {
+      width: 36px; height: 36px;
+      border: 3.5px solid rgba(192,0,26,0.12);
+      border-top-color: #C0001A;
+      border-radius: 50%;
+      animation: spin .75s linear infinite;
+    }
+    .loader-text {
+      font-size: 13px; font-weight: 700; color: var(--text-sub); letter-spacing: .3px;
+    }
+
+    /* Pull-to-refresh arc */
+    #ptr-arc {
+      position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+      z-index: 7999; display: flex; align-items: center; justify-content: center;
+      width: 44px; height: 44px; border-radius: 50%; background: #fff;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.14);
+      opacity: 0; transition: opacity .2s;
+      pointer-events: none;
+    }
+    #ptr-arc.pulling { opacity: 1; }
+    #ptr-arc.releasing { opacity: 1; animation: spin .75s linear infinite; }
     .splash-church-name {
       font-size: 11px; font-weight: 400; color: #AAA;
       text-transform: uppercase; letter-spacing: 1px;
@@ -644,6 +685,190 @@
     .comment-reply-label { font-size: 10px; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
     .comment-reply-text  { font-size: 13px; color: var(--text); line-height: 1.5; }
 
+    /* ═══════════════════════════════════════
+       OVERLAYS PLEIN ÉCRAN
+    ═══════════════════════════════════════ */
+    .overlay-full {
+      position: fixed; inset: 0; z-index: 900;
+      background: var(--bg); display: none;
+      flex-direction: column; overflow: hidden;
+    }
+    .overlay-full.visible { display: flex; }
+    .ov-header {
+      background: #fff; border-bottom: 1px solid var(--border);
+      padding: calc(var(--safe-top) + 12px) 16px 12px;
+      display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+    }
+    .ov-back {
+      width: 36px; height: 36px; border-radius: 12px;
+      background: var(--bg); border: none;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; flex-shrink: 0;
+    }
+    .ov-title { font-size: 17px; font-weight: 800; color: var(--text); flex: 1; }
+    .ov-body { flex: 1; overflow-y: auto; padding: 16px; }
+
+    /* ── Bible ── */
+    .bible-toolbar { display: flex; gap: 8px; margin-bottom: 12px; }
+    .bible-sel-btn {
+      flex: 1; background: #fff; border: 1.5px solid var(--border);
+      border-radius: 12px; padding: 9px 12px; font-size: 13px; font-weight: 700;
+      color: var(--text); text-align: left; cursor: pointer;
+    }
+    .bible-sel-btn.chap { flex: 0 0 auto; min-width: 80px; text-align: center; }
+    .bible-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .bible-nav-btn {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: #fff; border: 1.5px solid var(--border);
+      display: flex; align-items: center; justify-content: center; cursor: pointer;
+    }
+    .bible-nav-btn:disabled { opacity: 0.3; pointer-events: none; }
+    .bible-chap-label { font-size: 13px; font-weight: 700; color: var(--text-sub); }
+    .bible-verse { display: flex; gap: 8px; margin-bottom: 12px; line-height: 1.75; }
+    .bible-vnum { font-size: 9.5px; font-weight: 800; color: #C0001A; min-width: 18px; text-align: right; padding-top: 4px; flex-shrink: 0; }
+    .bible-vtext { font-size: 15px; color: var(--text); }
+    .bible-loading { text-align: center; padding: 40px 20px; color: var(--text-sub); font-size: 14px; }
+
+    /* Book/chapitre picker */
+    .picker-overlay {
+      position: fixed; inset: 0; z-index: 1000;
+      background: rgba(0,0,0,0.45); display: none; align-items: flex-end;
+    }
+    .picker-overlay.visible { display: flex; }
+    .picker-sheet {
+      background: #fff; border-radius: 20px 20px 0 0;
+      width: 100%; max-height: 72vh; overflow-y: auto; padding: 16px 16px 32px;
+    }
+    .picker-title { font-size: 16px; font-weight: 800; margin-bottom: 4px; color: var(--text); }
+    .picker-section { font-size: 10px; font-weight: 800; color: #C0001A; letter-spacing: 1.2px; margin: 14px 0 6px; }
+    .picker-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+    .picker-grid-6 { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; }
+    .pick-item {
+      background: var(--bg); border: none; border-radius: 9px;
+      padding: 8px 4px; font-size: 11.5px; font-weight: 600; color: var(--text);
+      cursor: pointer; text-align: center; line-height: 1.3;
+    }
+    .pick-item.active { background: #C0001A; color: #fff; }
+
+    /* ── Prières ── */
+    .priere-card {
+      background: #fff; border-radius: 14px; padding: 16px; margin-bottom: 10px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+    }
+    .priere-titre { font-size: 15px; font-weight: 800; color: var(--text); margin-bottom: 8px; }
+    .priere-texte { font-size: 14px; color: var(--text-sub); line-height: 1.75; white-space: pre-wrap; }
+
+    /* ── Notes ── */
+    .note-item {
+      background: #fff; border-radius: 14px; padding: 13px 14px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.05); cursor: pointer;
+      display: flex; align-items: flex-start; gap: 11px; margin-bottom: 8px;
+    }
+    .note-icon {
+      width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
+      background: linear-gradient(135deg, #D97706, #F59E0B);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .note-meta { flex: 1; min-width: 0; }
+    .note-titre { font-size: 14px; font-weight: 700; color: var(--text); }
+    .note-preview { font-size: 12px; color: var(--text-sub); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .note-date { font-size: 10px; color: var(--text-muted); margin-top: 3px; }
+    .note-fab {
+      position: absolute; bottom: 16px; right: 16px;
+      width: 50px; height: 50px; border-radius: 50%;
+      background: linear-gradient(135deg, #D97706, #F59E0B);
+      border: none; box-shadow: 0 4px 16px rgba(217,119,6,0.4);
+      display: flex; align-items: center; justify-content: center; cursor: pointer;
+    }
+    .note-editor-title {
+      font-size: 20px; font-weight: 800; border: none; outline: none;
+      background: transparent; width: 100%; color: var(--text); padding: 16px 16px 8px;
+      font-family: inherit;
+    }
+    .note-editor-body {
+      font-size: 15px; border: none; outline: none;
+      background: transparent; width: 100%; min-height: 300px;
+      resize: none; color: var(--text); line-height: 1.75; padding: 0 16px;
+      font-family: inherit; flex: 1;
+    }
+
+    /* ── Étude du jour ── */
+    .etude-home-card {
+      margin: 0 16px 16px;
+      background: linear-gradient(135deg, #1e3a5f 0%, #0f1f35 100%);
+      border-radius: 16px; padding: 16px; cursor: pointer;
+      box-shadow: 0 4px 16px rgba(15,31,53,0.25);
+    }
+    .etude-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: rgba(255,255,255,0.15); border-radius: 20px;
+      padding: 3px 10px; font-size: 9px; font-weight: 800;
+      color: rgba(255,255,255,0.9); letter-spacing: 1px; margin-bottom: 10px;
+    }
+    .etude-titre { font-size: 16px; font-weight: 800; color: #fff; margin-bottom: 5px; line-height: 1.3; }
+    .etude-preview { font-size: 12px; color: rgba(255,255,255,0.6); line-height: 1.5; }
+    .etude-read-btn {
+      background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);
+      color: #fff; border-radius: 20px; padding: 6px 14px;
+      font-size: 11px; font-weight: 700; cursor: pointer; margin-top: 12px; display: inline-block;
+    }
+    .etude-detail { font-size: 15px; color: var(--text); line-height: 1.85; white-space: pre-wrap; }
+    .etude-pdf-btn {
+      display: flex; align-items: center; gap: 8px; justify-content: center;
+      background: #C0001A; color: #fff; border: none; border-radius: 14px;
+      padding: 14px 20px; font-size: 14px; font-weight: 800; cursor: pointer;
+      width: 100%; margin-top: 20px;
+    }
+
+    /* ── Bibliothèque — sous-onglets ── */
+    .lib-tabs {
+      display: flex; gap: 6px; padding: 14px 16px 0; overflow-x: auto;
+    }
+    .lib-tab-btn {
+      flex-shrink: 0; background: #fff; border: 1.5px solid var(--border);
+      border-radius: 20px; padding: 6px 14px; font-size: 12px; font-weight: 700;
+      color: var(--text-sub); cursor: pointer; white-space: nowrap;
+    }
+    .lib-tab-btn.active { background: #C0001A; border-color: #C0001A; color: #fff; }
+    .lib-section { display: none; padding: 14px 16px 0; }
+    .lib-section.active { display: block; }
+
+    /* ── Livre card ── */
+    .livre-card {
+      background: #fff; border-radius: 14px; padding: 12px;
+      display: flex; gap: 12px; cursor: pointer; margin-bottom: 10px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.05); transition: transform .1s;
+    }
+    .livre-card:active { transform: scale(0.98); }
+    .livre-cover {
+      width: 54px; height: 74px; border-radius: 8px; flex-shrink: 0;
+      background: linear-gradient(135deg, #4F46E5, #7C3AED);
+      display: flex; align-items: center; justify-content: center; overflow: hidden;
+    }
+    .livre-cover img { width: 100%; height: 100%; object-fit: cover; }
+    .livre-info { flex: 1; min-width: 0; }
+    .livre-cat { font-size: 9.5px; font-weight: 700; color: #C0001A; letter-spacing: .7px; margin-bottom: 3px; text-transform: uppercase; }
+    .livre-titre { font-size: 14px; font-weight: 800; color: var(--text); line-height: 1.3; margin-bottom: 2px; }
+    .livre-auteur { font-size: 12px; color: var(--text-sub); }
+    .cat-header { font-size: 11px; font-weight: 700; color: var(--text-muted); letter-spacing: .8px; text-transform: uppercase; padding: 10px 0 6px; }
+
+    /* ── Vidéo card ── */
+    .video-card {
+      background: #fff; border-radius: 14px; overflow: hidden;
+      margin-bottom: 10px; box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+      cursor: pointer; transition: transform .1s;
+    }
+    .video-card:active { transform: scale(0.98); }
+    .video-thumb-wrap { position: relative; height: 130px; background: #111827; display: flex; align-items: center; justify-content: center; }
+    .video-thumb-wrap img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .video-play-ovl {
+      position: relative; z-index: 1; width: 44px; height: 44px; border-radius: 50%;
+      background: rgba(255,255,255,0.9); display: flex; align-items: center; justify-content: center;
+    }
+    .video-info { padding: 10px 13px 12px; }
+    .video-cat { font-size: 9.5px; font-weight: 700; color: #C0001A; letter-spacing: .7px; text-transform: uppercase; margin-bottom: 2px; }
+    .video-titre { font-size: 14px; font-weight: 700; color: var(--text); }
+
     /* Modal membre form */
     .mf-input {
       width: 100%; padding: 13px 14px; background: var(--bg);
@@ -668,6 +893,22 @@
   <img id="splash-logo" class="splash-logo" src="/logo.jpg" alt="Maranatha" />
   <div class="splash-church-name">Communauté des Églises<br>Missionnaire Maranatha</div>
   <div class="splash-spinner"></div>
+</div>
+
+<!-- ============ LOADER CENTRÉ ============ -->
+<div id="page-loader">
+  <div class="loader-bubble">
+    <div class="loader-spinner"></div>
+    <div class="loader-text">Actualisation…</div>
+  </div>
+</div>
+
+<!-- ============ PULL-TO-REFRESH ARC ============ -->
+<div id="ptr-arc">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C0001A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="1 4 1 10 7 10"/>
+    <path d="M3.51 15a9 9 0 1 0 .49-3.5"/>
+  </svg>
 </div>
 
 
@@ -785,7 +1026,7 @@
     <div class="quick-grid">
 
       <!-- Bible -->
-      <div class="quick-card" onclick="showToast('Bible — Bientôt disponible')">
+      <div class="quick-card" onclick="ouvrirBible()">
         <div class="quick-icon" style="background:linear-gradient(135deg,#4F46E5,#7C3AED)">
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" fill="rgba(255,255,255,0.15)"/>
@@ -797,7 +1038,7 @@
       </div>
 
       <!-- Prières -->
-      <div class="quick-card" onclick="showToast('Prières — Bientôt disponible')">
+      <div class="quick-card" onclick="ouvrirPrieres()">
         <div class="quick-icon" style="background:linear-gradient(135deg,#059669,#10B981)">
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <path d="M18 11V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3v5" fill="rgba(255,255,255,0.12)"/>
@@ -807,7 +1048,7 @@
           </svg>
         </div>
         <div class="quick-label">Prières</div>
-        <div class="quick-sub">Demander</div>
+        <div class="quick-sub">Se recueillir</div>
       </div>
 
       <!-- Offrande → ouvre modal don -->
@@ -822,7 +1063,7 @@
       </div>
 
       <!-- Notes -->
-      <div class="quick-card" onclick="showToast('Notes — Bientôt disponible')">
+      <div class="quick-card" onclick="ouvrirNotes()">
         <div class="quick-icon" style="background:linear-gradient(135deg,#D97706,#F59E0B)">
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="rgba(255,255,255,0.15)"/>
@@ -836,6 +1077,15 @@
         <div class="quick-sub">Mes notes</div>
       </div>
 
+    </div>
+
+    <!-- Étude du jour -->
+    <div id="etude-home-wrap" style="display:none">
+      <div class="sec-row" style="margin-top:4px">
+        <div class="sec-title">Étude du jour</div>
+        <div class="sec-voir" onclick="ouvrirEtudeArchive()">Toutes <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+      </div>
+      <div id="etude-home-card"></div>
     </div>
 
     <!-- Prédications récentes -->
@@ -922,10 +1172,24 @@
 
   <!-- ==== TAB : BIBLIOTHÈQUE ==== -->
   <div id="tab-library" class="tab-content">
-    <div class="sec-row" style="margin-top:24px;margin-bottom:16px">
-      <div class="sec-title">Toutes les prédications</div>
+    <div class="lib-tabs">
+      <button class="lib-tab-btn active" id="lt-predications" onclick="switchLibTab('predications')">Prédications</button>
+      <button class="lib-tab-btn" id="lt-livres"       onclick="switchLibTab('livres')">Livres</button>
+      <button class="lib-tab-btn" id="lt-videos"       onclick="switchLibTab('videos')">Vidéos</button>
+      <button class="lib-tab-btn" id="lt-audio"        onclick="switchLibTab('audio')">Audio</button>
     </div>
-    <div class="lib-list" id="lib-list"></div>
+    <div class="lib-section active" id="ls-predications">
+      <div class="lib-list" id="lib-list"></div>
+    </div>
+    <div class="lib-section" id="ls-livres">
+      <div id="livres-list"></div>
+    </div>
+    <div class="lib-section" id="ls-videos">
+      <div id="videos-list"></div>
+    </div>
+    <div class="lib-section" id="ls-audio">
+      <div class="lib-list" id="audio-list"></div>
+    </div>
     <div class="ph"></div>
   </div>
 
@@ -1152,6 +1416,110 @@
   </div>
 </div>
 
+<!-- ============ OVERLAY : BIBLE ============ -->
+<div class="overlay-full" id="overlay-bible">
+  <div class="ov-header">
+    <button class="ov-back" onclick="fermerOverlay('bible')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="ov-title" id="bible-header-title">Bible — LSG</div>
+  </div>
+  <div class="ov-body" id="bible-scroll">
+    <div class="bible-toolbar">
+      <button class="bible-sel-btn" id="bible-book-btn" onclick="ouvrirBookPicker()">Jean ▾</button>
+      <button class="bible-sel-btn chap" id="bible-chap-btn" onclick="ouvrirChapPicker()">Ch. 3 ▾</button>
+    </div>
+    <div class="bible-nav">
+      <button class="bible-nav-btn" id="bible-prev-btn" onclick="bibleNavPrev()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <span class="bible-chap-label" id="bible-chap-label">Chapitre 3</span>
+      <button class="bible-nav-btn" id="bible-next-btn" onclick="bibleNavNext()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+    <div id="bible-verses"><div class="bible-loading">Chargement…</div></div>
+  </div>
+</div>
+
+<!-- ============ PICKER : LIVRE BIBLIQUE ============ -->
+<div class="picker-overlay" id="book-picker" onclick="fermerBookPicker()">
+  <div class="picker-sheet" onclick="event.stopPropagation()">
+    <div class="picker-title">Choisir un livre</div>
+    <div class="picker-section">ANCIEN TESTAMENT</div>
+    <div class="picker-grid-3" id="book-picker-at"></div>
+    <div class="picker-section">NOUVEAU TESTAMENT</div>
+    <div class="picker-grid-3" id="book-picker-nt"></div>
+  </div>
+</div>
+
+<!-- ============ PICKER : CHAPITRE ============ -->
+<div class="picker-overlay" id="chap-picker" onclick="fermerChapPicker()">
+  <div class="picker-sheet" onclick="event.stopPropagation()">
+    <div class="picker-title" id="chap-picker-title">Chapitres</div>
+    <div class="picker-grid-6" id="chap-picker-grid"></div>
+  </div>
+</div>
+
+<!-- ============ OVERLAY : PRIÈRES ============ -->
+<div class="overlay-full" id="overlay-priere">
+  <div class="ov-header">
+    <button class="ov-back" onclick="fermerOverlay('priere')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="ov-title">Prières</div>
+  </div>
+  <div class="ov-body" id="prieres-body">
+    <div class="empty-state"><p>Chargement…</p></div>
+  </div>
+</div>
+
+<!-- ============ OVERLAY : NOTES ============ -->
+<div class="overlay-full" id="overlay-notes" style="position:fixed">
+  <div class="ov-header">
+    <button class="ov-back" id="notes-back-btn" onclick="notesBack()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="ov-title" id="notes-ov-title">Mes notes</div>
+    <button id="note-del-btn" style="display:none;background:none;border:none;color:#C0001A;font-size:13px;font-weight:700;cursor:pointer" onclick="supprimerNote()">Supprimer</button>
+    <button id="note-save-btn" style="display:none;background:none;border:none;color:#C0001A;font-size:14px;font-weight:800;cursor:pointer" onclick="sauvegarderNote()">Enr.</button>
+  </div>
+  <!-- Liste -->
+  <div class="ov-body" id="notes-list-view" style="position:relative">
+    <div id="notes-list"></div>
+    <button class="note-fab" onclick="creerNote()">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    </button>
+  </div>
+  <!-- Éditeur -->
+  <div id="notes-editor-view" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+    <input class="note-editor-title" id="note-edit-titre" placeholder="Titre" />
+    <textarea class="note-editor-body" id="note-edit-body" placeholder="Commencez à écrire…"></textarea>
+  </div>
+</div>
+
+<!-- ============ OVERLAY : ÉTUDE DU JOUR ============ -->
+<div class="overlay-full" id="overlay-etude">
+  <div class="ov-header">
+    <button class="ov-back" onclick="fermerOverlay('etude')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="ov-title">Étude du jour</div>
+  </div>
+  <div class="ov-body" id="etude-detail-body"></div>
+</div>
+
+<!-- ============ OVERLAY : ARCHIVE ÉTUDES ============ -->
+<div class="overlay-full" id="overlay-etude-archive">
+  <div class="ov-header">
+    <button class="ov-back" onclick="fermerOverlay('etude-archive')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="ov-title">Toutes les études</div>
+  </div>
+  <div class="ov-body" id="etude-archive-body"></div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1258,7 +1626,9 @@
       body: JSON.stringify({ nom: 'Fidèle', telephone: tel, role: 'fidele', fcmToken: window.flutterFcmToken || '' }),
     }).catch(() => {});
 
-    chargerSermons();
+    afficherLoader('Chargement…');
+    Promise.all([chargerSermons(), chargerEtudeJour()])
+      .finally(() => cacherLoader());
     chargerYoutube();
     connecterSSE();
   }
@@ -1395,8 +1765,13 @@
     if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
   }
 
-  function fermerOverlay() {
-    document.getElementById('live-overlay').classList.remove('visible');
+  function fermerOverlay(id) {
+    if (id) {
+      const el = document.getElementById('overlay-' + id);
+      if (el) el.classList.remove('visible');
+    } else {
+      document.getElementById('live-overlay').classList.remove('visible');
+    }
   }
 
   function ecouterLive() {
@@ -1413,6 +1788,8 @@
 
   // ============ NAVIGATION ============
   const TABS = ['home', 'library', 'direct', 'settings'];
+  let libTabActif = 'predications';
+  let libCharge = { livres: false, videos: false };
 
   function switchTab(tab) {
     TABS.forEach(t => {
@@ -1420,9 +1797,76 @@
       const nav = document.getElementById('nav-' + t);
       if (nav) nav.classList.toggle('active', t === tab);
     });
-    if (tab === 'library') afficherBibliotheque();
+    if (tab === 'library') { afficherBibliotheque(); switchLibTab(libTabActif); }
     if (tab === 'direct')  afficherDirect();
   }
+
+  function switchLibTab(tab) {
+    libTabActif = tab;
+    ['predications','livres','videos','audio'].forEach(t => {
+      document.getElementById('ls-' + t).classList.toggle('active', t === tab);
+      const btn = document.getElementById('lt-' + t);
+      if (btn) btn.classList.toggle('active', t === tab);
+    });
+    if (tab === 'livres'  && !libCharge.livres) { libCharge.livres = true; chargerLivres(); }
+    if (tab === 'videos'  && !libCharge.videos) { libCharge.videos = true; chargerVideos(); }
+    if (tab === 'audio')  afficherAudio();
+  }
+
+  function fermerBookPicker()  { document.getElementById('book-picker').classList.remove('visible'); }
+  function fermerChapPicker()  { document.getElementById('chap-picker').classList.remove('visible'); }
+
+  // ============ LOADER CENTRÉ ============
+  let loaderTimer = null;
+  function afficherLoader(txt) {
+    const el = document.getElementById('page-loader');
+    el.querySelector('.loader-text').textContent = txt || 'Actualisation…';
+    el.classList.add('visible');
+    clearTimeout(loaderTimer);
+    loaderTimer = setTimeout(() => el.classList.remove('visible'), 8000);
+  }
+  function cacherLoader() {
+    clearTimeout(loaderTimer);
+    document.getElementById('page-loader').classList.remove('visible');
+  }
+
+  // ============ PULL-TO-REFRESH ============
+  (function initPTR() {
+    let startY = 0, pulling = false;
+    const THRESHOLD = 72;
+    const arc = document.getElementById('ptr-arc');
+    const scrollEl = document.getElementById('tab-home');
+
+    document.addEventListener('touchstart', e => {
+      const atTop = window.scrollY <= 2;
+      if (atTop) { startY = e.touches[0].clientY; pulling = true; }
+    }, { passive: true });
+
+    document.addEventListener('touchmove', e => {
+      if (!pulling) return;
+      const dy = e.touches[0].clientY - startY;
+      if (dy > 20) {
+        arc.style.transform = `translateX(-50%) translateY(${Math.min(dy - 20, 40)}px)`;
+        arc.classList.add('pulling');
+        arc.classList.remove('releasing');
+      }
+    }, { passive: true });
+
+    document.addEventListener('touchend', async e => {
+      if (!pulling) return;
+      pulling = false;
+      const dy = e.changedTouches[0].clientY - startY;
+      if (dy >= THRESHOLD) {
+        arc.classList.add('releasing');
+        afficherLoader('Actualisation…');
+        await chargerSermons();
+        await chargerEtudeJour();
+        cacherLoader();
+      }
+      arc.classList.remove('pulling', 'releasing');
+      arc.style.transform = 'translateX(-50%) translateY(0)';
+    }, { passive: true });
+  })();
 
   // ============ CHARGEMENT ============
   async function chargerSermons() {
@@ -1583,6 +2027,426 @@
     } else {
       dp.style.display = 'none';
     }
+  }
+
+  // ══════════════════════════════════════════════════════════
+  //  BIBLE LSG (bible-api.com)
+  // ══════════════════════════════════════════════════════════
+  const BIBLE_LIVRES = [
+    // AT
+    { fr:'Genèse',api:'genesis',ch:50 },{ fr:'Exode',api:'exodus',ch:40 },
+    { fr:'Lévitique',api:'leviticus',ch:27 },{ fr:'Nombres',api:'numbers',ch:36 },
+    { fr:'Deutéronome',api:'deuteronomy',ch:34 },{ fr:'Josué',api:'joshua',ch:24 },
+    { fr:'Juges',api:'judges',ch:21 },{ fr:'Ruth',api:'ruth',ch:4 },
+    { fr:'1 Samuel',api:'1+samuel',ch:31 },{ fr:'2 Samuel',api:'2+samuel',ch:24 },
+    { fr:'1 Rois',api:'1+kings',ch:22 },{ fr:'2 Rois',api:'2+kings',ch:25 },
+    { fr:'1 Chroniques',api:'1+chronicles',ch:29 },{ fr:'2 Chroniques',api:'2+chronicles',ch:36 },
+    { fr:'Esdras',api:'ezra',ch:10 },{ fr:'Néhémie',api:'nehemiah',ch:13 },
+    { fr:'Esther',api:'esther',ch:10 },{ fr:'Job',api:'job',ch:42 },
+    { fr:'Psaumes',api:'psalms',ch:150 },{ fr:'Proverbes',api:'proverbs',ch:31 },
+    { fr:'Ecclésiaste',api:'ecclesiastes',ch:12 },{ fr:'Cantique',api:'song+of+solomon',ch:8 },
+    { fr:'Ésaïe',api:'isaiah',ch:66 },{ fr:'Jérémie',api:'jeremiah',ch:52 },
+    { fr:'Lamentations',api:'lamentations',ch:5 },{ fr:'Ézéchiel',api:'ezekiel',ch:48 },
+    { fr:'Daniel',api:'daniel',ch:12 },{ fr:'Osée',api:'hosea',ch:14 },
+    { fr:'Joël',api:'joel',ch:3 },{ fr:'Amos',api:'amos',ch:9 },
+    { fr:'Abdias',api:'obadiah',ch:1 },{ fr:'Jonas',api:'jonah',ch:4 },
+    { fr:'Michée',api:'micah',ch:7 },{ fr:'Nahum',api:'nahum',ch:3 },
+    { fr:'Habacuc',api:'habakkuk',ch:3 },{ fr:'Sophonie',api:'zephaniah',ch:3 },
+    { fr:'Aggée',api:'haggai',ch:2 },{ fr:'Zacharie',api:'zechariah',ch:14 },
+    { fr:'Malachie',api:'malachi',ch:4 },
+    // NT
+    { fr:'Matthieu',api:'matthew',ch:28 },{ fr:'Marc',api:'mark',ch:16 },
+    { fr:'Luc',api:'luke',ch:24 },{ fr:'Jean',api:'john',ch:21 },
+    { fr:'Actes',api:'acts',ch:28 },{ fr:'Romains',api:'romans',ch:16 },
+    { fr:'1 Corinthiens',api:'1+corinthians',ch:16 },{ fr:'2 Corinthiens',api:'2+corinthians',ch:13 },
+    { fr:'Galates',api:'galatians',ch:6 },{ fr:'Éphésiens',api:'ephesians',ch:6 },
+    { fr:'Philippiens',api:'philippians',ch:4 },{ fr:'Colossiens',api:'colossians',ch:4 },
+    { fr:'1 Thessaloniciens',api:'1+thessalonians',ch:5 },{ fr:'2 Thessaloniciens',api:'2+thessalonians',ch:3 },
+    { fr:'1 Timothée',api:'1+timothy',ch:6 },{ fr:'2 Timothée',api:'2+timothy',ch:4 },
+    { fr:'Tite',api:'titus',ch:3 },{ fr:'Philémon',api:'philemon',ch:1 },
+    { fr:'Hébreux',api:'hebrews',ch:13 },{ fr:'Jacques',api:'james',ch:5 },
+    { fr:'1 Pierre',api:'1+peter',ch:5 },{ fr:'2 Pierre',api:'2+peter',ch:3 },
+    { fr:'1 Jean',api:'1+john',ch:5 },{ fr:'2 Jean',api:'2+john',ch:1 },
+    { fr:'3 Jean',api:'3+john',ch:1 },{ fr:'Jude',api:'jude',ch:1 },
+    { fr:'Apocalypse',api:'revelation',ch:22 },
+  ];
+  const BIBLE_AT_COUNT = 39;
+  let bibleBookIdx = 43; // Jean (index 43)
+  let bibleChap    = 3;
+  let bibleVerse   = null;
+
+  function ouvrirBible() {
+    document.getElementById('overlay-bible').classList.add('visible');
+    if (!document.getElementById('bible-verses').querySelector('.bible-verse')) {
+      bibleRenderPickers();
+      updateBibleSelectors();
+      chargerChapBible();
+    }
+  }
+
+  function bibleRenderPickers() {
+    const at = BIBLE_LIVRES.slice(0, BIBLE_AT_COUNT);
+    const nt = BIBLE_LIVRES.slice(BIBLE_AT_COUNT);
+    document.getElementById('book-picker-at').innerHTML = at.map((l,i) =>
+      `<button class="pick-item${i===bibleBookIdx?' active':''}" onclick="selectionnerLivre(${i})">${l.fr}</button>`
+    ).join('');
+    document.getElementById('book-picker-nt').innerHTML = nt.map((l,i) => {
+      const idx = i + BIBLE_AT_COUNT;
+      return `<button class="pick-item${idx===bibleBookIdx?' active':''}" onclick="selectionnerLivre(${idx})">${l.fr}</button>`;
+    }).join('');
+  }
+
+  function updateBibleSelectors() {
+    const l = BIBLE_LIVRES[bibleBookIdx];
+    document.getElementById('bible-book-btn').textContent = l.fr + ' ▾';
+    document.getElementById('bible-chap-btn').textContent = 'Ch. ' + bibleChap + ' ▾';
+    document.getElementById('bible-chap-label').textContent = 'Chapitre ' + bibleChap;
+    document.getElementById('bible-header-title').textContent = l.fr + ' ' + bibleChap;
+    document.getElementById('bible-prev-btn').disabled = bibleChap <= 1;
+    document.getElementById('bible-next-btn').disabled = bibleChap >= l.ch;
+  }
+
+  function ouvrirBookPicker() {
+    bibleRenderPickers();
+    document.getElementById('book-picker').classList.add('visible');
+  }
+
+  function ouvrirChapPicker() {
+    const l = BIBLE_LIVRES[bibleBookIdx];
+    document.getElementById('chap-picker-title').textContent = l.fr + ' — chapitres';
+    document.getElementById('chap-picker-grid').innerHTML = Array.from({length: l.ch}, (_,i) =>
+      `<button class="pick-item${i+1===bibleChap?' active':''}" onclick="selectionnerChapitre(${i+1})">${i+1}</button>`
+    ).join('');
+    document.getElementById('chap-picker').classList.add('visible');
+  }
+
+  function selectionnerLivre(idx) {
+    bibleBookIdx = idx; bibleChap = 1;
+    fermerBookPicker();
+    updateBibleSelectors();
+    chargerChapBible();
+  }
+
+  function selectionnerChapitre(n) {
+    bibleChap = n;
+    fermerChapPicker();
+    updateBibleSelectors();
+    chargerChapBible();
+    document.getElementById('bible-scroll').scrollTop = 0;
+  }
+
+  function bibleNavPrev() {
+    if (bibleChap > 1) { bibleChap--; updateBibleSelectors(); chargerChapBible(); document.getElementById('bible-scroll').scrollTop = 0; }
+  }
+  function bibleNavNext() {
+    if (bibleChap < BIBLE_LIVRES[bibleBookIdx].ch) { bibleChap++; updateBibleSelectors(); chargerChapBible(); document.getElementById('bible-scroll').scrollTop = 0; }
+  }
+
+  async function chargerChapBible() {
+    const el = document.getElementById('bible-verses');
+    el.innerHTML = '<div class="bible-loading">Chargement du chapitre…</div>';
+    const l = BIBLE_LIVRES[bibleBookIdx];
+    try {
+      const r = await fetch(`https://bible-api.com/${l.api}+${bibleChap}?translation=lsg`);
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const data = await r.json();
+      if (!data.verses || !data.verses.length) throw new Error('Aucun verset');
+      el.innerHTML = data.verses.map(v =>
+        `<div class="bible-verse"><span class="bible-vnum">${v.verse}</span><span class="bible-vtext">${escHtml(v.text.trim())}</span></div>`
+      ).join('');
+    } catch(e) {
+      el.innerHTML = '<div class="bible-loading">Impossible de charger ce passage.<br><small>Vérifiez votre connexion internet.</small></div>';
+    }
+  }
+
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // ══════════════════════════════════════════════════════════
+  //  PRIÈRES
+  // ══════════════════════════════════════════════════════════
+  async function ouvrirPrieres() {
+    document.getElementById('overlay-priere').classList.add('visible');
+    document.getElementById('prieres-body').innerHTML = '<div class="empty-state"><p>Chargement…</p></div>';
+    try {
+      const r = await fetch(`${API}/prieres`);
+      const list = await r.json();
+      if (!list.length) {
+        document.getElementById('prieres-body').innerHTML = '<div class="empty-state"><p>Aucune prière publiée pour l\'instant.</p></div>';
+        return;
+      }
+      document.getElementById('prieres-body').innerHTML = list.map(p => `
+        <div class="priere-card">
+          <div class="priere-titre">${escHtml(p.titre)}</div>
+          <div class="priere-texte">${escHtml(p.texte)}</div>
+        </div>`).join('');
+    } catch(e) {
+      document.getElementById('prieres-body').innerHTML = '<div class="empty-state"><p>Erreur de connexion</p></div>';
+    }
+  }
+
+  // ══════════════════════════════════════════════════════════
+  //  NOTES (localStorage)
+  // ══════════════════════════════════════════════════════════
+  let notes = [];
+  let noteEditId = null;
+
+  function ouvrirNotes() {
+    document.getElementById('overlay-notes').classList.add('visible');
+    notes = JSON.parse(localStorage.getItem('maranatha_notes') || '[]');
+    afficherListeNotes();
+    voirListeNotes();
+  }
+
+  function voirListeNotes() {
+    document.getElementById('notes-list-view').style.display = 'block';
+    document.getElementById('notes-editor-view').style.display = 'none';
+    document.getElementById('notes-ov-title').textContent = 'Mes notes';
+    document.getElementById('note-del-btn').style.display = 'none';
+    document.getElementById('note-save-btn').style.display = 'none';
+    noteEditId = null;
+  }
+
+  function afficherListeNotes() {
+    const el = document.getElementById('notes-list');
+    if (!notes.length) {
+      el.innerHTML = '<div class="empty-state" style="padding-top:60px"><p>Aucune note — appuyez sur + pour créer</p></div>';
+      return;
+    }
+    el.innerHTML = notes.sort((a,b) => b.updatedAt - a.updatedAt).map(n => `
+      <div class="note-item" onclick="editerNote('${n.id}')">
+        <div class="note-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>
+        </div>
+        <div class="note-meta">
+          <div class="note-titre">${escHtml(n.titre || 'Sans titre')}</div>
+          <div class="note-preview">${escHtml((n.contenu || '').split('\n')[0] || '…')}</div>
+          <div class="note-date">${new Date(n.updatedAt).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'})}</div>
+        </div>
+      </div>`).join('');
+  }
+
+  function creerNote() {
+    noteEditId = Date.now().toString();
+    ouvrirEditeur('', '');
+  }
+
+  function editerNote(id) {
+    const n = notes.find(x => x.id === id);
+    if (!n) return;
+    noteEditId = id;
+    ouvrirEditeur(n.titre, n.contenu);
+  }
+
+  function ouvrirEditeur(titre, contenu) {
+    document.getElementById('notes-list-view').style.display = 'none';
+    document.getElementById('notes-editor-view').style.display = 'flex';
+    document.getElementById('notes-ov-title').textContent = 'Éditer';
+    document.getElementById('note-del-btn').style.display = notes.find(x=>x.id===noteEditId) ? 'block' : 'none';
+    document.getElementById('note-save-btn').style.display = 'block';
+    document.getElementById('note-edit-titre').value = titre;
+    document.getElementById('note-edit-body').value = contenu;
+    document.getElementById('note-edit-titre').focus();
+  }
+
+  function sauvegarderNote() {
+    const titre   = document.getElementById('note-edit-titre').value.trim();
+    const contenu = document.getElementById('note-edit-body').value;
+    if (!titre && !contenu.trim()) { showToast('Note vide'); return; }
+    const idx = notes.findIndex(x => x.id === noteEditId);
+    if (idx >= 0) {
+      notes[idx] = { ...notes[idx], titre, contenu, updatedAt: Date.now() };
+    } else {
+      notes.push({ id: noteEditId, titre: titre || 'Sans titre', contenu, updatedAt: Date.now() });
+    }
+    localStorage.setItem('maranatha_notes', JSON.stringify(notes));
+    showToast('Note enregistrée');
+    afficherListeNotes();
+    voirListeNotes();
+  }
+
+  function supprimerNote() {
+    if (!noteEditId) return;
+    if (!confirm('Supprimer cette note ?')) return;
+    notes = notes.filter(x => x.id !== noteEditId);
+    localStorage.setItem('maranatha_notes', JSON.stringify(notes));
+    showToast('Note supprimée');
+    afficherListeNotes();
+    voirListeNotes();
+  }
+
+  function notesBack() {
+    const editVisible = document.getElementById('notes-editor-view').style.display !== 'none';
+    if (editVisible) { voirListeNotes(); afficherListeNotes(); }
+    else             { fermerOverlay('notes'); }
+  }
+
+  // ══════════════════════════════════════════════════════════
+  //  ÉTUDE DU JOUR
+  // ══════════════════════════════════════════════════════════
+  let etudeActuelle = null;
+
+  async function chargerEtudeJour() {
+    try {
+      const r = await fetch(`${API}/etudes/today`);
+      const etude = await r.json();
+      etudeActuelle = etude;
+      if (!etude) return;
+      const wrap = document.getElementById('etude-home-wrap');
+      wrap.style.display = 'block';
+      const preview = etude.texte ? etude.texte.substring(0, 90).replace(/\n/g,' ') + (etude.texte.length > 90 ? '…' : '') : 'PDF disponible';
+      const d = new Date(etude.datePublication);
+      const dateStr = d.toLocaleDateString('fr-FR', { weekday:'long', day:'numeric', month:'long' });
+      document.getElementById('etude-home-card').innerHTML = `
+        <div class="etude-home-card" onclick="ouvrirEtude()">
+          <div class="etude-badge">${dateStr.charAt(0).toUpperCase()+dateStr.slice(1)}</div>
+          <div class="etude-titre">${escHtml(etude.titre)}</div>
+          <div class="etude-preview">${escHtml(preview)}</div>
+          <div class="etude-read-btn">Lire l'étude →</div>
+        </div>`;
+    } catch(e) {}
+  }
+
+  function ouvrirEtude() {
+    if (!etudeActuelle) return;
+    const el = document.getElementById('etude-detail-body');
+    let html = '';
+    if (etudeActuelle.texte) {
+      html += `<div class="etude-detail">${escHtml(etudeActuelle.texte)}</div>`;
+    }
+    if (etudeActuelle.pdfUrl) {
+      html += `<button class="etude-pdf-btn" onclick="window.open('${etudeActuelle.pdfUrl}','_blank')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Ouvrir le PDF
+      </button>`;
+    }
+    document.getElementById('overlay-etude').querySelector('.ov-title').textContent = etudeActuelle.titre;
+    el.innerHTML = html || '<div class="empty-state"><p>Contenu non disponible</p></div>';
+    document.getElementById('overlay-etude').classList.add('visible');
+  }
+
+  async function ouvrirEtudeArchive() {
+    const el = document.getElementById('etude-archive-body');
+    el.innerHTML = '<div class="empty-state"><p>Chargement…</p></div>';
+    document.getElementById('overlay-etude-archive').classList.add('visible');
+    try {
+      const r = await fetch(`${API}/etudes`);
+      const list = await r.json();
+      if (!list.length) { el.innerHTML = '<div class="empty-state"><p>Aucune étude publiée</p></div>'; return; }
+      el.innerHTML = list.map(e => {
+        const d = new Date(e.datePublication).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'});
+        const preview = e.texte ? e.texte.substring(0,70).replace(/\n/g,' ')+'…' : 'PDF';
+        return `<div class="priere-card" style="cursor:pointer" onclick="ouvrirEtudeById('${e._id}')">
+          <div style="font-size:9.5px;font-weight:700;color:#C0001A;letter-spacing:.7px;margin-bottom:4px">${d}</div>
+          <div class="priere-titre">${escHtml(e.titre)}</div>
+          <div style="font-size:13px;color:var(--text-sub)">${escHtml(preview)}</div>
+        </div>`;
+      }).join('');
+    } catch(e) { el.innerHTML = '<div class="empty-state"><p>Erreur de connexion</p></div>'; }
+  }
+
+  async function ouvrirEtudeById(id) {
+    try {
+      const r = await fetch(`${API}/etudes`);
+      const list = await r.json();
+      const etude = list.find(x => x._id === id);
+      if (!etude) return;
+      etudeActuelle = etude;
+      ouvrirEtude();
+    } catch(e) {}
+  }
+
+  // ══════════════════════════════════════════════════════════
+  //  BIBLIOTHÈQUE — LIVRES
+  // ══════════════════════════════════════════════════════════
+  async function chargerLivres() {
+    const el = document.getElementById('livres-list');
+    el.innerHTML = '<div class="empty-state"><p>Chargement…</p></div>';
+    try {
+      const r = await fetch(`${API}/livres`);
+      const list = await r.json();
+      if (!list.length) { el.innerHTML = '<div class="empty-state"><p>Aucun livre disponible</p></div>'; return; }
+      const parCat = {};
+      list.forEach(l => { if (!parCat[l.categorie]) parCat[l.categorie] = []; parCat[l.categorie].push(l); });
+      el.innerHTML = Object.keys(parCat).sort().map(cat => `
+        <div class="cat-header">${escHtml(cat)}</div>
+        ${parCat[cat].map(l => `
+          <div class="livre-card" onclick="ouvrirLivre('${l.fichierUrl||l.lienExterne||''}')">
+            <div class="livre-cover">
+              ${l.couvertureUrl
+                ? `<img src="${l.couvertureUrl}" alt="" />`
+                : `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>`}
+            </div>
+            <div class="livre-info">
+              <div class="livre-cat">${escHtml(l.categorie)}</div>
+              <div class="livre-titre">${escHtml(l.titre)}</div>
+              ${l.auteur ? `<div class="livre-auteur">${escHtml(l.auteur)}</div>` : ''}
+              ${l.description ? `<div style="font-size:11.5px;color:var(--text-muted);margin-top:3px">${escHtml(l.description.substring(0,60))}…</div>` : ''}
+            </div>
+          </div>`).join('')}
+      `).join('');
+    } catch(e) { el.innerHTML = '<div class="empty-state"><p>Erreur de connexion</p></div>'; }
+  }
+
+  function ouvrirLivre(url) {
+    if (!url) { showToast('Lien non disponible'); return; }
+    window.open(url, '_blank');
+  }
+
+  // ══════════════════════════════════════════════════════════
+  //  BIBLIOTHÈQUE — VIDÉOS
+  // ══════════════════════════════════════════════════════════
+  async function chargerVideos() {
+    const el = document.getElementById('videos-list');
+    el.innerHTML = '<div class="empty-state"><p>Chargement…</p></div>';
+    try {
+      const r = await fetch(`${API}/videos`);
+      const list = await r.json();
+      if (!list.length) { el.innerHTML = '<div class="empty-state"><p>Aucune vidéo disponible</p></div>'; return; }
+      el.innerHTML = list.map(v => {
+        const ytId = extraireYtId(v.youtubeUrl);
+        const thumb = ytId ? `https://img.youtube.com/vi/${ytId}/mqdefault.jpg` : '';
+        return `<div class="video-card" onclick="window.open('${v.youtubeUrl}','_blank')">
+          <div class="video-thumb-wrap">
+            ${thumb ? `<img src="${thumb}" alt="" />` : ''}
+            <div class="video-play-ovl">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="#C0001A"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            </div>
+          </div>
+          <div class="video-info">
+            <div class="video-cat">${escHtml(v.categorie)}</div>
+            <div class="video-titre">${escHtml(v.titre)}</div>
+          </div>
+        </div>`;
+      }).join('');
+    } catch(e) { el.innerHTML = '<div class="empty-state"><p>Erreur de connexion</p></div>'; }
+  }
+
+  function extraireYtId(url) {
+    if (!url) return '';
+    const m = url.match(/(?:v=|youtu\.be\/|embed\/)([A-Za-z0-9_-]{11})/);
+    return m ? m[1] : '';
+  }
+
+  // ══════════════════════════════════════════════════════════
+  //  BIBLIOTHÈQUE — AUDIO (sermons audio)
+  // ══════════════════════════════════════════════════════════
+  function afficherAudio() {
+    const el = document.getElementById('audio-list');
+    const audioSermons = sermons.filter(s => s.audioUrl && (s.statut === 'termine' || s.statut === 'en_cours'));
+    if (!audioSermons.length) { el.innerHTML = '<div class="empty-state"><p>Aucun audio disponible</p></div>'; return; }
+    el.innerHTML = audioSermons.map(s => {
+      const d = new Date(s.dateDiffusion).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'});
+      const icon = s.coverUrl ? `<img src="${s.coverUrl}" alt="" />` : `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>`;
+      return `<div class="lib-item" onclick="jouerSermon('${s._id}')">
+        <div class="lib-icon">${icon}</div>
+        <div class="lib-info"><div class="lib-title">${s.titre}</div><div class="lib-meta">${d}</div></div>
+        <button class="lib-play" onclick="event.stopPropagation();jouerSermon('${s._id}')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        </button>
+      </div>`;
+    }).join('');
   }
 
   // ============ PLAYER AUDIO ============
