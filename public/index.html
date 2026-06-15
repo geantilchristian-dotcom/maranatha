@@ -1054,17 +1054,73 @@
     }
     .pdj-ref { font-size: 13px; font-weight: 800; color: #10B981; letter-spacing: .5px; margin-bottom: 10px; }
     .pdj-texte { font-size: 15px; color: var(--text); line-height: 1.85; white-space: pre-wrap; font-style: italic; }
-    .pdj-section-title { font-size: 11px; font-weight: 800; color: var(--text-muted);
-      letter-spacing: 1px; text-transform: uppercase; margin: 20px 0 10px; }
-    .pdj-comment-item { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.07);
-      border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; }
-    .pdj-comment-auteur { font-size: 12px; font-weight: 800; color: var(--primary); margin-bottom: 4px; }
-    .pdj-comment-texte { font-size: 14px; color: var(--text); line-height: 1.6; }
-    .pdj-comment-date { font-size: 11px; color: var(--text-muted); margin-top: 6px; }
-    .pdj-badge-suggest { display: inline-block; background: rgba(212,175,55,.12);
-      border: 1px solid rgba(212,175,55,.3); color: #D4AF37; font-size: 10px; font-weight: 800;
-      border-radius: 6px; padding: 2px 8px; letter-spacing: .5px; text-transform: uppercase;
-      margin-bottom: 6px; }
+    /* section headers */
+    .pdj-section-hdr {
+      display: flex; align-items: center; gap: 8px;
+      margin: 22px 0 10px; padding-bottom: 8px;
+    }
+    .pdj-sec-cmt  { border-bottom: 1.5px solid rgba(59,130,246,.25); }
+    .pdj-sec-sug  { border-bottom: 1.5px solid rgba(212,175,55,.3); }
+    .pdj-sec-icon {
+      width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 14px;
+    }
+    .pdj-sec-cmt .pdj-sec-icon { background: rgba(59,130,246,.15); }
+    .pdj-sec-sug .pdj-sec-icon { background: rgba(212,175,55,.15); }
+    .pdj-sec-label {
+      font-size: 12px; font-weight: 900; letter-spacing: .8px;
+      text-transform: uppercase; flex: 1;
+    }
+    .pdj-sec-cmt .pdj-sec-label { color: #60A5FA; }
+    .pdj-sec-sug .pdj-sec-label { color: #D4AF37; }
+    .pdj-sec-count {
+      font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 10px;
+    }
+    .pdj-sec-cmt .pdj-sec-count { background: rgba(59,130,246,.15); color: #60A5FA; }
+    .pdj-sec-sug .pdj-sec-count { background: rgba(212,175,55,.12); color: #D4AF37; }
+
+    /* commentaire item — bulle bleue */
+    .pdj-cmt-item {
+      background: rgba(59,130,246,.05);
+      border: 1px solid rgba(59,130,246,.15);
+      border-left: 3px solid #60A5FA;
+      border-radius: 0 14px 14px 0; padding: 12px 14px; margin-bottom: 10px;
+    }
+    .pdj-cmt-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+    .pdj-cmt-avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: rgba(59,130,246,.2); color: #60A5FA;
+      font-size: 12px; font-weight: 900;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .pdj-cmt-auteur { font-size: 12px; font-weight: 800; color: #60A5FA; flex: 1; }
+    .pdj-cmt-date   { font-size: 11px; color: var(--text-muted); }
+    .pdj-cmt-texte  { font-size: 14px; color: var(--text); line-height: 1.65; }
+
+    /* suggestion item — carte dorée */
+    .pdj-sug-item {
+      background: rgba(212,175,55,.06);
+      border: 1px solid rgba(212,175,55,.2);
+      border-radius: 14px; padding: 14px 16px; margin-bottom: 10px;
+      display: flex; gap: 12px; align-items: flex-start;
+    }
+    .pdj-sug-bulb {
+      width: 34px; height: 34px; border-radius: 10px;
+      background: rgba(212,175,55,.15); flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 16px;
+    }
+    .pdj-sug-body  { flex: 1; min-width: 0; }
+    .pdj-sug-label {
+      display: inline-block; font-size: 9px; font-weight: 900;
+      letter-spacing: .7px; text-transform: uppercase;
+      background: rgba(212,175,55,.15); color: #D4AF37;
+      border-radius: 5px; padding: 2px 7px; margin-bottom: 5px;
+    }
+    .pdj-sug-auteur { font-size: 12px; font-weight: 800; color: #D4AF37; margin-bottom: 4px; }
+    .pdj-sug-texte  { font-size: 14px; color: var(--text); line-height: 1.65; }
+    .pdj-sug-date   { font-size: 11px; color: var(--text-muted); margin-top: 5px; }
+
+    /* réponse pasteur (commune) */
     .pdj-reply { background: rgba(212,175,55,.07); border-left: 3px solid #D4AF37;
       border-radius: 8px; padding: 10px 12px; margin-top: 10px; }
     .pdj-reply-label { font-size: 10px; font-weight: 800; color: #D4AF37;
@@ -3090,24 +3146,53 @@
           </div>`).join('');
       }
 
-      const renderPDJ = c => {
+      const replyHtml = c => c.adminReponse
+        ? `<div class="pdj-reply"><div class="pdj-reply-label">RÉPONSE DU PASTEUR</div><div class="pdj-reply-texte">${escHtml(c.adminReponse)}</div></div>`
+        : '';
+
+      const renderComment = c => {
         const date = new Date(c.dateEnvoi).toLocaleDateString('fr-FR', { day:'2-digit', month:'long' });
-        return `<div class="pdj-comment-item">
-          ${c.type === 'suggestion' ? '<span class="pdj-badge-suggest">Suggestion</span>' : ''}
-          <div class="pdj-comment-auteur">${escHtml(c.auteur || 'Fidèle anonyme')}</div>
-          <div class="pdj-comment-texte">${escHtml(c.texte)}</div>
-          <div class="pdj-comment-date">${date}</div>
-          ${c.adminReponse ? `<div class="pdj-reply"><div class="pdj-reply-label">RÉPONSE DU PASTEUR</div><div class="pdj-reply-texte">${escHtml(c.adminReponse)}</div></div>` : ''}
+        const initiale = (c.auteur || 'F')[0].toUpperCase();
+        return `<div class="pdj-cmt-item">
+          <div class="pdj-cmt-header">
+            <div class="pdj-cmt-avatar">${initiale}</div>
+            <div class="pdj-cmt-auteur">${escHtml(c.auteur || 'Fidèle anonyme')}</div>
+            <div class="pdj-cmt-date">${date}</div>
+          </div>
+          <div class="pdj-cmt-texte">${escHtml(c.texte)}</div>
+          ${replyHtml(c)}
+        </div>`;
+      };
+
+      const renderSuggestion = c => {
+        const date = new Date(c.dateEnvoi).toLocaleDateString('fr-FR', { day:'2-digit', month:'long' });
+        return `<div class="pdj-sug-item">
+          <div class="pdj-sug-bulb">💡</div>
+          <div class="pdj-sug-body">
+            <span class="pdj-sug-label">Sujet proposé</span>
+            <div class="pdj-sug-auteur">${escHtml(c.auteur || 'Fidèle anonyme')}</div>
+            <div class="pdj-sug-texte">${escHtml(c.texte)}</div>
+            <div class="pdj-sug-date">${date}</div>
+            ${replyHtml(c)}
+          </div>
         </div>`;
       };
 
       if (commentaires.length) {
-        html += '<div class="pdj-section-title">Commentaires</div>';
-        html += commentaires.map(renderPDJ).join('');
+        html += `<div class="pdj-section-hdr pdj-sec-cmt">
+          <div class="pdj-sec-icon">💬</div>
+          <div class="pdj-sec-label">Commentaires</div>
+          <span class="pdj-sec-count">${commentaires.length}</span>
+        </div>`;
+        html += commentaires.map(renderComment).join('');
       }
       if (suggestions.length) {
-        html += '<div class="pdj-section-title">Sujets suggérés</div>';
-        html += suggestions.map(renderPDJ).join('');
+        html += `<div class="pdj-section-hdr pdj-sec-sug">
+          <div class="pdj-sec-icon">💡</div>
+          <div class="pdj-sec-label">Sujets suggérés</div>
+          <span class="pdj-sec-count">${suggestions.length}</span>
+        </div>`;
+        html += suggestions.map(renderSuggestion).join('');
       }
 
       html += `
