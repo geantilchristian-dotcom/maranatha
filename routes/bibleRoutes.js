@@ -30,40 +30,20 @@ function httpsGet(url, redirectCount = 0) {
   });
 }
 
-// ── Source 1 : getbible.net v2 (livres numérotés 1-66) ──
-async function fetchGetBible(bookNum, chapter) {
-  const raw  = await httpsGet(`https://getbible.net/v2/lsg/${bookNum}/${chapter}.json`);
-  const data = JSON.parse(raw);
-  if (!data.verses) throw new Error('pas de versets');
-  return Object.values(data.verses).map(v => ({ verse: Number(v.verse), text: v.text.trim() }));
-}
-
-// ── Source 2 : bible-api.com (noms anglais, traduction lsg) ──
-const BOOK_APIS = [
-  'genesis','exodus','leviticus','numbers','deuteronomy','joshua','judges','ruth',
-  '1+samuel','2+samuel','1+kings','2+kings','1+chronicles','2+chronicles','ezra',
-  'nehemiah','esther','job','psalms','proverbs','ecclesiastes','song+of+solomon',
-  'isaiah','jeremiah','lamentations','ezekiel','daniel','hosea','joel','amos',
-  'obadiah','jonah','micah','nahum','habakkuk','zephaniah','haggai','zechariah','malachi',
-  'matthew','mark','luke','john','acts','romans','1+corinthians','2+corinthians',
-  'galatians','ephesians','philippians','colossians','1+thessalonians','2+thessalonians',
-  '1+timothy','2+timothy','titus','philemon','hebrews','james','1+peter','2+peter',
-  '1+john','2+john','3+john','jude','revelation',
-];
-
-async function fetchBibleApi(bookNum, chapter) {
-  const raw  = await httpsGet(`https://bible-api.com/${BOOK_APIS[bookNum-1]}+${chapter}?translation=lsg`);
-  const data = JSON.parse(raw);
-  if (!data.verses || !data.verses.length) throw new Error('pas de versets');
-  return data.verses.map(v => ({ verse: Number(v.verse), text: v.text.trim() }));
-}
-
-// ── Source 3 : bolls.life ──
-async function fetchBolls(bookNum, chapter) {
-  const raw    = await httpsGet(`https://bolls.life/get-text/LSG/${bookNum}/${chapter}/`);
+// ── Source 1 : bolls.life — Nouvelle Bible Segond (NBS) ──
+async function fetchBollsNBS(bookNum, chapter) {
+  const raw    = await httpsGet(`https://bolls.life/get-text/NBS/${bookNum}/${chapter}/`);
   const parsed = JSON.parse(raw);
-  if (!Array.isArray(parsed) || !parsed.length) throw new Error('pas de versets');
-  return parsed.map((v, i) => ({ verse: i + 1, text: String(v.text || v).trim() }));
+  if (!Array.isArray(parsed) || !parsed.length) throw new Error('NBS: pas de versets');
+  return parsed.map(v => ({ verse: Number(v.verse), text: String(v.text).trim() }));
+}
+
+// ── Source 2 : bolls.life — Bible du Semeur (BDS) ──
+async function fetchBollsBDS(bookNum, chapter) {
+  const raw    = await httpsGet(`https://bolls.life/get-text/BDS/${bookNum}/${chapter}/`);
+  const parsed = JSON.parse(raw);
+  if (!Array.isArray(parsed) || !parsed.length) throw new Error('BDS: pas de versets');
+  return parsed.map(v => ({ verse: Number(v.verse), text: String(v.text).trim() }));
 }
 
 // ── Route GET /api/bible/:bookNum/:chapter ──
@@ -76,7 +56,7 @@ router.get('/:bookNum/:chapter', async (req, res) => {
   const key = `${bookNum}:${chapter}`;
   if (cache.has(key)) return res.json({ verses: cache.get(key), cached: true });
 
-  const sources = [fetchGetBible, fetchBibleApi, fetchBolls];
+  const sources = [fetchBollsNBS, fetchBollsBDS];
   const errors  = [];
   for (const fn of sources) {
     try {
