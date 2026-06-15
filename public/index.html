@@ -3071,7 +3071,7 @@
     try {
       const [rP, rC] = await Promise.all([
         fetch(`${API}/prieres`),
-        fetch(`${API}/comments`),
+        fetch(`${API}/comments?section=parole`),
       ]);
       const paroles  = rP.ok ? await rP.json() : [];
       const comments = rC.ok ? await rC.json() : [];
@@ -3156,7 +3156,7 @@
       const res = await fetch(`${API}/comments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ texte, type, auteur }),
+        body: JSON.stringify({ texte, type, auteur, section: 'parole' }),
       });
       if (res.ok) {
         showToast(type === 'commentaire' ? '✅ Commentaire envoyé !' : '✅ Suggestion envoyée !');
@@ -3739,7 +3739,7 @@
   let commentairesCharges = false;
   async function chargerCommentaires() {
     try {
-      const res = await fetch(API + '/comments');
+      const res = await fetch(API + '/comments?section=communaute');
       if (!res.ok) return;
       const list = await res.json();
       const el = document.getElementById('comment-list');
@@ -3776,7 +3776,7 @@
   // Charger le compteur au démarrage (sans afficher la liste)
   (async () => {
     try {
-      const res = await fetch(API + '/comments');
+      const res = await fetch(API + '/comments?section=communaute');
       if (!res.ok) return;
       const list = await res.json();
       const badge = document.getElementById('comment-count-badge');
@@ -3792,7 +3792,7 @@
       const res = await fetch(API + '/comments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ texte }),
+        body: JSON.stringify({ texte, section: 'communaute' }),
       });
       if (res.ok) {
         input.value = '';
