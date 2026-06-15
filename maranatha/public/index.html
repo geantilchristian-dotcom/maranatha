@@ -53,13 +53,13 @@
        LOADER CENTRÉ (actualisation)
     ============================ */
     #page-loader {
-      position: fixed; inset: 0; z-index: 8000;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
+      position: fixed; left: 50%; top: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 8000;
       pointer-events: none;
       opacity: 0; transition: opacity .25s;
     }
-    #page-loader.visible { opacity: 1; pointer-events: auto; }
+    #page-loader.visible { opacity: 1; }
     .loader-bubble {
       background: #fff;
       border-radius: 24px;
@@ -1765,8 +1765,13 @@
     if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
   }
 
-  function fermerOverlay() {
-    document.getElementById('live-overlay').classList.remove('visible');
+  function fermerOverlay(id) {
+    if (id) {
+      const el = document.getElementById('overlay-' + id);
+      if (el) el.classList.remove('visible');
+    } else {
+      document.getElementById('live-overlay').classList.remove('visible');
+    }
   }
 
   function ecouterLive() {
@@ -1806,10 +1811,6 @@
     if (tab === 'livres'  && !libCharge.livres) { libCharge.livres = true; chargerLivres(); }
     if (tab === 'videos'  && !libCharge.videos) { libCharge.videos = true; chargerVideos(); }
     if (tab === 'audio')  afficherAudio();
-  }
-
-  function fermerOverlay(id) {
-    document.getElementById('overlay-' + id).classList.remove('visible');
   }
 
   function fermerBookPicker()  { document.getElementById('book-picker').classList.remove('visible'); }
