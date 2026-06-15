@@ -9,17 +9,18 @@ const sermonRoutes  = require('./routes/sermonRoutes');
 const settingsRoutes= require('./routes/settingsRoutes');
 const commentRoutes = require('./routes/commentRoutes');
 const membreRoutes  = require('./routes/membreRoutes');
+const priereRoutes  = require('./routes/priereRoutes');
+const etudeRoutes   = require('./routes/etudeRoutes');
+const livreRoutes   = require('./routes/livreRoutes');
+const videoRoutes   = require('./routes/videoRoutes');
+const bibleRoutes   = require('./routes/bibleRoutes');
 
 const app = express();
 
-// Middlewares
 app.use(cors());
 app.use(express.json());
-
-// Servir les fichiers statiques (interface admin)
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Middleware de vérification du mot de passe admin
 const adminAuth = (req, res, next) => {
   const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'maranatha2026';
   const pwd = req.headers['x-admin-password'];
@@ -29,42 +30,39 @@ const adminAuth = (req, res, next) => {
   next();
 };
 
-// Route de vérification du mot de passe admin (utilisée par l'interface)
 app.get('/api/admin/verify', adminAuth, (req, res) => {
   res.json({ ok: true });
 });
 
-// Routes de l'API
 app.use('/api/users',    userRoutes);
 app.use('/api/sermons',  sermonRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/comments', commentRoutes);
 app.use('/api/membres',  membreRoutes);
+app.use('/api/prieres',  priereRoutes);
+app.use('/api/etudes',   etudeRoutes);
+app.use('/api/livres',   livreRoutes);
+app.use('/api/videos',   videoRoutes);
+app.use('/api/bible',    bibleRoutes);
 
-// Initialisation du planificateur automatique (L'Horloge)
 require('./utils/scheduler');
 
-// Page admin — accessible via /admin
 app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
-// Route de santé
 app.get('/', (req, res) => {
-  res.send("Serveur Maranatha opérationnel ✓");
+  res.send("Serveur Maranatha operationnel");
 });
 
-// Connexion MongoDB et démarrage du serveur
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI;
 
 if (!MONGO_URI) {
-  console.error("ERREUR FATALE : La variable d'environnement MONGO_URI n'est pas definie !");
-  console.error("Configurez MONGO_URI dans les variables d'environnement Render.");
+  console.error("ERREUR FATALE : MONGO_URI non definie !");
   process.exit(1);
 }
 
-// Endpoint de sante — utile pour debugger
 app.get('/api/health', (req, res) => {
   const states = { 0: 'disconnected', 1: 'connected', 2: 'connecting', 3: 'disconnecting' };
   res.json({
@@ -82,7 +80,7 @@ mongoose.connect(MONGO_URI, {
   socketTimeoutMS: 45000,
 })
   .then(() => {
-    console.log("MongoDB connecte ✓");
+    console.log("MongoDB connecte");
     app.listen(PORT, () => console.log(`Serveur demarre sur le port ${PORT}`));
   })
   .catch(err => {
