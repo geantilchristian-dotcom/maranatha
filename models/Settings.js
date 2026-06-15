@@ -9,6 +9,8 @@ const settingsSchema = new mongoose.Schema({
   couleurFond: { type: String, default: '#001220' },
   couleurAccent: { type: String, default: '#D4AF37' },
   dureeSplash: { type: Number, default: 3 },
+  youtubeUrl: { type: String, default: '' },
+  ytLabel: { type: String, default: 'Regarder sur YouTube' },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Settings', settingsSchema);
