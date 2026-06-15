@@ -8,10 +8,12 @@ function adminOnly(req, res, next) {
   next();
 }
 
-// GET  /api/comments  — public (50 derniers)
+// GET  /api/comments?section=communaute|parole  — public (50 derniers)
 router.get('/', async (req, res) => {
   try {
-    const comments = await Comment.find().sort({ dateEnvoi: -1 }).limit(50);
+    const filter = {};
+    if (req.query.section) filter.section = req.query.section;
+    const comments = await Comment.find(filter).sort({ dateEnvoi: -1 }).limit(50);
     res.json(comments);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -19,12 +21,13 @@ router.get('/', async (req, res) => {
 // POST /api/comments  — public
 router.post('/', async (req, res) => {
   try {
-    const { texte, type, auteur } = req.body;
+    const { texte, type, auteur, section } = req.body;
     if (!texte || !texte.trim()) return res.status(400).json({ error: 'Texte requis' });
     const c = await Comment.create({
-      texte:  texte.trim(),
-      type:   ['commentaire','suggestion'].includes(type) ? type : 'commentaire',
-      auteur: (auteur || '').trim(),
+      texte:   texte.trim(),
+      type:    ['commentaire','suggestion'].includes(type) ? type : 'commentaire',
+      section: ['communaute','parole'].includes(section) ? section : 'communaute',
+      auteur:  (auteur || '').trim(),
     });
     res.status(201).json(c);
   } catch (e) { res.status(500).json({ error: e.message }); }
