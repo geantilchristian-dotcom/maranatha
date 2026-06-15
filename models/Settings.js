@@ -31,6 +31,20 @@ const settingsSchema = new mongoose.Schema({
     }],
     default: [],
   },
+  // Don — Mobile Money
+  airtel:       { type: String, default: '' },
+  orange:       { type: String, default: '' },
+  vodacom:      { type: String, default: '' },
+  // Don — Banque
+  nomTitulaire: { type: String, default: '' },
+  nomBanque:    { type: String, default: '' },
+  numeroCompte: { type: String, default: '' },
+  iban:         { type: String, default: '' },
+  bic:          { type: String, default: '' },
+  instructions: { type: String, default: '' },
+  // Rétrocompatibilité
+  telephone1:   { type: String, default: '' },
+  telephone2:   { type: String, default: '' },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Settings', settingsSchema);
