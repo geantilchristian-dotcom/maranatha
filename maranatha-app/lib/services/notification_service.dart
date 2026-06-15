@@ -13,13 +13,15 @@ class NotificationService {
   final _messaging = FirebaseMessaging.instance;
   final _localNotifications = FlutterLocalNotificationsPlugin();
 
+  // Canal ALARM — importance maximale, réveille l'écran
   static const _androidChannel = AndroidNotificationChannel(
-    'maranatha_predication',
-    'Prédications Maranatha',
-    description: 'Canal pour les prédications en direct',
+    'maranatha_alarme',
+    'Alarmes Maranatha',
+    description: 'Sonne automatiquement à l\'heure de la prédication',
     importance: Importance.max,
     playSound: true,
     enableVibration: true,
+    enableLights: true,
   );
 
   Future<void> initialiser() async {
@@ -27,9 +29,16 @@ class NotificationService {
       alert: true, badge: true, sound: true, announcement: true,
     );
 
-    await _localNotifications
-        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-        ?.createNotificationChannel(_androidChannel);
+    // Forcer la livraison des messages de données en foreground
+    await _messaging.setForegroundNotificationPresentationOptions(
+      alert: true, badge: true, sound: true,
+    );
+
+    final androidPlugin = _localNotifications
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+    await androidPlugin?.createNotificationChannel(_androidChannel);
+    // Demander la permission d'alarme exacte (Android 12+)
+    await androidPlugin?.requestExactAlarmsPermission();
 
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
@@ -51,12 +60,12 @@ class NotificationService {
         ?? message.notification?.title
         ?? 'Prédication en direct';
     final corps = message.data['type'] == 'PREDICATION_DIRECTE'
-        ? 'La prédication commence ! Ouvrez l\'app pour écouter.'
+        ? '⛪ La prédication vient de commencer. Appuyez pour écouter.'
         : (message.notification?.body ?? '');
 
     _localNotifications.show(
       DateTime.now().millisecondsSinceEpoch ~/ 1000,
-      '⛪ $titre',
+      '🔔 $titre',
       corps,
       NotificationDetails(
         android: AndroidNotificationDetails(
@@ -66,11 +75,20 @@ class NotificationService {
           importance: Importance.max,
           priority: Priority.max,
           playSound: true,
+          enableVibration: true,
+          enableLights: true,
+          // Réveille l'écran même si le téléphone est en veille
+          fullScreenIntent: true,
+          category: AndroidNotificationCategory.alarm,
+          // S'affiche en bandeau en haut même si app ouverte
+          visibility: NotificationVisibility.public,
+          showWhen: true,
         ),
         iOS: const DarwinNotificationDetails(
           presentAlert: true,
           presentBadge: true,
           presentSound: true,
+          interruptionLevel: InterruptionLevel.timeSensitive,
         ),
       ),
     );
