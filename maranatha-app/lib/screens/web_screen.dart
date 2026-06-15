@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
+import '../services/notification_service.dart';
 
 const String APP_URL = 'https://maranatha-2vgy.onrender.com';
 
@@ -34,7 +35,17 @@ class _WebScreenState extends State<WebScreen> {
         NavigationDelegate(
           onPageStarted: (_) => setState(() { _loading = true; _erreur = false; }),
           onProgress: (p) => setState(() => _progress = p),
-          onPageFinished: (_) => setState(() => _loading = false),
+          onPageFinished: (_) async {
+            setState(() => _loading = false);
+            // Injecter le token FCM dans la WebView pour l'inscription
+            final token = await NotificationService.instance.obtenirTokenFCM();
+            if (token != null && token.isNotEmpty) {
+              await _controller.runJavaScript(
+                'window.flutterFcmToken = "$token";'
+                'if(typeof window.__onFcmToken==="function") window.__onFcmToken("$token");'
+              );
+            }
+          },
           onWebResourceError: (err) {
             if (err.isForMainFrame ?? true) {
               setState(() { _loading = false; _erreur = true; });
