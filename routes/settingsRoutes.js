@@ -69,4 +69,24 @@ router.put('/home', adminOnly, async (req, res) => {
   }
 });
 
+// GET /api/settings/don — public
+router.get('/don', async (req, res) => {
+  try {
+    let s = await Settings.findOne({ key: 'don' });
+    if (!s) s = await Settings.create({ key: 'don' });
+    res.json(s);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// PUT /api/settings/don — admin only
+router.put('/don', adminOnly, async (req, res) => {
+  try {
+    const allowed = ['telephone1','telephone2','nomTitulaire','nomBanque','numeroCompte','iban','bic','instructions'];
+    const update = {};
+    for (const k of allowed) { if (req.body[k] !== undefined) update[k] = req.body[k]; }
+    const s = await Settings.findOneAndUpdate({ key: 'don' }, { $set: update }, { new: true, upsert: true });
+    res.json(s);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 module.exports = router;
