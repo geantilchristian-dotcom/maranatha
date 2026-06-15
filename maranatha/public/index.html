@@ -3681,14 +3681,30 @@
       // Même URL mais l'utilisateur a pausé volontairement → on ne relance PAS
       return;
     }
+    // Tentative 1 : lecture normale
     audio.play()
       .then(() => { setPlayIcon(true); window._pendingAutoplay = null; })
       .catch(() => {
-        // Autoplay bloqué par Android WebView.
-        // Flutter rappellera _pendingAutoplay() via runJavaScript (reconnu comme user gesture).
-        window._pendingAutoplay = function() {
-          audio.play().then(() => { setPlayIcon(true); window._pendingAutoplay = null; }).catch(() => {});
-        };
+        // Tentative 2 : MUTE TRICK
+        // Chrome/Android WebView autorise toujours la lecture d'un audio muet.
+        // On démarre muet → puis on coupe le mute immédiatement.
+        audio.muted = true;
+        audio.play()
+          .then(() => {
+            audio.muted = false;   // son revient dès que la lecture est lancée
+            setPlayIcon(true);
+            window._pendingAutoplay = null;
+          })
+          .catch(() => {
+            audio.muted = false;
+            // Tentative 3 : stocker pour le timer Flutter (toutes les 2s)
+            window._pendingAutoplay = function() {
+              audio.muted = true;
+              audio.play()
+                .then(() => { audio.muted = false; setPlayIcon(true); window._pendingAutoplay = null; })
+                .catch(() => { audio.muted = false; });
+            };
+          });
       });
   }
 
