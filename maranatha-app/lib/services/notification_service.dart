@@ -1,40 +1,49 @@
+import 'dart:typed_data';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../firebase_options.dart';
 
-// ── Handler appelé quand l'app est FERMÉE ou en arrière-plan ──────────────
-// @pragma('vm:entry-point') est obligatoire : Flutter conserve cette fonction
-// même en mode release (tree-shaking).
+// ─────────────────────────────────────────────────────────────────────────────
+// Handler appelé dans un isolate séparé quand l'app est FERMÉE ou TUÉE
+// @pragma obligatoire : empêche le tree-shaking en mode release
+// ─────────────────────────────────────────────────────────────────────────────
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  // Initialiser Firebase si ce n'est pas encore fait (app fermée)
+  // 1. Initialiser Firebase dans cet isolate (requis, contexte séparé)
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  // Initialiser les notifications locales (contexte isolé sans UI)
+  // 2. Initialiser flutter_local_notifications indépendamment
   final localNotifications = FlutterLocalNotificationsPlugin();
   const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
   await localNotifications.initialize(
     const InitializationSettings(android: androidSettings),
   );
 
-  // Créer le canal alarme au cas où il n'existerait pas encore
+  // 3. Créer le canal alarme s'il n'existe pas encore dans cet isolate
   await localNotifications
       .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
       ?.createNotificationChannel(NotificationService._channel);
 
-  // Afficher la notification plein-écran (réveille l'écran même verrouillé)
+  // 4. Afficher la notification plein-écran (réveille l'écran même verrouillé)
   await NotificationService._afficher(localNotifications, message);
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Canal de communication natif pour les permissions système Android
+// ─────────────────────────────────────────────────────────────────────────────
+const _sysChannel = MethodChannel('maranatha/system');
 
 class NotificationService {
   NotificationService._();
   static final NotificationService instance = NotificationService._();
 
-  final _messaging        = FirebaseMessaging.instance;
-  final _localNotifications = FlutterLocalNotificationsPlugin();
+  final _messaging           = FirebaseMessaging.instance;
+  final _localNotifications  = FlutterLocalNotificationsPlugin();
 
-  // Canal partagé — utilisé ici ET dans le background handler
+  // Canal partagé — utilisé ici ET dans le background handler (isolate)
   static const _channel = AndroidNotificationChannel(
     'maranatha_alarme',
     'Alarmes Maranatha',
@@ -45,51 +54,77 @@ class NotificationService {
     enableLights: true,
   );
 
+  // ── Initialisation complète ────────────────────────────────────────────────
   Future<void> initialiser() async {
-    // Demander les permissions
+
+    // 1. Permissions Firebase (notifications)
     await _messaging.requestPermission(
       alert: true, badge: true, sound: true, announcement: true,
     );
 
-    // Livrer les messages de données en foreground aussi
+    // 2. Livrer les messages de données en foreground aussi
     await _messaging.setForegroundNotificationPresentationOptions(
       alert: true, badge: true, sound: true,
     );
 
+    // 3. Préparer le plugin Android
     final androidPlugin = _localNotifications
         .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
-    await androidPlugin?.createNotificationChannel(_channel);
-    await androidPlugin?.requestExactAlarmsPermission();
 
-    // Enregistrer le handler background AVANT initialize()
+    // Créer le canal d'alarme
+    await androidPlugin?.createNotificationChannel(_channel);
+
+    // Permission alarme exacte (Android 12+)
+    try {
+      await androidPlugin?.requestExactAlarmsPermission();
+    } catch (_) {}
+
+    // Permission fullScreenIntent (Android 14+ : doit être accordée manuellement)
+    // Ouvre une boîte de dialogue système si non encore accordée
+    try {
+      await androidPlugin?.requestFullScreenIntentPermission();
+    } catch (_) {}
+
+    // ── CRITIQUE : Exclusion optimisation batterie ──────────────────────────
+    // Sans ça, Android tue le service Firebase quand l'app est fermée ou que
+    // le téléphone est en veille → les messages FCM ne sont jamais reçus.
+    // Cette méthode affiche une boîte de dialogue système demandant à l'utilisateur
+    // d'autoriser l'app à fonctionner sans restriction de batterie.
+    try {
+      await _sysChannel.invokeMethod('requestIgnoreBatteryOptimizations');
+    } catch (_) {}
+
+    // 4. Enregistrer le handler background AVANT initialize()
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
+    // 5. Initialiser flutter_local_notifications
     const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const iosSettings = DarwinInitializationSettings();
+    const iosSettings     = DarwinInitializationSettings();
     await _localNotifications.initialize(
       const InitializationSettings(android: androidSettings, iOS: iosSettings),
     );
 
-    // App au premier plan
+    // 6. Écouter les messages en foreground
     FirebaseMessaging.onMessage.listen(
       (msg) => _afficher(_localNotifications, msg),
     );
-    // App en arrière-plan, utilisateur tape la notif
+
+    // 7. App en arrière-plan : utilisateur tape la notification
     FirebaseMessaging.onMessageOpenedApp.listen(
       (msg) => _afficher(_localNotifications, msg),
     );
-    // App était fermée, utilisateur tape la notif
+
+    // 8. App était fermée : utilisateur tape la notification
     final initialMessage = await _messaging.getInitialMessage();
     if (initialMessage != null) _afficher(_localNotifications, initialMessage);
   }
 
-  // ── Méthode statique pour pouvoir l'appeler depuis le background handler ──
+  // ── Affichage notification (statique pour être appelée depuis l'isolate) ──
   static Future<void> _afficher(
     FlutterLocalNotificationsPlugin plugin,
     RemoteMessage message,
   ) async {
-    final titre = message.data['sermon_titre'] as String?
-        ?? 'Prédication Maranatha';
+    final titre = message.data['sermon_titre'] as String? ?? 'Prédication Maranatha';
     const corps = '⛪ La prédication vient de commencer. Appuyez pour écouter.';
 
     await plugin.show(
@@ -101,16 +136,18 @@ class NotificationService {
           _channel.id,
           _channel.name,
           channelDescription: _channel.description,
-          importance:   Importance.max,
-          priority:     Priority.max,
-          playSound:    true,
+          importance:      Importance.max,
+          priority:        Priority.max,
+          playSound:       true,
           enableVibration: true,
-          enableLights: true,
-          // ── Réveille l'écran même verrouillé (comme WhatsApp) ──
+          enableLights:    true,
+          // Réveille l'écran verrouillé (comme WhatsApp)
           fullScreenIntent: true,
-          category: AndroidNotificationCategory.alarm,
-          visibility: NotificationVisibility.public,
-          showWhen: true,
+          category:    AndroidNotificationCategory.alarm,
+          visibility:  NotificationVisibility.public,
+          showWhen:    true,
+          // Vibreur prolongé pour s'assurer que l'utilisateur entend
+          vibrationPattern: Int64List.fromList([0, 500, 200, 500, 200, 500]),
         ),
         iOS: const DarwinNotificationDetails(
           presentAlert: true,
@@ -122,7 +159,7 @@ class NotificationService {
     );
   }
 
-  // Alias d'instance pour la compatibilité avec l'ancien code
+  // Alias d'instance (compatibilité)
   Future<void> afficherNotification(RemoteMessage message) =>
       _afficher(_localNotifications, message);
 
