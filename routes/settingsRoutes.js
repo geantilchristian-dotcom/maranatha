@@ -98,4 +98,25 @@ router.put('/don', adminOnly, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// GET /api/settings/programme — public
+router.get('/programme', async (req, res) => {
+  try {
+    let s = await Settings.findOne({ key: 'programme' });
+    res.json({ items: (s && s.programme) ? s.programme : [] });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// PUT /api/settings/programme — admin only
+router.put('/programme', adminOnly, async (req, res) => {
+  try {
+    const items = Array.isArray(req.body.items) ? req.body.items : [];
+    const s = await Settings.findOneAndUpdate(
+      { key: 'programme' },
+      { $set: { programme: items } },
+      { new: true, upsert: true }
+    );
+    res.json({ items: s.programme || [] });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 module.exports = router;
