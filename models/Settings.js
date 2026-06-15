@@ -18,6 +18,19 @@ const settingsSchema = new mongoose.Schema({
     }],
     default: [],
   },
+  programme: {
+    type: [{
+      id:          { type: String, default: '' },
+      titre:       { type: String, default: '' },
+      badge:       { type: String, default: 'PRÉDICATION' },
+      dateStr:     { type: String, default: '' },
+      heureStr:    { type: String, default: '' },
+      lieu:        { type: String, default: '' },
+      description: { type: String, default: '' },
+      imageUrl:    { type: String, default: '' },
+    }],
+    default: [],
+  },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Settings', settingsSchema);
