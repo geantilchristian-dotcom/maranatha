@@ -586,6 +586,37 @@
 
   window.addEventListener('DOMContentLoaded', lancerSplashAdmin);
 
+  // ===== DATE AUTO — s'initialise à maintenant, se met à jour chaque minute =====
+  let _dateManuelle = false; // true si le pasteur a touché au champ
+
+  function dateLocaleISO(d) {
+    // Formate une Date en "YYYY-MM-DDTHH:MM" (format requis par datetime-local)
+    const pad = n => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+
+  function initDateAuto() {
+    const champ = document.getElementById('f-date');
+    if (!champ) return;
+
+    // Mettre la date/heure actuelle
+    champ.value = dateLocaleISO(new Date());
+
+    // Marquer si le pasteur modifie lui-même
+    champ.addEventListener('input', () => { _dateManuelle = true; });
+
+    // Avancer automatiquement chaque minute si pas modifié
+    setInterval(() => {
+      if (!_dateManuelle) champ.value = dateLocaleISO(new Date());
+    }, 60000);
+  }
+
+  // Réinitialiser le flag quand le formulaire est soumis avec succès
+  function resetDateAuto() {
+    _dateManuelle = false;
+    document.getElementById('f-date').value = dateLocaleISO(new Date());
+  }
+
   // ===== PARAMÈTRES SPLASH =====
   async function chargerSplash() {
     try {
@@ -665,6 +696,7 @@
           document.getElementById('login-page').style.display = 'none';
           document.getElementById('dashboard').style.display = 'block';
           chargerTout();
+          initDateAuto();
         } else {
           document.getElementById('login-error').style.display = 'block';
           adminPassword = '';
@@ -823,8 +855,8 @@
         toast('Predication planifiee avec succes !', 'success');
         document.getElementById('f-titre').value = '';
         document.getElementById('f-desc').value = '';
-        document.getElementById('f-date').value = '';
         retirerFichier();
+        resetDateAuto();
         chargerTout();
       } else {
         const msg = json.error || json.message || ('Erreur serveur ' + res.status + ' : ' + body.substring(0, 120));
