@@ -1438,12 +1438,13 @@
       if (live.coverUrl) document.getElementById('hero-img').src = live.coverUrl;
       hero.onclick = scrollToPlayer;
       hero.classList.add('visible');
-      // Player audio
+      // Player audio — chargé mais PAS lancé automatiquement
+      // L'utilisateur doit appuyer sur ▶ lui-même
       mini.classList.add('visible');
       document.getElementById('mp-title').textContent = live.titre;
       document.getElementById('mp-live-badge').style.display = 'inline-flex';
       document.getElementById('mp-status').style.display = 'none';
-      ouvrirAudio(live.audioUrl);
+      preparerAudio(live.audioUrl);
 
     } else if (youtubeUrl) {
       // ── Vidéo YouTube vedette (fond naturel sombre, PAS rouge) ──
@@ -1570,11 +1571,27 @@
     document.getElementById('mini-player').scrollIntoView({ behavior: 'smooth' });
   }
 
+  // ── preparerAudio : charge l'URL SANS lancer la lecture ──────────────────
+  // Utilisé pour les sermons en_cours détectés au chargement de l'app.
+  // L'utilisateur doit appuyer lui-même sur ▶ pour écouter.
+  function preparerAudio(url) {
+    if (!url) return;
+    const audio = document.getElementById('main-audio');
+    if (activeAudioUrl === url) return; // déjà préparé
+    activeAudioUrl = url;
+    userPaused = false;
+    audio.src = url;
+    audio.load();
+    audio.ontimeupdate = updatePlayer;
+    audio.onended = () => { setPlayIcon(false); userPaused = false; };
+    setPlayIcon(false); // bouton ▶ affiché en état "prêt à jouer"
+  }
+
+  // ── ouvrirAudio : charge ET lance la lecture (appel explicite par l'utilisateur) ──
   function ouvrirAudio(url) {
     if (!url) return;
     const audio = document.getElementById('main-audio');
     if (activeAudioUrl !== url) {
-      // Nouvelle URL : on charge et on joue (reset userPaused)
       activeAudioUrl = url;
       userPaused = false;
       audio.src = url;
