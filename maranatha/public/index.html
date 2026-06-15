@@ -3712,13 +3712,16 @@
   function demarrerOuToggle() {
     const a = document.getElementById('main-audio');
     if (!a.src) return;
+    a.muted = false; // réinitialiser si bloqué muet
     if (a.paused) {
       userPaused = false;
+      window._pendingAutoplay = null; // annuler le timer Flutter
       a.play()
         .then(() => { setPlayIcon(true); })
         .catch(() => showToast('Lecture impossible'));
     } else {
       userPaused = true;
+      window._pendingAutoplay = null; // annuler le timer Flutter
       a.pause(); setPlayIcon(false);
     }
   }
