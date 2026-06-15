@@ -2218,17 +2218,17 @@
   async function chargerChapBible() {
     const el = document.getElementById('bible-verses');
     el.innerHTML = '<div class="bible-loading">Chargement du chapitre…</div>';
-    const l = BIBLE_LIVRES[bibleBookIdx];
+    const bookNum = bibleBookIdx + 1; // 1-66 (canonical order)
     try {
-      const r = await fetch(`https://bible-api.com/${l.api}+${bibleChap}?translation=lsg`);
+      const r = await fetch(`/api/bible/${bookNum}/${bibleChap}`);
       if (!r.ok) throw new Error('HTTP ' + r.status);
       const data = await r.json();
       if (!data.verses || !data.verses.length) throw new Error('Aucun verset');
       el.innerHTML = data.verses.map(v =>
-        `<div class="bible-verse"><span class="bible-vnum">${v.verse}</span><span class="bible-vtext">${escHtml(v.text.trim())}</span></div>`
+        `<div class="bible-verse"><span class="bible-vnum">${v.verse}</span><span class="bible-vtext">${escHtml(v.text)}</span></div>`
       ).join('');
     } catch(e) {
-      el.innerHTML = '<div class="bible-loading">Impossible de charger ce passage.<br><small>Vérifiez votre connexion internet.</small></div>';
+      el.innerHTML = '<div class="bible-loading" style="color:#C0001A">⚠️ Impossible de charger ce passage.<br><small style="color:#888">Vérifiez votre connexion internet.</small></div>';
     }
   }
 
