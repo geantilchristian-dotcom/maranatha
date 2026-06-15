@@ -2,17 +2,20 @@ package com.maranatha.app
 
 import android.app.*
 import android.content.Intent
+import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
+import androidx.core.app.ServiceCompat
 
 /**
  * Foreground Service audio — maintient la lecture active quand :
  *   • l'écran est verrouillé
- *   • l'app est en arrière-plan (bouton Home)
+ *   • l'app est en arrière-plan
  *   • Android tente d'économiser la batterie
  *
- * Le canal JS "FlutterAudio" dans web_screen.dart envoie
- * les commandes play/pause/stop depuis la WebView.
+ * Compatible API 21+ (Android 5.0+).
+ * minSdk du projet = 21, donc on ne peut PAS utiliser
+ * STOP_FOREGROUND_REMOVE (API 33) directement.
  */
 class AudioForegroundService : Service() {
 
@@ -34,7 +37,13 @@ class AudioForegroundService : Service() {
         val titre = intent?.getStringExtra(EXTRA_TITRE) ?: "Maranatha"
         return when (intent?.action) {
             ACTION_STOP -> {
-                stopForeground(STOP_FOREGROUND_REMOVE)
+                // Compatibilité API 21-32 et 33+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    stopForeground(STOP_FOREGROUND_REMOVE)
+                } else {
+                    @Suppress("DEPRECATION")
+                    stopForeground(true)
+                }
                 stopSelf()
                 START_NOT_STICKY
             }
