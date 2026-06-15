@@ -45,6 +45,10 @@ const settingsSchema = new mongoose.Schema({
   // Rétrocompatibilité
   telephone1:   { type: String, default: '' },
   telephone2:   { type: String, default: '' },
+  // Réseaux sociaux
+  facebookUrl:       { type: String, default: '' },
+  youtubeChannelUrl: { type: String, default: '' },
+  tiktokUrl:         { type: String, default: '' },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Settings', settingsSchema);
