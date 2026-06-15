@@ -970,7 +970,7 @@
     fetch(`${API}/users/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nom: userName, telephone: tel || 'web-' + Date.now(), role: 'fidele', fcmToken: 'web-user' })
+      body: JSON.stringify({ nom: userName, telephone: tel || 'web-' + Date.now(), role: 'fidele', fcmToken: window.flutterFcmToken || '' })
     }).catch(() => {}).finally(lancerApp);
   }
 
