@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -18,6 +19,7 @@ class _WebScreenState extends State<WebScreen> {
   bool _loading  = true;
   bool _erreur   = false;
   int  _progress = 0;
+  Timer? _autoplayTimer;   // vérifie périodiquement si un audio attend d'être joué
 
   static const _sysChannel = MethodChannel('maranatha/system');
 
@@ -30,11 +32,9 @@ class _WebScreenState extends State<WebScreen> {
       statusBarIconBrightness: Brightness.dark,
     ));
 
-    // ── 1. Créer le controller et configurer les options statiques ────────
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setBackgroundColor(Colors.white)
-      // Canal JS → Flutter : état audio (play / pause / stop)
       ..addJavaScriptChannel(
         'FlutterAudio',
         onMessageReceived: (JavaScriptMessage msg) async {
@@ -57,36 +57,25 @@ class _WebScreenState extends State<WebScreen> {
         },
       );
 
-    // ── 2. CRITIQUE : autoriser l'autoplay AVANT le chargement ───────────
-    // setMediaPlaybackRequiresUserGesture doit être appelé avant loadRequest
-    // pour que l'audio démarre automatiquement dès la première page.
+    // ── CRITIQUE : autoriser l'autoplay AVANT loadRequest ────────────────
+    // Doit être appelé avant que la page commence à se charger.
     if (_controller.platform is AndroidWebViewController) {
       (_controller.platform as AndroidWebViewController)
           .setMediaPlaybackRequiresUserGesture(false);
     }
 
-    // ── 3. Configurer la navigation et démarrer le chargement ────────────
     _controller
       ..setNavigationDelegate(
         NavigationDelegate(
-          onPageStarted: (_) => setState(() { _loading = true; _erreur = false; }),
+          onPageStarted: (_) {
+            setState(() { _loading = true; _erreur = false; });
+            _autoplayTimer?.cancel(); // annuler l'ancien timer si rechargement
+          },
           onProgress: (p) => setState(() => _progress = p),
           onPageFinished: (_) async {
             setState(() => _loading = false);
 
-            // ── AUTOPLAY via runJavaScript ──────────────────────────────────────
-            // Android WebView bloque audio.play() sans user gesture.
-            // MAIS : un appel runJavaScript() depuis Flutter est reconnu comme
-            // "user gesture" par le WebView → on peut déclencher l'audio ici.
-            // On attend 1 500 ms pour que chargerSermons() ait fini son fetch API.
-            await Future.delayed(const Duration(milliseconds: 1500));
-            await _controller.runJavaScript(
-              'if (typeof window._pendingAutoplay === "function") {'
-              '  window._pendingAutoplay();'
-              '}'
-            );
-
-            // ── Token FCM ──────────────────────────────────────────────────────
+            // Token FCM
             final token = await NotificationService.instance.obtenirTokenFCM();
             if (token != null && token.isNotEmpty) {
               await _controller.runJavaScript(
@@ -94,6 +83,23 @@ class _WebScreenState extends State<WebScreen> {
                 'if(typeof window.__onFcmToken==="function") window.__onFcmToken("$token");'
               );
             }
+
+            // ── Timer autoplay ──────────────────────────────────────────────
+            // La prédication peut démarrer à tout moment via SSE.
+            // On vérifie toutes les 2s si window._pendingAutoplay est défini.
+            // runJavaScript() est reconnu comme "user gesture" par Android WebView
+            // → audio.play() passe même sans que l'utilisateur touche l'écran.
+            _autoplayTimer?.cancel();
+            _autoplayTimer = Timer.periodic(const Duration(seconds: 2), (_) async {
+              if (!mounted) return;
+              try {
+                await _controller.runJavaScript(
+                  'if (typeof window._pendingAutoplay === "function") {'
+                  '  window._pendingAutoplay();'
+                  '}'
+                );
+              } catch (_) {}
+            });
           },
           onWebResourceError: (err) {
             if (err.isForMainFrame ?? true) {
@@ -103,6 +109,12 @@ class _WebScreenState extends State<WebScreen> {
         ),
       )
       ..loadRequest(Uri.parse(APP_URL));
+  }
+
+  @override
+  void dispose() {
+    _autoplayTimer?.cancel();
+    super.dispose();
   }
 
   Future<bool> _onWillPop() async {
