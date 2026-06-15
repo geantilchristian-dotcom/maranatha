@@ -78,9 +78,9 @@ async function envoyerNotificationMasse(tokens, sermon) {
     android: {
       priority: "high",
       notification: {
-        channelId: "maranatha_predication",
+        channelId: "maranatha_alarme",
         priority: "max",
-        defaultSound: false,
+        defaultSound: true,
       },
     },
     apns: {
