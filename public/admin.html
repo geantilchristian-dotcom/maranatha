@@ -625,6 +625,132 @@
       </div>
     </div>
 
+    <!-- ===== PRIÈRES ===== -->
+    <div class="section-title" style="margin-top:40px">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3v5"/><path d="M6 11V6a3 3 0 0 1 3-3 3 3 0 0 1 3 3"/><path d="M12 11v3a6 6 0 0 1-6 6H5a5 5 0 0 1-5-5v-3h6v-3h12v3a5 5 0 0 1-5 5h-1"/></svg>
+      Prières
+    </div>
+    <div class="card">
+      <div class="form-group full">
+        <label>Titre de la prière *</label>
+        <input type="text" id="p-titre" placeholder="Ex: Prière du matin" />
+      </div>
+      <div class="form-group full">
+        <label>Texte de la prière *</label>
+        <textarea id="p-texte" rows="5" placeholder="Seigneur, nous te remercions…"></textarea>
+      </div>
+      <button class="btn-submit" onclick="ajouterPriere()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="vertical-align:middle;margin-right:5px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Publier la prière
+      </button>
+    </div>
+    <div id="prieres-admin-list">
+      <div class="empty-state"><div style="font-size:24px;opacity:.4">⟳</div>Chargement…</div>
+    </div>
+
+    <!-- ===== ÉTUDE DU JOUR ===== -->
+    <div class="section-title" style="margin-top:40px">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+      Étude du jour
+    </div>
+    <div class="card">
+      <div class="form-group full">
+        <label>Titre de l'étude *</label>
+        <input type="text" id="et-titre" placeholder="Ex: La foi qui déplace les montagnes" />
+      </div>
+      <div class="form-group full">
+        <label>Texte (optionnel)</label>
+        <textarea id="et-texte" rows="6" placeholder="Contenu de l'étude…"></textarea>
+      </div>
+      <div class="form-group full">
+        <label>URL du PDF (optionnel)</label>
+        <input type="url" id="et-pdf" placeholder="https://… (lien Google Drive, Dropbox, etc.)" />
+      </div>
+      <div class="form-group full">
+        <label>Date de publication</label>
+        <input type="date" id="et-date" />
+      </div>
+      <button class="btn-submit" onclick="ajouterEtude()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="vertical-align:middle;margin-right:5px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Publier l'étude
+      </button>
+    </div>
+    <div id="etudes-admin-list">
+      <div class="empty-state"><div style="font-size:24px;opacity:.4">⟳</div>Chargement…</div>
+    </div>
+
+    <!-- ===== LIVRES ===== -->
+    <div class="section-title" style="margin-top:40px">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+      Bibliothèque — Livres
+    </div>
+    <div class="card">
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>Titre du livre *</label>
+          <input type="text" id="lv-titre" placeholder="Ex: La puissance de la prière" />
+        </div>
+        <div class="form-group">
+          <label>Auteur</label>
+          <input type="text" id="lv-auteur" placeholder="Ex: Charles Spurgeon" />
+        </div>
+        <div class="form-group">
+          <label>Catégorie *</label>
+          <input type="text" id="lv-cat" placeholder="Ex: Spiritualité, Science, Bible…" />
+        </div>
+        <div class="form-group full">
+          <label>Description</label>
+          <textarea id="lv-desc" rows="2" placeholder="Résumé court…"></textarea>
+        </div>
+        <div class="form-group full">
+          <label>URL du PDF ou lien de téléchargement</label>
+          <input type="url" id="lv-fichier" placeholder="https://…" />
+        </div>
+        <div class="form-group full">
+          <label>Image de couverture (URL)</label>
+          <input type="url" id="lv-couverture" placeholder="https://… (image de la couverture)" />
+        </div>
+      </div>
+      <button class="btn-submit" onclick="ajouterLivre()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="vertical-align:middle;margin-right:5px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Ajouter ce livre
+      </button>
+    </div>
+    <div id="livres-admin-list">
+      <div class="empty-state"><div style="font-size:24px;opacity:.4">⟳</div>Chargement…</div>
+    </div>
+
+    <!-- ===== VIDÉOS ===== -->
+    <div class="section-title" style="margin-top:40px">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+      Bibliothèque — Vidéos
+    </div>
+    <div class="card">
+      <div class="form-group full">
+        <label>Titre de la vidéo *</label>
+        <input type="text" id="vid-titre" placeholder="Ex: Culte du dimanche 15 juin" />
+      </div>
+      <div class="form-group full">
+        <label>Catégorie *</label>
+        <input type="text" id="vid-cat" placeholder="Ex: Prédication, Louange, Témoignage…" />
+      </div>
+      <div class="form-group full">
+        <label>Lien YouTube *</label>
+        <input type="url" id="vid-url" placeholder="https://www.youtube.com/watch?v=…" />
+      </div>
+      <div class="form-group full">
+        <label>Description (optionnel)</label>
+        <textarea id="vid-desc" rows="2" placeholder="Résumé…"></textarea>
+      </div>
+      <button class="btn-submit" onclick="ajouterVideo()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="vertical-align:middle;margin-right:5px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Ajouter la vidéo
+      </button>
+    </div>
+    <div id="videos-admin-list">
+      <div class="empty-state"><div style="font-size:24px;opacity:.4">⟳</div>Chargement…</div>
+    </div>
+
     <!-- ===== MEMBRES ===== -->
     <div class="section-title" style="margin-top:40px">
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -859,7 +985,12 @@
 
   // ===== STATS & CHARGEMENT =====
   async function chargerTout() {
-    await Promise.all([chargerSermons(), chargerStats(), chargerSplash(), chargerHome(), chargerDonAdmin(), chargerMembres(), chargerCommentairesAdmin()]);
+    await Promise.all([
+      chargerSermons(), chargerStats(), chargerSplash(), chargerHome(),
+      chargerDonAdmin(), chargerMembres(), chargerCommentairesAdmin(),
+      chargerPrieresAdmin(), chargerEtudesAdmin(), chargerLivresAdmin(), chargerVideosAdmin()
+    ]);
+    document.getElementById('et-date').valueAsDate = new Date();
   }
 
   async function chargerStats() {
@@ -1219,6 +1350,216 @@
 
   function escA(s) {
     return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // ══════════════════════════════════════════════════════════
+  //  PRIÈRES
+  // ══════════════════════════════════════════════════════════
+  async function chargerPrieresAdmin() {
+    const el = document.getElementById('prieres-admin-list');
+    try {
+      const r = await fetch(`${API}/prieres/all`, { headers: authHeaders() });
+      const list = await r.json();
+      if (!list.length) { el.innerHTML = '<div class="empty-state">Aucune prière publiée</div>'; return; }
+      el.innerHTML = list.map(p => `
+        <div class="sermon-item" style="align-items:flex-start;gap:10px">
+          <div class="sermon-info">
+            <div class="sermon-title">${esc(p.titre)}</div>
+            <div class="sermon-meta" style="white-space:pre-wrap">${esc(p.texte.substring(0,100))}…</div>
+          </div>
+          <button class="btn-delete" title="Supprimer" onclick="supprimerPriere('${p._id}')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+          </button>
+        </div>`).join('');
+    } catch(e) { el.innerHTML = '<div class="empty-state">Erreur de chargement</div>'; }
+  }
+
+  async function ajouterPriere() {
+    const titre = document.getElementById('p-titre').value.trim();
+    const texte = document.getElementById('p-texte').value.trim();
+    if (!titre || !texte) { toast('Titre et texte requis', 'error'); return; }
+    try {
+      const r = await fetch(`${API}/prieres`, { method:'POST', headers:{...authHeaders(),'Content-Type':'application/json'}, body: JSON.stringify({titre,texte}) });
+      if (!r.ok) throw new Error('Erreur');
+      document.getElementById('p-titre').value = '';
+      document.getElementById('p-texte').value = '';
+      toast('Prière publiée', 'success');
+      chargerPrieresAdmin();
+    } catch(e) { toast('Erreur lors de l\'ajout', 'error'); }
+  }
+
+  async function supprimerPriere(id) {
+    if (!confirm('Supprimer cette prière ?')) return;
+    try {
+      await fetch(`${API}/prieres/${id}`, { method:'DELETE', headers: authHeaders() });
+      toast('Supprimée', 'success');
+      chargerPrieresAdmin();
+    } catch(e) { toast('Erreur', 'error'); }
+  }
+
+  // ══════════════════════════════════════════════════════════
+  //  ÉTUDES DU JOUR
+  // ══════════════════════════════════════════════════════════
+  async function chargerEtudesAdmin() {
+    const el = document.getElementById('etudes-admin-list');
+    try {
+      const r = await fetch(`${API}/etudes/all`, { headers: authHeaders() });
+      const list = await r.json();
+      if (!list.length) { el.innerHTML = '<div class="empty-state">Aucune étude publiée</div>'; return; }
+      el.innerHTML = list.map(e => {
+        const d = new Date(e.datePublication).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'});
+        const badge = e.actif ? `<span style="background:#22A87A;color:#fff;border-radius:20px;padding:2px 8px;font-size:10px;font-weight:700">Active</span>` : `<span style="background:#EEE;color:#666;border-radius:20px;padding:2px 8px;font-size:10px">Masquée</span>`;
+        return `<div class="sermon-item" style="align-items:flex-start;gap:10px">
+          <div class="sermon-info">
+            <div class="sermon-title">${esc(e.titre)} ${badge}</div>
+            <div class="sermon-meta">${d}${e.pdfUrl ? ' · PDF' : ''}</div>
+          </div>
+          <div style="display:flex;gap:6px;flex-shrink:0">
+            <button class="btn-delete" title="${e.actif ? 'Masquer' : 'Activer'}" onclick="toggleEtude('${e._id}',${!e.actif})" style="background:${e.actif ? '#FEF5E6' : '#E5F6EF'}">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="${e.actif ? '#D97706' : '#22A87A'}" stroke-width="2.5" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+            <button class="btn-delete" title="Supprimer" onclick="supprimerEtude('${e._id}')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M9 6V4h6v2"/></svg>
+            </button>
+          </div>
+        </div>`;
+      }).join('');
+    } catch(e) { el.innerHTML = '<div class="empty-state">Erreur de chargement</div>'; }
+  }
+
+  async function ajouterEtude() {
+    const titre = document.getElementById('et-titre').value.trim();
+    const texte = document.getElementById('et-texte').value.trim();
+    const pdfUrl = document.getElementById('et-pdf').value.trim();
+    const dateVal = document.getElementById('et-date').value;
+    if (!titre) { toast('Titre requis', 'error'); return; }
+    if (!texte && !pdfUrl) { toast('Texte ou PDF requis', 'error'); return; }
+    try {
+      const body = { titre, texte, pdfUrl, datePublication: dateVal ? new Date(dateVal) : new Date(), actif: true };
+      const r = await fetch(`${API}/etudes`, { method:'POST', headers:{...authHeaders(),'Content-Type':'application/json'}, body: JSON.stringify(body) });
+      if (!r.ok) throw new Error('Erreur');
+      document.getElementById('et-titre').value = '';
+      document.getElementById('et-texte').value = '';
+      document.getElementById('et-pdf').value = '';
+      document.getElementById('et-date').valueAsDate = new Date();
+      toast('Étude publiée', 'success');
+      chargerEtudesAdmin();
+    } catch(e) { toast('Erreur lors de la publication', 'error'); }
+  }
+
+  async function toggleEtude(id, actif) {
+    try {
+      await fetch(`${API}/etudes/${id}`, { method:'PUT', headers:{...authHeaders(),'Content-Type':'application/json'}, body: JSON.stringify({actif}) });
+      toast(actif ? 'Étude activée' : 'Étude masquée', 'success');
+      chargerEtudesAdmin();
+    } catch(e) { toast('Erreur', 'error'); }
+  }
+
+  async function supprimerEtude(id) {
+    if (!confirm('Supprimer cette étude ?')) return;
+    try {
+      await fetch(`${API}/etudes/${id}`, { method:'DELETE', headers: authHeaders() });
+      toast('Supprimée', 'success');
+      chargerEtudesAdmin();
+    } catch(e) { toast('Erreur', 'error'); }
+  }
+
+  // ══════════════════════════════════════════════════════════
+  //  LIVRES
+  // ══════════════════════════════════════════════════════════
+  async function chargerLivresAdmin() {
+    const el = document.getElementById('livres-admin-list');
+    try {
+      const r = await fetch(`${API}/livres`, { headers: authHeaders() });
+      const list = await r.json();
+      if (!list.length) { el.innerHTML = '<div class="empty-state">Aucun livre ajouté</div>'; return; }
+      el.innerHTML = list.map(l => `
+        <div class="sermon-item" style="align-items:flex-start;gap:10px">
+          <div class="sermon-info">
+            <div class="sermon-title">${esc(l.titre)}</div>
+            <div class="sermon-meta">${esc(l.categorie)}${l.auteur ? ' · ' + esc(l.auteur) : ''}</div>
+          </div>
+          <button class="btn-delete" onclick="supprimerLivre('${l._id}')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M9 6V4h6v2"/></svg>
+          </button>
+        </div>`).join('');
+    } catch(e) { el.innerHTML = '<div class="empty-state">Erreur de chargement</div>'; }
+  }
+
+  async function ajouterLivre() {
+    const titre = document.getElementById('lv-titre').value.trim();
+    const auteur = document.getElementById('lv-auteur').value.trim();
+    const categorie = document.getElementById('lv-cat').value.trim();
+    const description = document.getElementById('lv-desc').value.trim();
+    const fichierUrl = document.getElementById('lv-fichier').value.trim();
+    const couvertureUrl = document.getElementById('lv-couverture').value.trim();
+    if (!titre || !categorie) { toast('Titre et catégorie requis', 'error'); return; }
+    try {
+      const r = await fetch(`${API}/livres`, { method:'POST', headers:{...authHeaders(),'Content-Type':'application/json'}, body: JSON.stringify({titre,auteur,categorie,description,fichierUrl,couvertureUrl}) });
+      if (!r.ok) throw new Error('Erreur');
+      ['lv-titre','lv-auteur','lv-cat','lv-desc','lv-fichier','lv-couverture'].forEach(id => document.getElementById(id).value = '');
+      toast('Livre ajouté', 'success');
+      chargerLivresAdmin();
+    } catch(e) { toast('Erreur lors de l\'ajout', 'error'); }
+  }
+
+  async function supprimerLivre(id) {
+    if (!confirm('Supprimer ce livre ?')) return;
+    try {
+      await fetch(`${API}/livres/${id}`, { method:'DELETE', headers: authHeaders() });
+      toast('Supprimé', 'success');
+      chargerLivresAdmin();
+    } catch(e) { toast('Erreur', 'error'); }
+  }
+
+  // ══════════════════════════════════════════════════════════
+  //  VIDÉOS
+  // ══════════════════════════════════════════════════════════
+  async function chargerVideosAdmin() {
+    const el = document.getElementById('videos-admin-list');
+    try {
+      const r = await fetch(`${API}/videos`, { headers: authHeaders() });
+      const list = await r.json();
+      if (!list.length) { el.innerHTML = '<div class="empty-state">Aucune vidéo ajoutée</div>'; return; }
+      el.innerHTML = list.map(v => `
+        <div class="sermon-item" style="align-items:flex-start;gap:10px">
+          <div class="sermon-info">
+            <div class="sermon-title">${esc(v.titre)}</div>
+            <div class="sermon-meta">${esc(v.categorie)} · <a href="${v.youtubeUrl}" target="_blank" style="color:var(--primary)">YouTube</a></div>
+          </div>
+          <button class="btn-delete" onclick="supprimerVideo('${v._id}')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M9 6V4h6v2"/></svg>
+          </button>
+        </div>`).join('');
+    } catch(e) { el.innerHTML = '<div class="empty-state">Erreur de chargement</div>'; }
+  }
+
+  async function ajouterVideo() {
+    const titre = document.getElementById('vid-titre').value.trim();
+    const categorie = document.getElementById('vid-cat').value.trim();
+    const youtubeUrl = document.getElementById('vid-url').value.trim();
+    const description = document.getElementById('vid-desc').value.trim();
+    if (!titre || !categorie || !youtubeUrl) { toast('Titre, catégorie et lien YouTube requis', 'error'); return; }
+    try {
+      const r = await fetch(`${API}/videos`, { method:'POST', headers:{...authHeaders(),'Content-Type':'application/json'}, body: JSON.stringify({titre,categorie,youtubeUrl,description}) });
+      if (!r.ok) throw new Error('Erreur');
+      ['vid-titre','vid-cat','vid-url','vid-desc'].forEach(id => document.getElementById(id).value = '');
+      toast('Vidéo ajoutée', 'success');
+      chargerVideosAdmin();
+    } catch(e) { toast('Erreur lors de l\'ajout', 'error'); }
+  }
+
+  async function supprimerVideo(id) {
+    if (!confirm('Supprimer cette vidéo ?')) return;
+    try {
+      await fetch(`${API}/videos/${id}`, { method:'DELETE', headers: authHeaders() });
+      toast('Supprimée', 'success');
+      chargerVideosAdmin();
+    } catch(e) { toast('Erreur', 'error'); }
+  }
+
+  function esc(s) {
+    return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
   // ===== TOAST =====
