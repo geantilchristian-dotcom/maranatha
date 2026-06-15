@@ -850,8 +850,12 @@
       margin-left: auto; padding: 6px 12px; border-radius: 8px;
       background: var(--primary); color: #fff; border: none; font-size: 12px;
       font-weight: 700; cursor: pointer; flex-shrink: 0;
+      transition: background .2s, transform .1s; min-width: 70px;
     }
-    .don-copy-btn:active { opacity: 0.8; }
+    .don-copy-btn:active { opacity: 0.8; transform: scale(.95); }
+    .don-copy-btn.copied {
+      background: #00c864; transform: scale(1.05);
+    }
     .don-instructions {
       padding: 14px; background: #FFF8E1; border-radius: 14px; margin-top: 12px;
       font-size: 13px; color: #7A6200; line-height: 1.6;
@@ -1733,7 +1737,7 @@
           <div class="don-row-label">AIRTEL Money</div>
           <div class="don-row-value" id="don-num-airtel">—</div>
         </div>
-        <button class="don-copy-btn" onclick="copier('don-num-airtel','Numéro copié')">Copier</button>
+        <button class="don-copy-btn" onclick="copier('don-num-airtel','Numéro copié',this)">Copier</button>
       </div>
       <div id="don-airtel-instructions"></div>
     </div>
@@ -1748,7 +1752,7 @@
           <div class="don-row-label">ORANGE Money</div>
           <div class="don-row-value" id="don-num-orange">—</div>
         </div>
-        <button class="don-copy-btn" onclick="copier('don-num-orange','Numéro copié')">Copier</button>
+        <button class="don-copy-btn" onclick="copier('don-num-orange','Numéro copié',this)">Copier</button>
       </div>
       <div id="don-orange-instructions"></div>
     </div>
@@ -1763,7 +1767,7 @@
           <div class="don-row-label">M-Pesa (VODACOM)</div>
           <div class="don-row-value" id="don-num-vodacom">—</div>
         </div>
-        <button class="don-copy-btn" onclick="copier('don-num-vodacom','Numéro copié')">Copier</button>
+        <button class="don-copy-btn" onclick="copier('don-num-vodacom','Numéro copié',this)">Copier</button>
       </div>
       <div id="don-vodacom-instructions"></div>
     </div>
@@ -1796,7 +1800,7 @@
           <div class="don-row-label">N° de compte</div>
           <div class="don-row-value" id="don-compte">—</div>
         </div>
-        <button class="don-copy-btn" onclick="copier('don-compte','Copié')">Copier</button>
+        <button class="don-copy-btn" onclick="copier('don-compte','Copié',this)">Copier</button>
       </div>
       <div class="don-row" id="don-iban-row" style="display:none">
         <div class="don-row-icon" style="background:#E3F2FD">
@@ -1806,7 +1810,7 @@
           <div class="don-row-label">IBAN</div>
           <div class="don-row-value" id="don-iban">—</div>
         </div>
-        <button class="don-copy-btn" onclick="copier('don-iban','IBAN copié')">Copier</button>
+        <button class="don-copy-btn" onclick="copier('don-iban','IBAN copié',this)">Copier</button>
       </div>
       <div class="don-row" id="don-bic-row" style="display:none">
         <div class="don-row-icon" style="background:#FCE4EC">
@@ -1816,7 +1820,7 @@
           <div class="don-row-label">BIC / SWIFT</div>
           <div class="don-row-value" id="don-bic">—</div>
         </div>
-        <button class="don-copy-btn" onclick="copier('don-bic','BIC copié')">Copier</button>
+        <button class="don-copy-btn" onclick="copier('don-bic','BIC copié',this)">Copier</button>
       </div>
       <div id="don-banque-instructions"></div>
     </div>
@@ -3439,14 +3443,23 @@
     });
   }
 
-  function copier(elId, label) {
+  function copier(elId, label, btn) {
     const v = document.getElementById(elId).textContent.trim();
     if (!v || v === '—') return;
-    navigator.clipboard.writeText(v).then(() => showToast('✅ ' + label)).catch(() => {
+    const ok = () => {
+      showToast('✅ ' + label);
+      if (btn) {
+        const orig = btn.textContent;
+        btn.textContent = '✓ Copié !';
+        btn.classList.add('copied');
+        setTimeout(() => { btn.textContent = orig; btn.classList.remove('copied'); }, 2000);
+      }
+    };
+    navigator.clipboard.writeText(v).then(ok).catch(() => {
       const ta = document.createElement('textarea');
       ta.value = v; document.body.appendChild(ta); ta.select();
       document.execCommand('copy'); document.body.removeChild(ta);
-      showToast('✅ ' + label);
+      ok();
     });
   }
 
