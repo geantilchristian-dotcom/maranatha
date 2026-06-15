@@ -19,10 +19,20 @@ router.get('/', adminOnly, async (req, res) => {
 // POST /api/membres  — public
 router.post('/', async (req, res) => {
   try {
-    const { nom, telephone, adresse } = req.body;
-    if (!nom || !telephone || !adresse)
-      return res.status(400).json({ error: 'Nom, téléphone et adresse requis' });
-    const m = await Membre.create({ nom: nom.trim(), telephone: telephone.trim(), adresse: adresse.trim() });
+    const { nom, postNom, prenom, age, sexe, telephone, indicatif, pays, adresse } = req.body;
+    if (!nom || !prenom || !telephone || !pays)
+      return res.status(400).json({ error: 'Nom, prénom, téléphone et pays sont requis' });
+    const m = await Membre.create({
+      nom:       nom.trim(),
+      postNom:   (postNom  || '').trim(),
+      prenom:    prenom.trim(),
+      age:       age ? Number(age) : undefined,
+      sexe:      sexe || '',
+      telephone: telephone.trim(),
+      indicatif: (indicatif || '').trim(),
+      pays:      pays.trim(),
+      adresse:   (adresse  || '').trim(),
+    });
     res.status(201).json(m);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
