@@ -709,14 +709,45 @@
     .ov-body { flex: 1; overflow-y: auto; padding: 16px; }
 
     /* ── Bible ── */
-    .bible-toolbar { display: flex; gap: 8px; margin-bottom: 12px; }
+    .bible-toolbar { display: flex; gap: 8px; margin-bottom: 10px; }
     .bible-sel-btn {
       flex: 1; background: #fff; border: 1.5px solid var(--border);
       border-radius: 12px; padding: 9px 12px; font-size: 13px; font-weight: 700;
       color: var(--text); text-align: left; cursor: pointer;
     }
     .bible-sel-btn.chap { flex: 0 0 auto; min-width: 80px; text-align: center; }
-    .bible-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+
+    /* Barre de recherche Bible */
+    .bible-search-bar {
+      display: flex; gap: 8px; margin-bottom: 12px;
+    }
+    .bible-search-input {
+      flex: 1; background: #fff; border: 1.5px solid var(--border);
+      border-radius: 12px; padding: 9px 14px; font-size: 13px; color: var(--text);
+      outline: none; transition: border-color .2s;
+    }
+    .bible-search-input:focus { border-color: #C0001A; }
+    .bible-search-input::placeholder { color: #aaa; }
+    .bible-search-btn {
+      width: 42px; height: 42px; border-radius: 12px;
+      background: #C0001A; border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .bible-search-btn svg { stroke: #fff; }
+    .bible-search-clear {
+      width: 42px; height: 42px; border-radius: 12px;
+      background: #f0f0f0; border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      font-size: 16px; color: #888; display: none;
+    }
+    .bible-search-info {
+      font-size: 12px; color: var(--text-sub); margin-bottom: 10px;
+      padding: 6px 10px; background: #fff8f8; border-radius: 8px;
+      border-left: 3px solid #C0001A; display: none;
+    }
+
+    /* Navigation chapitre */
+    .bible-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
     .bible-nav-btn {
       width: 36px; height: 36px; border-radius: 10px;
       background: #fff; border: 1.5px solid var(--border);
@@ -724,9 +755,36 @@
     }
     .bible-nav-btn:disabled { opacity: 0.3; pointer-events: none; }
     .bible-chap-label { font-size: 13px; font-weight: 700; color: var(--text-sub); }
-    .bible-verse { display: flex; gap: 8px; margin-bottom: 12px; line-height: 1.75; }
-    .bible-vnum { font-size: 9.5px; font-weight: 800; color: #C0001A; min-width: 18px; text-align: right; padding-top: 4px; flex-shrink: 0; }
-    .bible-vtext { font-size: 15px; color: var(--text); }
+
+    /* En-tête de chapitre dans le texte */
+    .bible-chap-header {
+      text-align: center; margin-bottom: 20px; padding-bottom: 14px;
+      border-bottom: 2px solid #C0001A;
+    }
+    .bible-chap-header-title {
+      font-size: 20px; font-weight: 900; color: #1a1040; letter-spacing: .3px;
+    }
+    .bible-chap-header-sub {
+      font-size: 11px; font-weight: 700; color: #C0001A; letter-spacing: 1.5px;
+      text-transform: uppercase; margin-top: 2px;
+    }
+
+    /* Versets */
+    .bible-verse {
+      display: flex; gap: 10px; margin-bottom: 0;
+      padding: 9px 10px; border-radius: 10px; line-height: 1.8;
+      transition: background .15s;
+    }
+    .bible-verse:hover { background: #fdf5f5; }
+    .bible-verse.highlighted { background: #fff3cd; border-left: 3px solid #f0a500; padding-left: 8px; }
+    .bible-vnum {
+      font-size: 9px; font-weight: 900; color: #fff;
+      background: #C0001A; border-radius: 50%;
+      min-width: 18px; height: 18px; display: flex; align-items: center; justify-content: center;
+      padding: 0 3px; flex-shrink: 0; margin-top: 5px; letter-spacing: 0;
+    }
+    .bible-vtext { font-size: 15.5px; color: var(--text); line-height: 1.8; }
+    mark.bible-hl { background: #ffe066; border-radius: 3px; padding: 0 2px; color: inherit; }
     .bible-loading { text-align: center; padding: 40px 20px; color: var(--text-sub); font-size: 14px; }
 
     /* Book/chapitre picker */
@@ -1502,6 +1560,17 @@
       <button class="bible-sel-btn" id="bible-book-btn" onclick="ouvrirBookPicker()">Jean ▾</button>
       <button class="bible-sel-btn chap" id="bible-chap-btn" onclick="ouvrirChapPicker()">Ch. 3 ▾</button>
     </div>
+    <div class="bible-search-bar">
+      <input type="search" class="bible-search-input" id="bible-search-input"
+        placeholder="Rechercher un mot ou Jean 3:16…"
+        onkeydown="if(event.key==='Enter')bibleSearch()"
+        oninput="if(this.value==='')bibleClearSearch()">
+      <button class="bible-search-btn" onclick="bibleSearch()" title="Rechercher">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+      <button class="bible-search-clear" id="bible-search-clear" onclick="bibleClearSearch()" title="Effacer">✕</button>
+    </div>
+    <div class="bible-search-info" id="bible-search-info"></div>
     <div class="bible-nav">
       <button class="bible-nav-btn" id="bible-prev-btn" onclick="bibleNavPrev()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
@@ -2144,9 +2213,11 @@
     { fr:'Apocalypse',api:'revelation',ch:22 },
   ];
   const BIBLE_AT_COUNT = 39;
-  let bibleBookIdx = 43; // Jean (index 43)
-  let bibleChap    = 3;
-  let bibleVerse   = null;
+  let bibleBookIdx    = 43; // Jean (index 43)
+  let bibleChap       = 3;
+  let bibleVerse      = null;
+  let bibleSearchTerm = '';
+  let bibleVerseCache = []; // versets du chapitre en cours
 
   function ouvrirBible() {
     document.getElementById('overlay-bible').classList.add('visible');
@@ -2216,20 +2287,107 @@
   }
 
   async function chargerChapBible() {
+    bibleSearchTerm = '';
+    const inp = document.getElementById('bible-search-input');
+    if (inp) inp.value = '';
+    bibleClearSearch();
     const el = document.getElementById('bible-verses');
     el.innerHTML = '<div class="bible-loading">Chargement du chapitre…</div>';
-    const bookNum = bibleBookIdx + 1; // 1-66 (canonical order)
+    const bookNum = bibleBookIdx + 1;
     try {
       const r = await fetch(`/api/bible/${bookNum}/${bibleChap}`);
       if (!r.ok) throw new Error('HTTP ' + r.status);
       const data = await r.json();
       if (!data.verses || !data.verses.length) throw new Error('Aucun verset');
-      el.innerHTML = data.verses.map(v =>
-        `<div class="bible-verse"><span class="bible-vnum">${v.verse}</span><span class="bible-vtext">${escHtml(v.text)}</span></div>`
-      ).join('');
+      bibleVerseCache = data.verses;
+      bibleRenderVerses(bibleVerseCache, '');
     } catch(e) {
+      bibleVerseCache = [];
       el.innerHTML = '<div class="bible-loading" style="color:#C0001A">⚠️ Impossible de charger ce passage.<br><small style="color:#888">Vérifiez votre connexion internet.</small></div>';
     }
+  }
+
+  function bibleRenderVerses(verses, term) {
+    const el = document.getElementById('bible-verses');
+    const l  = BIBLE_LIVRES[bibleBookIdx];
+    const header = `<div class="bible-chap-header">
+      <div class="bible-chap-header-title">${l.fr} — Chapitre ${bibleChap}</div>
+      <div class="bible-chap-header-sub">${bibleBookIdx < BIBLE_AT_COUNT ? 'Ancien Testament' : 'Nouveau Testament'}</div>
+    </div>`;
+
+    const re = term ? new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), 'gi') : null;
+    const rows = verses.map(v => {
+      let txt = escHtml(v.text);
+      let match = false;
+      if (re) {
+        const newTxt = txt.replace(re, m => { match = true; return `<mark class="bible-hl">${m}</mark>`; });
+        txt = newTxt;
+      }
+      const cls = match ? ' highlighted' : '';
+      return `<div class="bible-verse${cls}" id="bv-${v.verse}"><span class="bible-vnum">${v.verse}</span><span class="bible-vtext">${txt}</span></div>`;
+    }).join('');
+    el.innerHTML = header + rows;
+  }
+
+  // ── Recherche Bible ──────────────────────────────────────────
+  function bibleSearch() {
+    const raw = (document.getElementById('bible-search-input').value || '').trim();
+    if (!raw) return;
+
+    // Détection référence type "Jean 3:16" ou "Jean 3 16"
+    const refRe = /^(.+?)\s+(\d+)[:\s](\d+)$/i;
+    const m = raw.match(refRe);
+    if (m) {
+      const bookQ = m[1].toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+      const chapN  = parseInt(m[2]);
+      const verseN = parseInt(m[3]);
+      const idx = BIBLE_LIVRES.findIndex(l => {
+        const n = l.fr.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+        return n === bookQ || n.endsWith(bookQ) || bookQ.endsWith(n.split(' ').pop());
+      });
+      if (idx >= 0 && chapN >= 1 && chapN <= BIBLE_LIVRES[idx].ch) {
+        bibleBookIdx = idx; bibleChap = chapN;
+        updateBibleSelectors();
+        document.getElementById('bible-scroll').scrollTop = 0;
+        chargerChapBible().then(() => {
+          // Après chargement, surligner le verset demandé
+          const target = document.getElementById('bv-' + verseN);
+          if (target) {
+            target.classList.add('highlighted');
+            target.scrollIntoView({ behavior:'smooth', block:'center' });
+          }
+          const info = document.getElementById('bible-search-info');
+          info.style.display = 'block';
+          info.textContent = `Référence : ${BIBLE_LIVRES[idx].fr} ${chapN}:${verseN}`;
+          document.getElementById('bible-search-clear').style.display = 'flex';
+        });
+        return;
+      }
+    }
+
+    // Recherche de mot dans le chapitre actuel
+    bibleSearchTerm = raw;
+    bibleRenderVerses(bibleVerseCache, raw);
+    const hits = document.querySelectorAll('#bible-verses .bible-verse.highlighted').length;
+    const info = document.getElementById('bible-search-info');
+    info.style.display = 'block';
+    if (hits === 0) {
+      info.textContent = `Aucun résultat pour « ${raw} » dans ce chapitre.`;
+    } else {
+      info.textContent = `${hits} verset${hits>1?'s':''} trouvé${hits>1?'s':''} pour « ${raw} »`;
+      const first = document.querySelector('#bible-verses .bible-verse.highlighted');
+      if (first) first.scrollIntoView({ behavior:'smooth', block:'center' });
+    }
+    document.getElementById('bible-search-clear').style.display = 'flex';
+  }
+
+  function bibleClearSearch() {
+    bibleSearchTerm = '';
+    const info = document.getElementById('bible-search-info');
+    const clear = document.getElementById('bible-search-clear');
+    if (info)  { info.style.display  = 'none'; info.textContent = ''; }
+    if (clear) { clear.style.display = 'none'; }
+    if (bibleVerseCache.length) bibleRenderVerses(bibleVerseCache, '');
   }
 
   function escHtml(s) {
