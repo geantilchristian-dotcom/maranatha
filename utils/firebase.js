@@ -63,32 +63,59 @@ async function envoyerNotificationMasse(tokens, sermon) {
   const app = getFirebaseApp();
   const messaging = admin.messaging(app);
 
-  // MESSAGE DATA-ONLY (pas de champ "notification") :
-  // → quand l'app est FERMÉE, Firebase réveille le background handler Flutter
-  //   qui affiche lui-même la notification plein-écran (comme WhatsApp).
-  // → si on mettait un champ "notification", Android l'afficherait directement
-  //   SANS passer par le code Flutter = pas de fullScreenIntent, pas d'alarme.
+  // MESSAGE HYBRIDE (notification + data) :
+  //
+  // Stratégie à deux niveaux :
+  //   1. Le champ "notification" garantit qu'Android affiche la notif NATIVEMENT
+  //      même si l'app est tuée ET que le background handler ne tourne pas
+  //      (Samsung, Xiaomi, Huawei avec battery killer agressif).
+  //      Le canal "maranatha_alarme" (importance MAX) sonne et vibre fort.
+  //
+  //   2. Le champ "data" permet au background handler Flutter (app en arrière-plan)
+  //      de montrer en PLUS une notification fullScreenIntent qui réveille l'écran
+  //      verrouillé (comportement WhatsApp).
+  //
+  // Résultat : dans TOUS les cas l'utilisateur reçoit l'alerte.
+  const titreNotif = `🔔 ${sermon.titre}`;
+  const corpsNotif = '⛪ La prédication vient de commencer. Appuyez pour écouter.';
+
   const message = {
     tokens,
+    // ── Données métier (disponibles dans tous les handlers Flutter) ──
     data: {
       sermon_id:    sermon._id.toString(),
       sermon_titre: sermon.titre,
       audio_url:    sermon.audioUrl || '',
       type:         'PREDICATION_DIRECTE',
     },
+    // ── Notification native (affiché par Android même app tuée) ──
+    notification: {
+      title: titreNotif,
+      body:  corpsNotif,
+    },
     android: {
       priority: 'high',
-      ttl:      '60s',   // expire après 1 min si non livré (la prédication est en cours)
+      ttl:      '600s', // 10 min — temps de délivrer même en mode Doze
+      notification: {
+        channel_id:            'maranatha_alarme', // canal importance MAX → sonne fort
+        notification_priority: 'PRIORITY_MAX',
+        visibility:            'PUBLIC',           // visible sur écran verrouillé
+        sound:                 'default',
+        default_vibrate_timings: true,
+        default_sound:         true,
+        default_light_settings: true,
+      },
     },
     apns: {
       payload: {
         aps: {
-          'content-available': 1,  // réveille l'app iOS en background
+          alert: { title: titreNotif, body: corpsNotif },
           sound: 'default',
           badge: 1,
+          'interruption-level': 'time-sensitive',
         },
       },
-      headers: { 'apns-priority': '10', 'apns-push-type': 'background' },
+      headers: { 'apns-priority': '10', 'apns-push-type': 'alert' },
     },
   };
 
