@@ -3682,8 +3682,14 @@
       return;
     }
     audio.play()
-      .then(() => { setPlayIcon(true); })
-      .catch(() => { /* autoplay bloqué — l'utilisateur peut appuyer sur ▶ */ });
+      .then(() => { setPlayIcon(true); window._pendingAutoplay = null; })
+      .catch(() => {
+        // Autoplay bloqué par Android WebView.
+        // Flutter rappellera _pendingAutoplay() via runJavaScript (reconnu comme user gesture).
+        window._pendingAutoplay = function() {
+          audio.play().then(() => { setPlayIcon(true); window._pendingAutoplay = null; }).catch(() => {});
+        };
+      });
   }
 
   // Appelé par le bouton ▶ : toggle play/pause
@@ -4043,36 +4049,13 @@
     } catch(_) {}
   }
 
-  // Patch setPlayIcon — met à jour la Media Session ET notifie le service audio Android
+  // Patch setPlayIcon pour mettre à jour la Media Session
   const _origSetPlayIcon = setPlayIcon;
   function setPlayIcon(playing) {
     _origSetPlayIcon(playing);
     const title = document.getElementById('mp-title')?.textContent || 'Maranatha';
     updateMediaSession(title, playing);
-    // Notifier Flutter → démarre/arrête le foreground service Android
-    // FlutterAudio est injecté par webview_flutter quand l'app tourne dans le WebView Flutter
-    try {
-      if (typeof window.FlutterAudio !== 'undefined') {
-        window.FlutterAudio.postMessage(JSON.stringify({
-          action: playing ? 'play' : 'pause',
-          titre: title
-        }));
-      }
-    } catch (_) {}
   }
-
-  // Audio terminé naturellement → arrêter le foreground service
-  (function _bindAudioEnded() {
-    const audio = document.getElementById('main-audio');
-    if (!audio) return;
-    audio.addEventListener('ended', function () {
-      try {
-        if (typeof window.FlutterAudio !== 'undefined') {
-          window.FlutterAudio.postMessage(JSON.stringify({ action: 'stop' }));
-        }
-      } catch (_) {}
-    });
-  })();
 
   // ═══════════════════════════════════════════════════════
   //  SERVICE WORKER — PWA + audio arrière-plan
