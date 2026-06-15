@@ -520,6 +520,126 @@
 
     /* spacers */
     .ph { height: 24px; }
+
+    /* ======= MODAL OVERLAY ======= */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 500;
+      background: rgba(0,0,0,0.55); backdrop-filter: blur(3px);
+      display: flex; align-items: flex-end; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity .25s;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal-sheet {
+      width: 100%; max-width: 430px;
+      background: #fff; border-radius: 24px 24px 0 0;
+      padding: 20px 20px 36px;
+      transform: translateY(40px); transition: transform .3s;
+      max-height: 85vh; overflow-y: auto;
+    }
+    .modal-overlay.open .modal-sheet { transform: translateY(0); }
+    .modal-handle { width: 40px; height: 4px; background: #e0e0e8; border-radius: 2px; margin: 0 auto 20px; }
+    .modal-title { font-size: 20px; font-weight: 800; color: var(--text); margin-bottom: 6px; }
+    .modal-sub   { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
+
+    /* Don tabs */
+    .don-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+    .don-tab {
+      flex: 1; padding: 10px; border-radius: 12px; font-size: 13px; font-weight: 700;
+      border: 2px solid var(--border); background: #fff; color: var(--text-muted); cursor: pointer;
+      transition: all .15s;
+    }
+    .don-tab.active { border-color: #C0001A; color: #C0001A; background: #FFF0F2; }
+    .don-panel { display: none; }
+    .don-panel.active { display: block; }
+    .don-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px; background: var(--bg); border-radius: 14px; margin-bottom: 10px;
+    }
+    .don-row-icon {
+      width: 42px; height: 42px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .don-row-label { font-size: 12px; color: var(--text-muted); margin-bottom: 2px; }
+    .don-row-value { font-size: 15px; font-weight: 700; color: var(--text); word-break: break-all; }
+    .don-copy-btn {
+      margin-left: auto; padding: 6px 12px; border-radius: 8px;
+      background: var(--primary); color: #fff; border: none; font-size: 12px;
+      font-weight: 700; cursor: pointer; flex-shrink: 0;
+    }
+    .don-copy-btn:active { opacity: 0.8; }
+    .don-instructions {
+      padding: 14px; background: #FFF8E1; border-radius: 14px; margin-top: 12px;
+      font-size: 13px; color: #7A6200; line-height: 1.6;
+    }
+
+    /* Membre card */
+    .membre-card {
+      margin: 0 16px 20px;
+      background: linear-gradient(135deg, #C0001A, #8B0010);
+      border-radius: 20px; padding: 20px;
+      display: flex; align-items: center; gap: 16px; cursor: pointer;
+      box-shadow: 0 6px 20px rgba(192,0,26,0.3);
+      transition: transform .12s;
+    }
+    .membre-card:active { transform: scale(0.97); }
+    .membre-card-icon {
+      width: 52px; height: 52px; border-radius: 16px;
+      background: rgba(255,255,255,0.2); flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .membre-card-text { flex: 1; }
+    .membre-card-title { font-size: 17px; font-weight: 800; color: #fff; }
+    .membre-card-sub   { font-size: 12px; color: rgba(255,255,255,0.75); margin-top: 3px; }
+
+    /* Commentaires */
+    .comment-form-area {
+      margin: 0 16px 8px;
+      background: var(--card); border-radius: 16px; padding: 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .comment-textarea {
+      width: 100%; min-height: 80px; resize: none;
+      background: var(--bg); border: 1.5px solid var(--border);
+      border-radius: 10px; padding: 10px 12px;
+      font-size: 14px; color: var(--text); font-family: inherit;
+      outline: none; transition: border-color .2s;
+    }
+    .comment-textarea:focus { border-color: var(--primary); }
+    .comment-send-btn {
+      width: 100%; margin-top: 8px; padding: 12px;
+      background: var(--primary); color: #fff; border: none;
+      border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer;
+    }
+    .comment-send-btn:active { opacity: 0.85; }
+    .comment-list { padding: 0 16px; display: flex; flex-direction: column; gap: 10px; margin-bottom: 8px; }
+    .comment-item {
+      background: var(--card); border-radius: 14px; padding: 14px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+    }
+    .comment-text { font-size: 14px; color: var(--text); line-height: 1.5; }
+    .comment-date { font-size: 11px; color: var(--text-muted); margin-top: 6px; }
+    .comment-reply {
+      margin-top: 10px; padding: 10px 12px;
+      background: #F0F4FF; border-radius: 10px; border-left: 3px solid var(--primary);
+    }
+    .comment-reply-label { font-size: 10px; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+    .comment-reply-text  { font-size: 13px; color: var(--text); line-height: 1.5; }
+
+    /* Modal membre form */
+    .mf-input {
+      width: 100%; padding: 13px 14px; background: var(--bg);
+      border: 1.5px solid var(--border); border-radius: 12px;
+      font-size: 15px; color: var(--text); font-family: inherit;
+      outline: none; margin-bottom: 12px; transition: border-color .2s;
+    }
+    .mf-input:focus { border-color: #C0001A; }
+    .mf-label { font-size: 11px; font-weight: 700; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; display: block; }
+    .mf-btn {
+      width: 100%; padding: 15px; background: #C0001A; color: #fff;
+      border: none; border-radius: 14px; font-size: 16px; font-weight: 800; cursor: pointer;
+      margin-top: 4px;
+    }
+    .mf-btn:active { opacity: 0.85; }
   </style>
 </head>
 <body>
@@ -676,8 +796,8 @@
         <div class="quick-sub">Demander</div>
       </div>
 
-      <!-- Offrande -->
-      <div class="quick-card" onclick="showToast('Offrande — Bientôt disponible')">
+      <!-- Offrande → ouvre modal don -->
+      <div class="quick-card" onclick="ouvrirModalDon()">
         <div class="quick-icon" style="background:linear-gradient(135deg,#C0001A,#E53E3E)">
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" fill="rgba(255,255,255,0.2)"/>
@@ -735,6 +855,35 @@
           Participer
         </button>
       </div>
+    </div>
+
+    <!-- ===== DEVENIR MEMBRE ===== -->
+    <div class="membre-card" onclick="ouvrirModalMembre()">
+      <div class="membre-card-icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <line x1="19" y1="8" x2="19" y2="14"/>
+          <line x1="22" y1="11" x2="16" y2="11"/>
+        </svg>
+      </div>
+      <div class="membre-card-text">
+        <div class="membre-card-title">Devenir membre</div>
+        <div class="membre-card-sub">Rejoindre la communauté Maranatha</div>
+      </div>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+
+    <!-- ===== COMMENTAIRES ===== -->
+    <div class="sec-row" style="margin: 4px 0 12px">
+      <div class="sec-title">Commentaires</div>
+    </div>
+    <div class="comment-form-area">
+      <textarea id="comment-input" class="comment-textarea" placeholder="Partagez un message, une prière ou un témoignage…" maxlength="500"></textarea>
+      <button class="comment-send-btn" onclick="envoyerCommentaire()">✉️ Envoyer</button>
+    </div>
+    <div class="comment-list" id="comment-list">
+      <div class="empty-state"><p>Chargement…</p></div>
     </div>
 
     <div class="ph"></div>
@@ -859,6 +1008,117 @@
     </div>
 
   </nav>
+</div>
+
+<!-- ============ MODAL : DON ============ -->
+<div class="modal-overlay" id="modal-don" onclick="fermerModal('don')">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title">💝 Faire un don</div>
+    <div class="modal-sub">Soutenez le ministère Maranatha</div>
+    <div class="don-tabs">
+      <button class="don-tab active" id="tab-mensuel-btn" onclick="switchDon('mensuel')">Don mensuel</button>
+      <button class="don-tab"        id="tab-unique-btn"  onclick="switchDon('unique')">Don unique</button>
+    </div>
+
+    <!-- DON MENSUEL -->
+    <div class="don-panel active" id="don-mensuel-panel">
+      <div id="don-mensuel-content">
+        <div class="don-row">
+          <div class="don-row-icon" style="background:#E8F5E9">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="2" stroke-linecap="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg>
+          </div>
+          <div class="flex-1">
+            <div class="don-row-label">Mobile Money</div>
+            <div class="don-row-value" id="don-tel1-m">—</div>
+          </div>
+          <button class="don-copy-btn" onclick="copier('don-tel1-m','Numéro copié')">Copier</button>
+        </div>
+        <div class="don-row" id="don-tel2-m-row" style="display:none">
+          <div class="don-row-icon" style="background:#E3F2FD">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2" stroke-linecap="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg>
+          </div>
+          <div class="flex-1">
+            <div class="don-row-label">Autre numéro</div>
+            <div class="don-row-value" id="don-tel2-m">—</div>
+          </div>
+          <button class="don-copy-btn" onclick="copier('don-tel2-m','Numéro copié')">Copier</button>
+        </div>
+      </div>
+      <div id="don-mensuel-instructions"></div>
+    </div>
+
+    <!-- DON UNIQUE -->
+    <div class="don-panel" id="don-unique-panel">
+      <div id="don-unique-content">
+        <div class="don-row">
+          <div class="don-row-icon" style="background:#F3E5F5">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7B1FA2" stroke-width="2" stroke-linecap="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+          </div>
+          <div class="flex-1">
+            <div class="don-row-label">Titulaire</div>
+            <div class="don-row-value" id="don-titulaire">—</div>
+          </div>
+        </div>
+        <div class="don-row">
+          <div class="don-row-icon" style="background:#FFF8E1">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F57F17" stroke-width="2" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+          </div>
+          <div class="flex-1">
+            <div class="don-row-label">Banque</div>
+            <div class="don-row-value" id="don-banque">—</div>
+          </div>
+        </div>
+        <div class="don-row" id="don-compte-row">
+          <div class="don-row-icon" style="background:#E8F5E9">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="2" stroke-linecap="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+          </div>
+          <div class="flex-1">
+            <div class="don-row-label">N° de compte</div>
+            <div class="don-row-value" id="don-compte">—</div>
+          </div>
+          <button class="don-copy-btn" onclick="copier('don-compte','Copié')">Copier</button>
+        </div>
+        <div class="don-row" id="don-iban-row">
+          <div class="don-row-icon" style="background:#E3F2FD">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2" stroke-linecap="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+          </div>
+          <div class="flex-1">
+            <div class="don-row-label">IBAN</div>
+            <div class="don-row-value" id="don-iban">—</div>
+          </div>
+          <button class="don-copy-btn" onclick="copier('don-iban','IBAN copié')">Copier</button>
+        </div>
+        <div class="don-row" id="don-bic-row">
+          <div class="don-row-icon" style="background:#FCE4EC">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C62828" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          </div>
+          <div class="flex-1">
+            <div class="don-row-label">BIC / SWIFT</div>
+            <div class="don-row-value" id="don-bic">—</div>
+          </div>
+          <button class="don-copy-btn" onclick="copier('don-bic','BIC copié')">Copier</button>
+        </div>
+        <div id="don-unique-instructions"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODAL : DEVENIR MEMBRE ============ -->
+<div class="modal-overlay" id="modal-membre" onclick="fermerModal('membre')">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title">✝️ Devenir membre</div>
+    <div class="modal-sub">Remplissez ce formulaire pour rejoindre l'église Maranatha</div>
+    <label class="mf-label">Nom complet *</label>
+    <input type="text" class="mf-input" id="mf-nom" placeholder="Ex : Jean Dupont" />
+    <label class="mf-label">Numéro de téléphone *</label>
+    <input type="tel" class="mf-input" id="mf-tel" placeholder="Ex : 06 00 00 00 00" />
+    <label class="mf-label">Adresse *</label>
+    <input type="text" class="mf-input" id="mf-adresse" placeholder="Ex : 12 Rue des Fleurs, Quartier Nord" />
+    <button class="mf-btn" id="mf-submit" onclick="soumettreMembre()">Envoyer ma demande</button>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -1284,6 +1544,154 @@
 
   // Poll auto toutes les 10s
   setInterval(chargerSermons, 10000);
+
+  // ============ MODAL HELPERS ============
+  function ouvrirModal(id) { document.getElementById('modal-' + id).classList.add('open'); }
+  function fermerModal(id) { document.getElementById('modal-' + id).classList.remove('open'); }
+
+  // ============ DON ============
+  let donData = {};
+  async function chargerDon() {
+    try {
+      const res = await fetch(API + '/settings/don');
+      if (!res.ok) return;
+      donData = await res.json();
+      const d = donData;
+      // Mensuel — téléphones
+      if (d.telephone1) { document.getElementById('don-tel1-m').textContent = d.telephone1; }
+      if (d.telephone2) {
+        document.getElementById('don-tel2-m').textContent = d.telephone2;
+        document.getElementById('don-tel2-m-row').style.display = 'flex';
+      }
+      if (d.instructions) {
+        const html = `<div class="don-instructions">ℹ️ ${d.instructions}</div>`;
+        document.getElementById('don-mensuel-instructions').innerHTML = html;
+        document.getElementById('don-unique-instructions').innerHTML = html;
+      }
+      // Unique — coordonnées bancaires
+      if (d.nomTitulaire) document.getElementById('don-titulaire').textContent = d.nomTitulaire;
+      if (d.nomBanque)    document.getElementById('don-banque').textContent    = d.nomBanque;
+      if (d.numeroCompte) {
+        document.getElementById('don-compte').textContent = d.numeroCompte;
+        document.getElementById('don-compte-row').style.display = 'flex';
+      }
+      if (d.iban) {
+        document.getElementById('don-iban').textContent = d.iban;
+        document.getElementById('don-iban-row').style.display = 'flex';
+      }
+      if (d.bic) {
+        document.getElementById('don-bic').textContent = d.bic;
+        document.getElementById('don-bic-row').style.display = 'flex';
+      }
+    } catch(e) {}
+  }
+  chargerDon();
+
+  function ouvrirModalDon() { ouvrirModal('don'); }
+
+  function switchDon(type) {
+    const isM = (type === 'mensuel');
+    document.getElementById('don-mensuel-panel').classList.toggle('active', isM);
+    document.getElementById('don-unique-panel').classList.toggle('active', !isM);
+    document.getElementById('tab-mensuel-btn').classList.toggle('active', isM);
+    document.getElementById('tab-unique-btn').classList.toggle('active', !isM);
+  }
+
+  function copier(elId, label) {
+    const v = document.getElementById(elId).textContent.trim();
+    if (!v || v === '—') return;
+    navigator.clipboard.writeText(v).then(() => showToast('✅ ' + label)).catch(() => {
+      const ta = document.createElement('textarea');
+      ta.value = v; document.body.appendChild(ta); ta.select();
+      document.execCommand('copy'); document.body.removeChild(ta);
+      showToast('✅ ' + label);
+    });
+  }
+
+  // ============ DEVENIR MEMBRE ============
+  function ouvrirModalMembre() {
+    document.getElementById('mf-nom').value = '';
+    document.getElementById('mf-tel').value = '';
+    document.getElementById('mf-adresse').value = '';
+    ouvrirModal('membre');
+  }
+
+  async function soumettreMembre() {
+    const nom     = document.getElementById('mf-nom').value.trim();
+    const tel     = document.getElementById('mf-tel').value.trim();
+    const adresse = document.getElementById('mf-adresse').value.trim();
+    if (!nom || !tel || !adresse) { showToast('Veuillez remplir tous les champs'); return; }
+    const btn = document.getElementById('mf-submit');
+    btn.disabled = true; btn.textContent = 'Envoi…';
+    try {
+      const res = await fetch(API + '/membres', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nom, telephone: tel, adresse }),
+      });
+      if (res.ok) {
+        showToast('✅ Demande envoyée ! Le pasteur vous contactera.');
+        fermerModal('membre');
+      } else {
+        const j = await res.json().catch(() => ({}));
+        showToast('Erreur : ' + (j.error || res.status));
+      }
+    } catch(e) { showToast('Erreur réseau'); }
+    finally { btn.disabled = false; btn.textContent = 'Envoyer ma demande'; }
+  }
+
+  // ============ COMMENTAIRES ============
+  async function chargerCommentaires() {
+    try {
+      const res = await fetch(API + '/comments');
+      if (!res.ok) return;
+      const list = await res.json();
+      const el = document.getElementById('comment-list');
+      if (!list.length) {
+        el.innerHTML = '<div class="empty-state"><p>Soyez le premier à laisser un message 🙏</p></div>';
+        return;
+      }
+      el.innerHTML = list.map(c => `
+        <div class="comment-item">
+          <div class="comment-text">${escHtml(c.texte)}</div>
+          <div class="comment-date">${fmtDate(c.dateEnvoi)}</div>
+          ${c.adminReponse ? `
+            <div class="comment-reply">
+              <div class="comment-reply-label">✝️ Pasteur</div>
+              <div class="comment-reply-text">${escHtml(c.adminReponse)}</div>
+            </div>` : ''}
+        </div>`).join('');
+    } catch(e) {}
+  }
+  chargerCommentaires();
+
+  async function envoyerCommentaire() {
+    const input = document.getElementById('comment-input');
+    const texte = input.value.trim();
+    if (!texte) { showToast('Écrivez un message avant d\'envoyer'); return; }
+    try {
+      const res = await fetch(API + '/comments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ texte }),
+      });
+      if (res.ok) {
+        input.value = '';
+        showToast('✅ Message envoyé');
+        chargerCommentaires();
+      } else { showToast('Erreur lors de l\'envoi'); }
+    } catch(e) { showToast('Erreur réseau'); }
+  }
+
+  function escHtml(s) {
+    return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+  }
+  function fmtDate(d) {
+    if (!d) return '';
+    const dt = new Date(d);
+    return dt.toLocaleDateString('fr-FR', { day:'numeric', month:'long', year:'numeric' })
+      + ' · ' + dt.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
+  }
 </script>
 </body>
 </html>
