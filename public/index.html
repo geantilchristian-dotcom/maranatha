@@ -1022,20 +1022,47 @@
   // ─── URL du sermon actuellement dans l'overlay ───
   let liveOverlayUrl = null;
 
+  let sseRetryTimer = null;
+
   function connecterSSE() {
-    if (sseSource) sseSource.close();
+    if (sseRetryTimer) { clearTimeout(sseRetryTimer); sseRetryTimer = null; }
+    if (sseSource) { sseSource.close(); sseSource = null; }
+
     sseSource = new EventSource(API + '/sermons/events');
+
     sseSource.addEventListener('sermon_live', e => {
       const sermon = JSON.parse(e.data);
       const idx = sermons.findIndex(s => String(s._id) === String(sermon._id));
       if (idx >= 0) sermons[idx] = sermon; else sermons.unshift(sermon);
       afficherAccueil();
-      // ── Afficher l'overlay plein écran au lieu d'un simple toast ──
       afficherOverlayLive(sermon);
     });
+
+    // Toute mise à jour admin → rechargement immédiat de la liste
     sseSource.addEventListener('sermon_update', () => chargerSermons());
-    sseSource.onerror = () => { sseSource.close(); setTimeout(connecterSSE, 5000); };
+
+    // Reconnexion automatique 2 s après une coupure
+    sseSource.onerror = () => {
+      sseSource.close(); sseSource = null;
+      sseRetryTimer = setTimeout(connecterSSE, 2000);
+    };
   }
+
+  // Reconnexion quand l'utilisateur revient sur l'app (onglet/app au premier plan)
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      const mort = !sseSource || sseSource.readyState === EventSource.CLOSED;
+      if (mort) connecterSSE();
+      // Recharger aussi les sermons pour rattraper les mises à jour manquées
+      chargerSermons();
+    }
+  });
+
+  // Reconnexion quand le réseau revient (mode avion levé, wifi reconnecté)
+  window.addEventListener('online', () => {
+    connecterSSE();
+    chargerSermons();
+  });
 
   function afficherOverlayLive(sermon) {
     liveOverlayUrl = sermon.audioUrl || null;
