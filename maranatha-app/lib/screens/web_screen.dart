@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:webview_flutter_android/webview_flutter_android.dart';
 
 const String APP_URL = 'https://maranatha-2vgy.onrender.com';
 
@@ -21,7 +22,6 @@ class _WebScreenState extends State<WebScreen> {
   void initState() {
     super.initState();
 
-    // Barre de statut transparente pour un rendu immersif
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
       statusBarIconBrightness: Brightness.dark,
@@ -32,34 +32,32 @@ class _WebScreenState extends State<WebScreen> {
       ..setBackgroundColor(Colors.white)
       ..setNavigationDelegate(
         NavigationDelegate(
-          onPageStarted: (_) {
-            setState(() {
-              _loading = true;
-              _erreur = false;
-            });
-          },
+          onPageStarted: (_) => setState(() { _loading = true; _erreur = false; }),
           onProgress: (p) => setState(() => _progress = p),
           onPageFinished: (_) => setState(() => _loading = false),
           onWebResourceError: (err) {
-            // Ignorer les erreurs de sous-ressources (images, fonts, etc.)
             if (err.isForMainFrame ?? true) {
-              setState(() {
-                _loading = false;
-                _erreur = true;
-              });
+              setState(() { _loading = false; _erreur = true; });
             }
           },
         ),
       )
       ..loadRequest(Uri.parse(APP_URL));
+
+    // ── Autoriser l'autoplay audio/vidéo sur Android ──
+    // (le WebView Android bloque par défaut la lecture sans geste)
+    if (_controller.platform is AndroidWebViewController) {
+      (_controller.platform as AndroidWebViewController)
+          .setMediaPlaybackRequiresUserGesture(false);
+    }
   }
 
   Future<bool> _onWillPop() async {
     if (await _controller.canGoBack()) {
       await _controller.goBack();
-      return false; // Empêche la fermeture de l'app
+      return false;
     }
-    return true; // Ferme l'app si pas d'historique
+    return true;
   }
 
   @override
@@ -70,18 +68,16 @@ class _WebScreenState extends State<WebScreen> {
         backgroundColor: Colors.white,
         body: Stack(
           children: [
-            // ── WebView principal ──
+            // ── WebView ──
             SafeArea(
               top: false,
               child: _erreur ? _buildErreur() : WebViewWidget(controller: _controller),
             ),
 
             // ── Barre de progression ──
-            if (_loading && _progress < 100)
+            if (_loading && _progress < 100 && _progress > 0)
               Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
+                top: 0, left: 0, right: 0,
                 child: LinearProgressIndicator(
                   value: _progress / 100,
                   minHeight: 3,
@@ -91,42 +87,26 @@ class _WebScreenState extends State<WebScreen> {
               ),
 
             // ── Écran de chargement initial ──
-            if (_loading && _progress < 10)
+            if (_loading && _progress < 15)
               Container(
                 color: Colors.white,
                 child: Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Image.asset(
-                        'assets/logo.png',
-                        width: 100,
-                        height: 100,
-                        errorBuilder: (_, __, ___) => const Icon(
-                          Icons.local_fire_department,
-                          size: 80,
-                          color: Color(0xFF5C5CFF),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'MARANATHA',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 3,
-                          color: Color(0xFF5C5CFF),
-                        ),
-                      ),
+                      const Icon(Icons.local_fire_department, size: 90, color: Color(0xFF5C5CFF)),
+                      const SizedBox(height: 12),
+                      const Text('MARANATHA', style: TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.w900,
+                        letterSpacing: 3, color: Color(0xFF5C5CFF),
+                      )),
                       const SizedBox(height: 40),
                       const SizedBox(
-                        width: 32,
-                        height: 32,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 3,
-                          color: Color(0xFF5C5CFF),
-                        ),
+                        width: 32, height: 32,
+                        child: CircularProgressIndicator(strokeWidth: 3, color: Color(0xFF5C5CFF)),
                       ),
+                      const SizedBox(height: 16),
+                      const Text('Chargement…', style: TextStyle(color: Colors.grey, fontSize: 13)),
                     ],
                   ),
                 ),
@@ -146,18 +126,12 @@ class _WebScreenState extends State<WebScreen> {
           children: [
             const Icon(Icons.wifi_off, size: 64, color: Color(0xFF5C5CFF)),
             const SizedBox(height: 24),
-            const Text(
-              'Impossible de charger l\'application',
+            const Text('Impossible de charger l\'application',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF1A1A2E),
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1A1A2E)),
             ),
             const SizedBox(height: 12),
-            const Text(
-              'Vérifiez votre connexion Internet\net réessayez.',
+            const Text('Vérifiez votre connexion Internet\net réessayez.',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 14, color: Colors.grey),
             ),
@@ -170,15 +144,9 @@ class _WebScreenState extends State<WebScreen> {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
               ),
               icon: const Icon(Icons.refresh),
-              label: const Text(
-                'Réessayer',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
+              label: const Text('Réessayer', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               onPressed: () {
-                setState(() {
-                  _erreur = false;
-                  _loading = true;
-                });
+                setState(() { _erreur = false; _loading = true; });
                 _controller.loadRequest(Uri.parse(APP_URL));
               },
             ),
