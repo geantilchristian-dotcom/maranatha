@@ -340,8 +340,8 @@
       Bibliothèque
     </button>
     <button class="tab-btn" onclick="switchTab('prieres')" data-tab="prieres">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a3 3 0 0 0-6 0v5"/><path d="M6 11V6a3 3 0 0 1 6 0"/><path d="M12 11v3a6 6 0 0 1-6 6H5a5 5 0 0 1-5-5v-3h6v-3h12v3a5 5 0 0 1-5 5h-1"/></svg>
-      Prières
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      Parole du jour
     </button>
     <button class="tab-btn" onclick="switchTab('etudes')" data-tab="etudes">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
@@ -624,24 +624,24 @@
     <!-- ══════════════ ONGLET : PRIÈRES ══════════════ -->
     <div class="tab-pane" id="pane-prieres">
       <div class="section-title">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3v5"/><path d="M6 11V6a3 3 0 0 1 3-3 3 3 0 0 1 3 3"/><path d="M12 11v3a6 6 0 0 1-6 6H5a5 5 0 0 1-5-5v-3h6v-3h12v3a5 5 0 0 1-5 5h-1"/></svg>
-        Publier une prière
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        Publier une Parole du jour
       </div>
       <div class="card">
         <div class="form-group full" style="margin-bottom:14px">
-          <label>Titre de la prière *</label>
-          <input type="text" id="p-titre" placeholder="Ex: Prière du matin" />
+          <label>Titre / Référence biblique *</label>
+          <input type="text" id="p-titre" placeholder="Ex: Jean 3:16 — Car Dieu a tant aimé le monde…" />
         </div>
         <div class="form-group full">
-          <label>Texte de la prière *</label>
-          <textarea id="p-texte" rows="6" placeholder="Seigneur, nous te remercions…"></textarea>
+          <label>Texte de la parole *</label>
+          <textarea id="p-texte" rows="6" placeholder="Saisissez le verset ou le message du jour…"></textarea>
         </div>
         <button class="btn-submit" onclick="ajouterPriere()" style="margin-top:14px">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Publier la prière
+          Publier la parole
         </button>
       </div>
-      <div class="section-title">Prières publiées</div>
+      <div class="section-title">Paroles publiées</div>
       <div id="prieres-admin-list">
         <div class="empty-state"><div style="opacity:.4">⟳</div>Chargement…</div>
       </div>
@@ -697,7 +697,7 @@
     <div class="tab-pane" id="pane-commentaires">
       <div class="section-title">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-        Commentaires des fidèles
+        Commentaires &amp; Suggestions
         <span id="badge-comments" style="background:#C0001A;color:#fff;border-radius:20px;padding:2px 10px;font-size:12px;margin-left:8px"></span>
       </div>
       <div id="comments-admin-list">
@@ -1560,11 +1560,16 @@
       el.innerHTML = list.map(c => {
         const date = new Date(c.dateEnvoi).toLocaleDateString('fr-FR', { day:'2-digit', month:'long', year:'numeric' })
           + ' ' + new Date(c.dateEnvoi).toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
+        const isSuggest = c.type === 'suggestion';
+        const typeBadge = `<span style="font-size:10px;font-weight:800;padding:2px 8px;border-radius:6px;letter-spacing:.5px;${isSuggest?'background:rgba(212,175,55,.12);color:#D4AF37;border:1px solid rgba(212,175,55,.3)':'background:rgba(59,130,246,.12);color:#60A5FA;border:1px solid rgba(59,130,246,.3)'}">
+          ${isSuggest ? 'SUGGESTION' : 'COMMENTAIRE'}</span>`;
+        const auteurBadge = c.auteur ? `<span style="font-size:12px;color:rgba(255,255,255,.45);margin-left:6px">${escA(c.auteur)}</span>` : '';
         return `
           <div class="sermon-item" style="flex-direction:column;align-items:flex-start;gap:10px">
             <div style="display:flex;align-items:flex-start;gap:12px;width:100%">
-              <div class="sermon-icon" style="background:rgba(212,175,55,0.15);flex-shrink:0">${svgMsg}</div>
+              <div class="sermon-icon" style="background:${isSuggest?'rgba(212,175,55,0.15)':'rgba(59,130,246,0.15)'};flex-shrink:0">${svgMsg}</div>
               <div style="flex:1">
+                <div style="display:flex;align-items:center;gap:4px;margin-bottom:5px;flex-wrap:wrap">${typeBadge}${auteurBadge}</div>
                 <div class="sermon-titre" style="font-weight:400;font-size:14px">${escA(c.texte)}</div>
                 <div class="sermon-meta" style="margin-top:4px"><span class="sermon-date">${date}</span></div>
               </div>
@@ -1610,7 +1615,7 @@
     try {
       const r = await fetch(`${API}/prieres/all`, { headers: authHeaders() });
       const list = await r.json();
-      if (!list.length) { el.innerHTML = '<div class="empty-state">Aucune prière publiée</div>'; return; }
+      if (!list.length) { el.innerHTML = '<div class="empty-state">Aucune parole publiée</div>'; return; }
       el.innerHTML = list.map(p => `
         <div class="sermon-item" style="align-items:flex-start;gap:10px">
           <div class="sermon-info">
@@ -1633,13 +1638,13 @@
       if (!r.ok) throw new Error('Erreur');
       document.getElementById('p-titre').value = '';
       document.getElementById('p-texte').value = '';
-      toast('Prière publiée', 'success');
+      toast('Parole publiée', 'success');
       chargerPrieresAdmin();
     } catch(e) { toast('Erreur lors de l\'ajout', 'error'); }
   }
 
   async function supprimerPriere(id) {
-    if (!confirm('Supprimer cette prière ?')) return;
+    if (!confirm('Supprimer cette parole du jour ?')) return;
     try {
       await fetch(`${API}/prieres/${id}`, { method:'DELETE', headers: authHeaders() });
       toast('Supprimée', 'success'); chargerPrieresAdmin();
