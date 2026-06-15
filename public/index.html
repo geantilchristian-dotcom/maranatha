@@ -146,100 +146,91 @@
     .hero-btn:active { opacity: 0.85; }
 
     /* ═══════════════════════════════════════
-       LECTEUR AUDIO — DESIGN PREMIUM
+       LECTEUR AUDIO — COMPACT
     ═══════════════════════════════════════ */
     .mini-player {
       margin: 0 14px 16px;
-      background: linear-gradient(145deg, #7A0015 0%, #3D0009 100%);
-      border-radius: 20px; padding: 16px 16px 14px; display: none;
-      box-shadow: 0 6px 28px rgba(120,0,20,0.4);
+      background: linear-gradient(135deg, #7A0015 0%, #3D0009 100%);
+      border-radius: 16px; padding: 11px 14px 12px; display: none;
+      box-shadow: 0 4px 18px rgba(120,0,20,0.35);
     }
     .mini-player.visible { display: block; }
 
-    /* ── Ligne supérieure : icône album + titre + badge ── */
-    .mp-top { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+    /* ── Ligne 1 : icône + titre/badge + bouton play ── */
+    .mp-top { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; }
     .mp-album {
-      width: 46px; height: 46px; border-radius: 12px; flex-shrink: 0;
-      background: linear-gradient(135deg, rgba(255,255,255,0.18), rgba(255,255,255,0.06));
-      border: 1px solid rgba(255,255,255,0.2);
+      width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
+      background: rgba(255,255,255,0.13); border: 1px solid rgba(255,255,255,0.18);
       display: flex; align-items: center; justify-content: center;
     }
     .mp-meta { flex: 1; min-width: 0; }
     .mp-title {
-      font-size: 15px; font-weight: 800; color: #fff;
+      font-size: 13px; font-weight: 800; color: #fff;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-      letter-spacing: -0.3px; line-height: 1.2;
+      letter-spacing: -0.2px; line-height: 1.2;
     }
     .mp-live-badge {
-      display: inline-flex; align-items: center; gap: 5px;
-      background: rgba(255,80,80,0.25); border: 1px solid rgba(255,100,100,0.4);
-      border-radius: 20px; padding: 3px 9px; margin-top: 5px;
-      font-size: 10px; font-weight: 700; color: #FFB3B3; letter-spacing: 0.5px;
+      display: inline-flex; align-items: center; gap: 4px;
+      background: rgba(255,80,80,0.22); border: 1px solid rgba(255,100,100,0.35);
+      border-radius: 20px; padding: 2px 7px; margin-top: 3px;
+      font-size: 9px; font-weight: 700; color: #FFB3B3; letter-spacing: 0.5px;
     }
     .mp-live-dot {
-      width: 6px; height: 6px; border-radius: 50%;
+      width: 5px; height: 5px; border-radius: 50%;
       background: #FF6B6B; animation: blink 1s infinite;
     }
-    .mp-status {
-      font-size: 11px; color: rgba(255,190,190,0.75); margin-top: 4px; font-weight: 500;
+    .mp-status { font-size: 10px; color: rgba(255,190,190,0.7); margin-top: 2px; }
+    .mp-play-btn {
+      width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0;
+      background: #fff; border: none;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.3);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: transform .12s;
     }
+    .mp-play-btn:active { transform: scale(0.9); }
+    .mp-play-btn.need-tap { animation: pulse-tap 1.4s infinite; }
 
-    /* ── Barre de progression (épaisse) ── */
+    /* ── Ligne 2 : barre de progression + temps ── */
     .mp-progress {
-      width: 100%; height: 6px;
-      background: rgba(255,255,255,0.12); border-radius: 3px;
-      cursor: pointer; overflow: hidden; margin-bottom: 6px;
+      width: 100%; height: 4px;
+      background: rgba(255,255,255,0.15); border-radius: 2px;
+      cursor: pointer; overflow: hidden; margin-bottom: 4px;
     }
     .mp-fill {
-      height: 100%;
-      background: linear-gradient(90deg, #FF6B6B 0%, #FFBABA 100%);
-      border-radius: 3px; transition: width .3s linear;
-      min-width: 6px;
+      height: 100%; background: rgba(255,255,255,0.75);
+      border-radius: 2px; transition: width .3s linear; min-width: 4px;
     }
     .mp-times {
       display: flex; justify-content: space-between;
-      color: rgba(255,190,190,0.55); font-size: 10px; font-weight: 600;
-      letter-spacing: 0.3px; margin-bottom: 20px;
+      color: rgba(255,190,190,0.5); font-size: 9.5px; font-weight: 600;
+      letter-spacing: 0.2px; margin-bottom: 8px;
     }
 
-    /* ── Ligne de contrôles : [−10] [▶▶] [+10] ── */
+    /* ── Ligne 3 : skip + volume ── */
     .mp-controls {
-      display: flex; align-items: center; justify-content: center;
-      gap: 14px; margin-bottom: 14px;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 8px;
     }
     .mp-skip {
       background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15);
       border-radius: 50px; color: #fff; cursor: pointer;
-      display: flex; align-items: center; gap: 4px;
-      font-size: 11px; font-weight: 700; padding: 8px 14px;
+      display: flex; align-items: center; gap: 3px;
+      font-size: 10px; font-weight: 700; padding: 6px 11px;
       transition: background .15s;
     }
     .mp-skip:active { background: rgba(255,255,255,0.22); }
-    .mp-play-btn {
-      width: 58px; height: 58px; border-radius: 50%;
-      background: #fff; border: none;
-      box-shadow: 0 4px 18px rgba(0,0,0,0.35);
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer; flex-shrink: 0;
-      transition: transform .12s, box-shadow .12s;
-    }
-    .mp-play-btn:active { transform: scale(0.9); box-shadow: 0 2px 8px rgba(0,0,0,0.25); }
-    .mp-play-btn.need-tap { animation: pulse-tap 1.4s infinite; }
-
-    /* ── Volume ── */
     .mp-vol-row {
-      display: flex; align-items: center; gap: 10px;
-      padding: 0 4px;
+      display: flex; align-items: center; gap: 6px; flex: 1; justify-content: flex-end;
     }
     .mp-vol-slider {
-      flex: 1; -webkit-appearance: none; height: 4px;
+      width: 60px; -webkit-appearance: none; height: 3px;
       background: rgba(255,255,255,0.2); border-radius: 2px;
       outline: none; cursor: pointer;
     }
     .mp-vol-slider::-webkit-slider-thumb {
-      -webkit-appearance: none; width: 16px; height: 16px;
+      -webkit-appearance: none; width: 13px; height: 13px;
       border-radius: 50%; background: #fff;
-      box-shadow: 0 1px 6px rgba(0,0,0,0.5); cursor: pointer;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.4); cursor: pointer;
     }
 
 
@@ -280,33 +271,6 @@
     .lov-skip {
       margin-top: 20px; background: none; border: none;
       color: rgba(255,255,255,0.5); font-size: 14px; cursor: pointer;
-    }
-    /* ── Contrôles (skip + volume) ── */
-    .mp-controls {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-top: 12px; padding: 0 4px;
-    }
-    .mp-ctrl {
-      background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15);
-      border-radius: 10px; color: #fff; cursor: pointer;
-      display: flex; align-items: center; gap: 4px;
-      font-size: 11px; font-weight: 700; padding: 7px 12px;
-      transition: background .15s;
-    }
-    .mp-ctrl:active { background: rgba(255,255,255,0.2); }
-    .mp-vol-wrap {
-      display: flex; align-items: center; gap: 8px;
-      background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15);
-      border-radius: 10px; padding: 7px 12px;
-    }
-    .mp-vol-slider {
-      -webkit-appearance: none; width: 70px; height: 4px;
-      background: rgba(255,255,255,0.25); border-radius: 2px; outline: none; cursor: pointer;
-    }
-    .mp-vol-slider::-webkit-slider-thumb {
-      -webkit-appearance: none; width: 14px; height: 14px;
-      border-radius: 50%; background: #fff;
-      box-shadow: 0 1px 6px rgba(0,0,0,0.4); cursor: pointer;
     }
 
     @keyframes pulse-tap { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.82;transform:scale(.93)} }
@@ -759,17 +723,19 @@
             Écouter maintenant
           </button>
         </div>
+        <!-- Dots carousel YouTube (cachés par défaut) -->
+        <div id="yt-dots" style="display:none;justify-content:center;gap:5px;margin-top:12px"></div>
       </div>
     </div>
 
-    <!-- ═══ LECTEUR AUDIO PREMIUM ═══ -->
+    <!-- ═══ LECTEUR AUDIO COMPACT ═══ -->
     <div class="mini-player" id="mini-player">
       <audio id="main-audio" preload="none"></audio>
 
-      <!-- Ligne 1 : icône + titre + badge EN DIRECT -->
+      <!-- Ligne 1 : icône + titre/badge + bouton ▶ -->
       <div class="mp-top">
         <div class="mp-album">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.9)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
             <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
             <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
@@ -778,14 +744,16 @@
         <div class="mp-meta">
           <div class="mp-title" id="mp-title">—</div>
           <div class="mp-live-badge" id="mp-live-badge">
-            <div class="mp-live-dot"></div>
-            EN DIRECT
+            <div class="mp-live-dot"></div>EN DIRECT
           </div>
           <div class="mp-status" id="mp-status" style="display:none">En lecture</div>
         </div>
+        <button class="mp-play-btn" id="mp-play-btn" onclick="demarrerOuToggle()">
+          <svg id="play-icon" width="20" height="20" viewBox="0 0 24 24" fill="#7A0015"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        </button>
       </div>
 
-      <!-- Ligne 2 : barre de progression -->
+      <!-- Ligne 2 : barre de progression + temps -->
       <div class="mp-progress" id="mp-progress" onclick="seekAudio(event)">
         <div class="mp-fill" id="mp-fill" style="width:0%"></div>
       </div>
@@ -794,28 +762,19 @@
         <span id="time-total">0:00</span>
       </div>
 
-      <!-- Ligne 3 : [← 10s]  [▶ grand]  [10s →] -->
+      <!-- Ligne 3 : skip −10 | volume | skip +10 -->
       <div class="mp-controls">
         <button class="mp-skip" onclick="skipBack()">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
-          10s
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>−10s
         </button>
-
-        <button class="mp-play-btn" id="mp-play-btn" onclick="demarrerOuToggle()">
-          <svg id="play-icon" width="26" height="26" viewBox="0 0 24 24" fill="#7A0015"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-        </button>
-
+        <div class="mp-vol-row">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="2" stroke-linecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/></svg>
+          <input class="mp-vol-slider" type="range" min="0" max="1" step="0.05" value="1" oninput="setVolume(this.value)" />
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="2" stroke-linecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+        </div>
         <button class="mp-skip" onclick="skipForward()">
-          10s
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.49-3.5"/></svg>
+          +10s<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.49-3.5"/></svg>
         </button>
-      </div>
-
-      <!-- Ligne 4 : volume -->
-      <div class="mp-vol-row">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2" stroke-linecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/></svg>
-        <input class="mp-vol-slider" type="range" min="0" max="1" step="0.05" value="1" oninput="setVolume(this.value)" />
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2" stroke-linecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
       </div>
     </div>
 
@@ -1181,7 +1140,7 @@
 <div class="modal-overlay" id="modal-membre" onclick="fermerModal('membre')">
   <div class="modal-sheet" onclick="event.stopPropagation()">
     <div class="modal-handle"></div>
-    <div class="modal-title">✝️ Devenir membre</div>
+    <div class="modal-title">Devenir membre</div>
     <div class="modal-sub">Remplissez ce formulaire pour rejoindre l'église Maranatha</div>
     <label class="mf-label">Nom complet *</label>
     <input type="text" class="mf-input" id="mf-nom" placeholder="Ex : Jean Dupont" />
@@ -1204,6 +1163,9 @@
   let sseSource = null;
   let youtubeUrl = '';
   let ytLabel = 'Regarder sur YouTube';
+  let youtubeLinks = [];    // tableau [{url, label}] — carousel
+  let ytCarouselIdx = 0;
+  let ytCarouselTimer = null;
 
   // ── FCM TOKEN INJECTION depuis Flutter ─────────────────────────────────────
   // Flutter appelle window.__onFcmToken("TOKEN") après chaque chargement de page.
@@ -1312,13 +1274,65 @@
       const res = await fetch(API + '/settings/home');
       if (!res.ok) return;
       const cfg = await res.json();
-      if (cfg.youtubeUrl) {
+
+      // Nouveau format : tableau de liens
+      if (Array.isArray(cfg.youtubeLinks) && cfg.youtubeLinks.length > 0) {
+        youtubeLinks = cfg.youtubeLinks;
+        ytCarouselIdx = 0;
+        youtubeUrl = youtubeLinks[0].url;
+        ytLabel    = youtubeLinks[0].label || 'Regarder sur YouTube';
+      } else if (cfg.youtubeUrl) {
+        // Rétrocompatibilité : ancien format champ unique
+        youtubeLinks = [{ url: cfg.youtubeUrl, label: cfg.ytLabel || 'Regarder sur YouTube' }];
+        ytCarouselIdx = 0;
         youtubeUrl = cfg.youtubeUrl;
-        ytLabel = cfg.ytLabel || 'Regarder sur YouTube';
+        ytLabel    = cfg.ytLabel || 'Regarder sur YouTube';
       }
-      // Rafraîchir l'affichage si les sermons sont déjà chargés
+
       if (sermons !== null) afficherAccueil();
+      demarrerCarouselYT();
     } catch(e) {}
+  }
+
+  // Carousel : change de lien YouTube toutes les 6 secondes si plusieurs
+  function demarrerCarouselYT() {
+    if (ytCarouselTimer) clearInterval(ytCarouselTimer);
+    if (youtubeLinks.length < 2) return;
+    ytCarouselTimer = setInterval(() => {
+      // Ne pas tourner si un sermon est en cours
+      const live = sermons.find(s => s.statut === 'en_cours');
+      if (live) return;
+      ytCarouselIdx = (ytCarouselIdx + 1) % youtubeLinks.length;
+      youtubeUrl = youtubeLinks[ytCarouselIdx].url;
+      ytLabel    = youtubeLinks[ytCarouselIdx].label || 'Regarder sur YouTube';
+      afficherAccueilYT();
+    }, 6000);
+  }
+
+  // Met à jour seulement le bloc YouTube du hero (sans toucher au reste)
+  function afficherAccueilYT() {
+    const live = sermons.find(s => s.statut === 'en_cours');
+    if (live) return; // sermon prioritaire
+    const hero = document.getElementById('hero-card');
+    if (!youtubeUrl) return;
+    hero.style.background = '#111827';
+    const vid = ytVideoId(youtubeUrl);
+    const img = document.getElementById('hero-img');
+    img.src = vid ? `https://img.youtube.com/vi/${vid}/hqdefault.jpg` : '';
+    document.getElementById('hero-title').textContent = ytLabel;
+    const btn = document.getElementById('hero-btn');
+    btn.style.background = 'rgba(255,255,255,0.92)';
+    btn.style.color = '#111827';
+    btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg> ${ytLabel}`;
+    hero.onclick = () => window.open(youtubeUrl, '_blank');
+    // Dots de pagination si plusieurs liens
+    const dots = document.getElementById('yt-dots');
+    if (dots && youtubeLinks.length > 1) {
+      dots.innerHTML = youtubeLinks.map((_, i) =>
+        `<span style="width:${i===ytCarouselIdx?'18px':'6px'};height:6px;border-radius:3px;background:${i===ytCarouselIdx?'#fff':'rgba(255,255,255,0.35)'};display:inline-block;transition:width .3s"></span>`
+      ).join('');
+      dots.style.display = 'flex';
+    }
   }
 
   function ytVideoId(url) {
@@ -1447,18 +1461,33 @@
       preparerAudio(live.audioUrl);
 
     } else if (youtubeUrl) {
-      // ── Vidéo YouTube vedette (fond naturel sombre, PAS rouge) ──
-      hero.style.background = '#1a1040';
+      // ── Vidéo YouTube vedette ──
+      hero.style.background = '#111827';
+      hero.style.removeProperty('color');
       const vid = ytVideoId(youtubeUrl);
       if (vid) document.getElementById('hero-img').src = `https://img.youtube.com/vi/${vid}/hqdefault.jpg`;
       document.getElementById('hero-title').textContent = ytLabel || 'Regarder sur YouTube';
       document.getElementById('hero-sub').textContent = 'Regardez notre dernière vidéo\nsur notre chaîne YouTube';
       document.getElementById('hero-badge').style.display = 'none';
       const btn = document.getElementById('hero-btn');
-      btn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="#1a1040"><polygon points="5 3 19 12 5 21 5 3"/></svg> ${ytLabel || 'Regarder sur YouTube'}`;
+      btn.style.background = 'rgba(255,255,255,0.92)';
+      btn.style.color = '#111827';
+      btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg> ${ytLabel || 'Regarder sur YouTube'}`;
       hero.onclick = () => window.open(youtubeUrl, '_blank');
       hero.classList.add('visible');
       mini.classList.remove('visible');
+      // Dots de pagination carousel
+      const dots = document.getElementById('yt-dots');
+      if (dots) {
+        if (youtubeLinks.length > 1) {
+          dots.innerHTML = youtubeLinks.map((_, i) =>
+            `<span style="width:${i===ytCarouselIdx?'18px':'6px'};height:6px;border-radius:3px;background:${i===ytCarouselIdx?'#fff':'rgba(255,255,255,0.35)'};display:inline-block;transition:width .3s"></span>`
+          ).join('');
+          dots.style.display = 'flex';
+        } else {
+          dots.style.display = 'none';
+        }
+      }
 
     } else {
       hero.classList.remove('visible');
@@ -1499,8 +1528,8 @@
             </div>
             <div class="sl-author">${auteur}</div>
             <div class="sl-meta">
-              <span>📅 ${dateStr}</span>
-              ${dureeMin ? `<span>🕐 ${dureeMin}</span>` : ''}
+              <span style="display:inline-flex;align-items:center;gap:3px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> ${dateStr}</span>
+              ${dureeMin ? `<span style="display:inline-flex;align-items:center;gap:3px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> ${dureeMin}</span>` : ''}
             </div>
             <div class="sl-action">Lire la prédication <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
           </div>
@@ -1768,7 +1797,7 @@
       const list = await res.json();
       const el = document.getElementById('comment-list');
       if (!list.length) {
-        el.innerHTML = '<div class="empty-state"><p>Soyez le premier à laisser un message 🙏</p></div>';
+        el.innerHTML = '<div class="empty-state"><p>Aucun message pour l\'instant</p></div>';
         return;
       }
       el.innerHTML = list.map(c => `
@@ -1777,7 +1806,7 @@
           <div class="comment-date">${fmtDate(c.dateEnvoi)}</div>
           ${c.adminReponse ? `
             <div class="comment-reply">
-              <div class="comment-reply-label">✝️ Pasteur</div>
+              <div class="comment-reply-label">— Pasteur</div>
               <div class="comment-reply-text">${escHtml(c.adminReponse)}</div>
             </div>` : ''}
         </div>`).join('');
