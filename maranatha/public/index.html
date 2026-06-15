@@ -3,6 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#C0001A" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Maranatha" />
+  <link rel="manifest" href="/manifest.json" />
   <title>Maranatha</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -48,6 +54,80 @@
     }
     #splash-screen.fade-out { opacity: 0; pointer-events: none; }
     .splash-logo { width: 140px; height: 140px; object-fit: contain; margin-bottom: 16px; }
+
+    /* ═══════════════ ÉCRAN AUTH ═══════════════ */
+    #auth-screen {
+      position: fixed; inset: 0; z-index: 9000;
+      background: linear-gradient(170deg, #060E1A 0%, #0D1C30 100%);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 24px 20px; opacity: 0; pointer-events: none;
+      transition: opacity .45s;
+    }
+    #auth-screen.auth-visible { opacity: 1; pointer-events: auto; }
+    .auth-box { width: 100%; max-width: 400px; text-align: center; }
+    .auth-logo { width: 88px; height: 88px; object-fit: contain; border-radius: 22px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.5); margin-bottom: 16px; }
+    .auth-church-name { font-size: 22px; font-weight: 900; color: #fff; letter-spacing: .5px; margin-bottom: 4px; }
+    .auth-tagline { font-size: 13px; color: rgba(255,255,255,.45); margin-bottom: 32px; }
+    .auth-step { animation: authStepIn .35s ease; }
+    @keyframes authStepIn { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:none; } }
+    .auth-label { font-size: 11px; font-weight: 800; color: rgba(255,255,255,.45);
+      letter-spacing: 1px; text-transform: uppercase; text-align: left; margin-bottom: 7px; }
+    .auth-input {
+      width: 100%; box-sizing: border-box;
+      background: rgba(255,255,255,.06); border: 1.5px solid rgba(255,255,255,.12);
+      color: #fff; border-radius: 14px; padding: 14px 16px; font-size: 16px;
+      font-family: inherit; margin-bottom: 4px; outline: none; transition: border-color .2s;
+    }
+    .auth-input:focus { border-color: rgba(212,175,55,.6); }
+    .auth-input::placeholder { color: rgba(255,255,255,.25); }
+    .auth-input-row { display: flex; gap: 10px; margin-bottom: 4px; }
+    .auth-input-row .auth-input { margin-bottom: 0; }
+    .auth-btn {
+      width: 100%; padding: 15px; margin-top: 14px;
+      background: linear-gradient(135deg, #D4AF37, #B8942A);
+      border: none; border-radius: 14px; color: #070F1C;
+      font-size: 15px; font-weight: 900; font-family: inherit;
+      cursor: pointer; transition: opacity .15s, transform .1s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .auth-btn:active { opacity: .85; transform: scale(.98); }
+    .auth-btn:disabled { opacity: .5; pointer-events: none; }
+    .auth-skip-btn {
+      width: 100%; padding: 13px; margin-top: 10px;
+      background: transparent; border: 1.5px solid rgba(255,255,255,.1);
+      border-radius: 14px; color: rgba(255,255,255,.5);
+      font-size: 13px; font-weight: 700; font-family: inherit; cursor: pointer;
+      transition: border-color .2s, color .2s;
+    }
+    .auth-skip-btn:hover { border-color: rgba(255,255,255,.25); color: rgba(255,255,255,.7); }
+    .auth-err { font-size: 12px; color: #ff6b6b; min-height: 18px; text-align: left;
+      margin-top: 6px; padding-left: 4px; }
+    .auth-divider { display: flex; align-items: center; gap: 12px; margin: 18px 0 4px;
+      color: rgba(255,255,255,.2); font-size: 12px; }
+    .auth-divider::before, .auth-divider::after { content:''; flex:1;
+      height: 1px; background: rgba(255,255,255,.1); }
+    .auth-welcome-avatar {
+      width: 72px; height: 72px; border-radius: 50%;
+      background: linear-gradient(135deg, rgba(212,175,55,.25), rgba(212,175,55,.1));
+      border: 2px solid rgba(212,175,55,.4);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px; margin: 0 auto 16px;
+    }
+    .auth-welcome-title { font-size: 24px; font-weight: 900; color: #fff; margin-bottom: 6px; }
+    .auth-welcome-sub { font-size: 14px; color: rgba(255,255,255,.5); margin-bottom: 8px; }
+    .auth-reg-title { font-size: 18px; font-weight: 900; color: #fff;
+      margin-bottom: 6px; text-align: left; }
+    .auth-reg-sub { font-size: 12px; color: rgba(255,255,255,.4);
+      margin-bottom: 20px; text-align: left; }
+    .auth-tel-badge {
+      display: flex; align-items: center; gap: 10px;
+      background: rgba(212,175,55,.08); border: 1px solid rgba(212,175,55,.2);
+      border-radius: 12px; padding: 10px 14px; margin-bottom: 14px;
+    }
+    .auth-tel-badge-num { font-size: 14px; font-weight: 700; color: #D4AF37; flex:1; text-align:left; }
+    .auth-tel-badge-chg { font-size: 11px; color: rgba(255,255,255,.35); cursor: pointer; }
+    .auth-tel-badge-chg:hover { color: rgba(255,255,255,.6); }
 
     /* ============================
        LOADER CENTRÉ (actualisation)
@@ -107,14 +187,61 @@
        APP
     ============================ */
     #app { display: block; padding-bottom: var(--nav-h); min-height: 100vh; }
+
+    /* ── Info Overlays (À propos / Aide / Règles) ── */
+    .info-overlay {
+      position: fixed; inset: 0; z-index: 1100;
+      background: var(--bg); display: none; flex-direction: column;
+      overflow-y: auto;
+    }
+    .info-overlay.open { display: flex; }
+    .info-hdr {
+      position: sticky; top: 0; z-index: 2;
+      background: #C0001A; color: #fff;
+      display: flex; align-items: center; gap: 12px;
+      padding: calc(var(--safe-top) + 12px) 16px 14px;
+    }
+    .info-hdr-back {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: rgba(255,255,255,.18); border: none;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; flex-shrink: 0;
+    }
+    .info-hdr-title { font-size: 16px; font-weight: 900; flex: 1; }
+    .info-body { padding: 20px 20px 40px; }
+    .info-section { margin-bottom: 24px; }
+    .info-section-title {
+      font-size: 11px; font-weight: 900; letter-spacing: 1px;
+      text-transform: uppercase; color: #C0001A; margin-bottom: 10px;
+    }
+    .info-section p {
+      font-size: 14px; color: var(--text); line-height: 1.75;
+      margin-bottom: 10px;
+    }
+    .info-section ul {
+      padding-left: 18px; font-size: 14px; color: var(--text);
+      line-height: 1.75;
+    }
+    .info-card {
+      background: var(--card); border-radius: 16px;
+      padding: 16px; margin-bottom: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,.05);
+    }
+    .info-card-title {
+      font-size: 13px; font-weight: 800; color: var(--text); margin-bottom: 6px;
+    }
+    .info-card p {
+      font-size: 13px; color: var(--text-sub); line-height: 1.65; margin: 0;
+    }
     audio { display: none; }
 
     /* ======= HEADER — ligne unique ======= */
     .app-header {
-      background: #fff;
+      background: #C0001A;
       padding: calc(var(--safe-top) + 10px) 14px 12px;
       display: flex; flex-direction: row; align-items: center;
-      gap: 10px; border-bottom: 1px solid #F0F0F5;
+      gap: 10px; border-bottom: none;
+      box-shadow: 0 4px 20px rgba(192,0,26,0.35);
     }
     .hdr-logo {
       width: 46px; height: 46px; flex-shrink: 0; overflow: hidden;
@@ -122,14 +249,23 @@
     .hdr-logo img { width: 100%; height: 100%; object-fit: contain; }
     .hdr-church-name {
       flex: 1; font-size: 10.5px; font-weight: 900;
-      color: #1A1A2E; text-align: left;
+      color: #fff; text-align: left;
       letter-spacing: 0.6px; line-height: 1.35;
       text-transform: uppercase;
     }
-    .hdr-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .hdr-actions { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
+    .hdr-social-btn {
+      width: 30px; height: 30px; border-radius: 50%;
+      background: rgba(255,255,255,0.18);
+      display: none; align-items: center; justify-content: center;
+      text-decoration: none; flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+      transition: background .12s;
+    }
+    .hdr-social-btn:active { background: rgba(255,255,255,0.35); }
     .icon-btn {
       width: 40px; height: 40px; border-radius: 50%;
-      background: var(--bg); border: none; cursor: pointer;
+      background: rgba(255,255,255,0.15); border: none; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
       position: relative;
     }
@@ -137,8 +273,8 @@
     .notif-dot {
       position: absolute; top: 8px; right: 8px;
       width: 8px; height: 8px;
-      background: var(--primary); border-radius: 50%;
-      border: 2px solid #fff;
+      background: #fff; border-radius: 50%;
+      border: 2px solid #C0001A;
     }
 
     /* ======= SCROLLABLE CONTENT ======= */
@@ -147,7 +283,7 @@
 
     /* ======= HERO CARD ======= */
     .hero-card {
-      margin: 0 16px 16px;
+      margin: 12px 16px 16px;
       border-radius: 22px; overflow: hidden;
       position: relative; cursor: pointer;
       background: #1a1040;
@@ -159,10 +295,41 @@
       width: 100%; height: 100%;
       object-fit: cover; opacity: 0.5;
     }
+    #hero-img-prev {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      object-fit: cover; opacity: 0.5;
+      pointer-events: none; display: none; z-index: 1;
+    }
+    .hero-img { z-index: 2; }
+    @keyframes heroSlideOutLeft { from{transform:translateX(0)} to{transform:translateX(-100%)} }
+    @keyframes heroSlideInRight  { from{transform:translateX(105%)} to{transform:translateX(0)} }
+    @keyframes heroContentIn     { from{opacity:0;transform:translateX(18px)} to{opacity:1;transform:translateX(0)} }
+    .hero-img-anim-out  { animation: heroSlideOutLeft .42s cubic-bezier(.4,0,.2,1) forwards; }
+    .hero-img-anim-in   { animation: heroSlideInRight  .42s cubic-bezier(.4,0,.2,1) forwards; }
+    .hero-content-anim  { animation: heroContentIn .38s ease-out .12s both; }
+    /* Réseaux sociaux */
+    .social-section { padding: 0 16px 20px; }
+    .social-section-title { font-size: 11px; font-weight: 800; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 12px; }
+    .social-row { display: flex; gap: 10px; }
+    .social-card {
+      flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 8px; padding: 14px 8px; border-radius: 16px;
+      text-decoration: none; cursor: pointer;
+      transition: transform .12s, opacity .12s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .social-card:active { transform: scale(0.93); opacity: .85; }
+    .social-fb { background: #1877F2; }
+    .social-yt { background: #FF0000; }
+    .social-tt { background: #000; }
+    .social-logo { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; }
+    .social-name { font-size: 11px; font-weight: 800; color: #fff; letter-spacing: .5px; }
     .hero-content {
       position: relative; z-index: 1;
-      padding: 22px 20px 24px;
+      padding: 18px 18px 18px;
       display: flex; flex-direction: column; align-items: flex-start;
+      min-height: 210px;
     }
     .hero-badge {
       display: inline-flex; align-items: center; gap: 6px;
@@ -174,17 +341,27 @@
     .hero-badge-dot { width: 6px; height: 6px; background: #FF4444; border-radius: 50%; animation: blink 1s infinite; box-shadow: 0 0 6px #FF4444; }
     @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
     .hero-title { font-size: 26px; font-weight: 900; color: #fff; letter-spacing: -0.5px; margin-bottom: 6px; line-height: 1.1; }
-    .hero-sub { font-size: 13px; color: rgba(255,255,255,0.7); margin-bottom: 22px; line-height: 1.4; }
-    .hero-btn-wrap { width: 100%; display: flex; justify-content: center; }
+    .hero-sub { font-size: 13px; color: rgba(255,255,255,0.7); margin-bottom: 0; line-height: 1.4; }
+    .hero-btn-wrap { width: 100%; display: flex; justify-content: flex-start; margin-top: auto; padding-top: 14px; }
     .hero-btn {
-      display: inline-flex; align-items: center; gap: 6px;
-      background: rgba(255,255,255,0.95); color: #1a1040;
-      border: none; border-radius: 30px;
-      padding: 8px 20px; font-size: 12px; font-weight: 800;
+      display: inline-flex; align-items: center; gap: 5px;
+      background: rgba(255,255,255,0.92); color: #1a1040;
+      border: none; border-radius: 20px;
+      padding: 5px 13px; font-size: 11px; font-weight: 800;
       cursor: pointer; transition: opacity .2s;
-      box-shadow: 0 3px 12px rgba(0,0,0,0.2);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
     }
     .hero-btn:active { opacity: 0.85; }
+    .hs-btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: rgba(255,255,255,0.18); border-radius: 20px;
+      padding: 5px 12px 5px 9px;
+      font-size: 12px; font-weight: 800; color: #fff;
+      text-decoration: none; letter-spacing: .3px;
+      -webkit-tap-highlight-color: transparent;
+      transition: background .12s;
+    }
+    .hs-btn:active { background: rgba(255,255,255,0.32); }
 
     /* ═══════════════════════════════════════
        LECTEUR AUDIO — COMPACT
@@ -298,15 +475,15 @@
       text-align: center; line-height: 1.25; margin-bottom: 12px;
     }
     .lov-sub {
-      font-size: 15px; color: rgba(255,255,255,0.75);
-      text-align: center; line-height: 1.5; margin-bottom: 48px;
+      font-size: 14px; color: rgba(255,255,255,0.75);
+      text-align: center; line-height: 1.5; margin-top: 18px;
     }
     .lov-btn {
-      width: 100%; max-width: 340px;
-      background: #fff; color: #A0001A;
-      border: none; border-radius: 18px;
-      padding: 20px; font-size: 20px; font-weight: 900;
-      cursor: pointer; letter-spacing: 0.5px;
+      width: auto; min-width: 200px; max-width: 260px;
+      background: #fff; color: #1a1040;
+      border: none; border-radius: 14px;
+      padding: 13px 28px; font-size: 15px; font-weight: 900;
+      cursor: pointer; letter-spacing: 0.5px; margin-top: 28px;
       animation: pulse-tap 1.2s infinite;
     }
     .lov-skip {
@@ -330,22 +507,40 @@
     /* ======= QUICK ACTIONS ======= */
     .quick-grid {
       display: grid; grid-template-columns: repeat(4, 1fr);
-      gap: 10px; padding: 0 16px; margin-bottom: 24px;
+      gap: 6px; padding: 0 16px; margin-bottom: 12px;
     }
     .quick-card {
-      background: var(--card); border-radius: 18px;
-      padding: 16px 6px 14px;
-      display: flex; flex-direction: column; align-items: center; gap: 9px;
-      cursor: pointer; box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+      background: var(--card); border-radius: 12px;
+      padding: 8px 4px 7px;
+      display: flex; flex-direction: column; align-items: center; gap: 5px;
+      cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
       transition: transform .12s, box-shadow .12s;
     }
     .quick-card:active { transform: scale(0.93); box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
     .quick-icon {
-      width: 50px; height: 50px; border-radius: 16px;
+      width: 36px; height: 36px; border-radius: 11px;
       display: flex; align-items: center; justify-content: center;
     }
-    .quick-label { font-size: 11.5px; font-weight: 800; color: var(--text); text-align: center; }
-    .quick-sub { font-size: 9.5px; color: var(--text-muted); text-align: center; margin-top: -5px; }
+    .quick-label { font-size: 10px; font-weight: 800; color: var(--text); text-align: center; line-height: 1.2; }
+    .quick-sub { display: none; }
+
+    /* Devenir membre — compact, sous les actions rapides */
+    .membre-quick-btn {
+      grid-column: 1 / -1;
+      display: flex; align-items: center; gap: 12px;
+      background: linear-gradient(135deg, #1a1040, #2d1b6e);
+      border-radius: 14px; padding: 12px 16px; cursor: pointer;
+      box-shadow: 0 2px 10px rgba(26,16,64,0.18);
+      transition: opacity .15s;
+    }
+    .membre-quick-btn:active { opacity: 0.85; }
+    .membre-quick-icon {
+      width: 34px; height: 34px; border-radius: 10px;
+      background: rgba(255,255,255,0.15);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .membre-quick-label { font-size: 13px; font-weight: 800; color: #fff; }
+    .membre-quick-sub   { font-size: 10.5px; color: rgba(255,255,255,0.6); margin-top: 1px; }
 
     /* ======= SERMON LIST ======= */
     .sermon-list { padding: 0 16px; display: flex; flex-direction: column; gap: 12px; }
@@ -383,6 +578,108 @@
       font-size: 12px; color: var(--primary); font-weight: 600;
       margin-top: 6px; display: flex; align-items: center; gap: 2px;
     }
+
+    /* ======= PROGRAMME DE LA SEMAINE — AFFICHES ======= */
+    .prog-scroll {
+      display: flex; gap: 12px; overflow-x: auto; padding: 0 16px 12px;
+      scrollbar-width: none;
+    }
+    .prog-scroll::-webkit-scrollbar { display: none; }
+    .prog-card {
+      flex: 0 0 130px; border-radius: 16px; overflow: hidden;
+      background: #1a1040; position: relative; cursor: pointer;
+      aspect-ratio: 2/3;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.18);
+      transition: transform .18s;
+    }
+    .prog-card:active { transform: scale(0.94); }
+    .prog-card-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .prog-card-gradient {
+      position: absolute; inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.05) 55%);
+    }
+    .prog-card-info {
+      position: absolute; bottom: 0; left: 0; right: 0; padding: 10px 9px;
+    }
+    .prog-card-badge {
+      display: inline-block; font-size: 9px; font-weight: 800; letter-spacing: .8px;
+      text-transform: uppercase; color: #fff; background: #C0001A;
+      border-radius: 5px; padding: 2px 6px; margin-bottom: 4px;
+    }
+    .prog-card-title { font-size: 11.5px; font-weight: 800; color: #fff; line-height: 1.3; }
+    .prog-card-date  { font-size: 10px; color: rgba(255,255,255,0.65); margin-top: 3px; }
+    .prog-no-img {
+      width: 100%; height: 100%;
+      background: linear-gradient(155deg, #1a1040 0%, #C0001A 100%);
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* Overlay détail programme */
+    .prog-detail-overlay {
+      position: fixed; inset: 0; z-index: 600;
+      background: rgba(0,0,0,0.6); backdrop-filter: blur(3px);
+      display: none; align-items: flex-end; justify-content: center;
+    }
+    .prog-detail-overlay.open { display: flex; }
+    .prog-detail-sheet {
+      width: 100%; max-width: 430px;
+      background: #fff; border-radius: 24px 24px 0 0;
+      max-height: 88vh; overflow-y: auto;
+      animation: slideUp .28s ease;
+    }
+    @keyframes slideUp { from { transform: translateY(60px); opacity:0; } to { transform: translateY(0); opacity:1; } }
+    .prog-detail-img {
+      width: 100%; height: 220px; object-fit: cover;
+      border-radius: 24px 24px 0 0;
+    }
+    .prog-detail-no-img {
+      width: 100%; height: 180px; border-radius: 24px 24px 0 0;
+      background: linear-gradient(155deg, #1a1040, #C0001A);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .prog-detail-body { padding: 20px 20px 36px; }
+    .prog-detail-tag {
+      display: inline-block; font-size: 10px; font-weight: 800; letter-spacing: 1px;
+      text-transform: uppercase; color: #C0001A; background: #fff0f0;
+      border-radius: 6px; padding: 3px 9px; margin-bottom: 10px;
+    }
+    .prog-detail-title { font-size: 21px; font-weight: 900; color: #1a1040; line-height: 1.2; margin-bottom: 6px; }
+    .prog-detail-auteur { font-size: 13px; color: #666; margin-bottom: 14px; }
+    .prog-detail-meta { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+    .prog-detail-meta-item {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 12px; color: #555; background: #f5f5f8;
+      border-radius: 8px; padding: 5px 10px;
+    }
+    .prog-detail-desc { font-size: 14px; color: #444; line-height: 1.7; margin-bottom: 20px; white-space: pre-wrap; }
+    .prog-detail-play {
+      width: 100%; background: #C0001A; color: #fff;
+      border: none; border-radius: 14px; padding: 14px;
+      font-size: 14px; font-weight: 800; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .prog-detail-close {
+      position: absolute; top: 12px; right: 14px; z-index: 10;
+      width: 32px; height: 32px; border-radius: 50%;
+      background: rgba(0,0,0,0.45); border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* Commentaires — toggle */
+    .comment-toggle-btn {
+      display: flex; align-items: center; gap: 8px;
+      width: calc(100% - 32px); margin: 0 16px 14px;
+      background: #fff; border: 1.5px solid var(--border);
+      border-radius: 14px; padding: 12px 16px; cursor: pointer;
+      font-size: 14px; font-weight: 700; color: var(--text);
+    }
+    .comment-toggle-btn svg { color: #C0001A; }
+    .comment-toggle-badge {
+      margin-left: auto; font-size: 11px; color: #C0001A; font-weight: 800;
+      background: #fff0f0; border-radius: 20px; padding: 2px 9px;
+    }
+    .comment-section-inner { display: none; }
+    .comment-section-inner.open { display: block; }
 
     /* ======= EVENTS ======= */
     .event-list { padding: 0 16px; display: flex; flex-direction: column; gap: 12px; margin-bottom: 8px; }
@@ -625,8 +922,12 @@
       margin-left: auto; padding: 6px 12px; border-radius: 8px;
       background: var(--primary); color: #fff; border: none; font-size: 12px;
       font-weight: 700; cursor: pointer; flex-shrink: 0;
+      transition: background .2s, transform .1s; min-width: 70px;
     }
-    .don-copy-btn:active { opacity: 0.8; }
+    .don-copy-btn:active { opacity: 0.8; transform: scale(.95); }
+    .don-copy-btn.copied {
+      background: #00c864; transform: scale(1.05);
+    }
     .don-instructions {
       padding: 14px; background: #FFF8E1; border-radius: 14px; margin-top: 12px;
       font-size: 13px; color: #7A6200; line-height: 1.6;
@@ -709,14 +1010,45 @@
     .ov-body { flex: 1; overflow-y: auto; padding: 16px; }
 
     /* ── Bible ── */
-    .bible-toolbar { display: flex; gap: 8px; margin-bottom: 12px; }
+    .bible-toolbar { display: flex; gap: 8px; margin-bottom: 10px; }
     .bible-sel-btn {
       flex: 1; background: #fff; border: 1.5px solid var(--border);
       border-radius: 12px; padding: 9px 12px; font-size: 13px; font-weight: 700;
       color: var(--text); text-align: left; cursor: pointer;
     }
     .bible-sel-btn.chap { flex: 0 0 auto; min-width: 80px; text-align: center; }
-    .bible-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+
+    /* Barre de recherche Bible */
+    .bible-search-bar {
+      display: flex; gap: 8px; margin-bottom: 12px;
+    }
+    .bible-search-input {
+      flex: 1; background: #fff; border: 1.5px solid var(--border);
+      border-radius: 12px; padding: 9px 14px; font-size: 13px; color: var(--text);
+      outline: none; transition: border-color .2s;
+    }
+    .bible-search-input:focus { border-color: #C0001A; }
+    .bible-search-input::placeholder { color: #aaa; }
+    .bible-search-btn {
+      width: 42px; height: 42px; border-radius: 12px;
+      background: #C0001A; border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .bible-search-btn svg { stroke: #fff; }
+    .bible-search-clear {
+      width: 42px; height: 42px; border-radius: 12px;
+      background: #f0f0f0; border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      font-size: 16px; color: #888; display: none;
+    }
+    .bible-search-info {
+      font-size: 12px; color: var(--text-sub); margin-bottom: 10px;
+      padding: 6px 10px; background: #fff8f8; border-radius: 8px;
+      border-left: 3px solid #C0001A; display: none;
+    }
+
+    /* Navigation chapitre */
+    .bible-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
     .bible-nav-btn {
       width: 36px; height: 36px; border-radius: 10px;
       background: #fff; border: 1.5px solid var(--border);
@@ -724,9 +1056,36 @@
     }
     .bible-nav-btn:disabled { opacity: 0.3; pointer-events: none; }
     .bible-chap-label { font-size: 13px; font-weight: 700; color: var(--text-sub); }
-    .bible-verse { display: flex; gap: 8px; margin-bottom: 12px; line-height: 1.75; }
-    .bible-vnum { font-size: 9.5px; font-weight: 800; color: #C0001A; min-width: 18px; text-align: right; padding-top: 4px; flex-shrink: 0; }
-    .bible-vtext { font-size: 15px; color: var(--text); }
+
+    /* En-tête de chapitre dans le texte */
+    .bible-chap-header {
+      text-align: center; margin-bottom: 20px; padding-bottom: 14px;
+      border-bottom: 2px solid #C0001A;
+    }
+    .bible-chap-header-title {
+      font-size: 20px; font-weight: 900; color: #1a1040; letter-spacing: .3px;
+    }
+    .bible-chap-header-sub {
+      font-size: 11px; font-weight: 700; color: #C0001A; letter-spacing: 1.5px;
+      text-transform: uppercase; margin-top: 2px;
+    }
+
+    /* Versets */
+    .bible-verse {
+      display: flex; gap: 10px; margin-bottom: 0;
+      padding: 9px 10px; border-radius: 10px; line-height: 1.8;
+      transition: background .15s;
+    }
+    .bible-verse:hover { background: #fdf5f5; }
+    .bible-verse.highlighted { background: #fff3cd; border-left: 3px solid #f0a500; padding-left: 8px; }
+    .bible-vnum {
+      font-size: 9px; font-weight: 900; color: #fff;
+      background: #C0001A; border-radius: 50%;
+      min-width: 18px; height: 18px; display: flex; align-items: center; justify-content: center;
+      padding: 0 3px; flex-shrink: 0; margin-top: 5px; letter-spacing: 0;
+    }
+    .bible-vtext { font-size: 15.5px; color: var(--text); line-height: 1.8; }
+    mark.bible-hl { background: #ffe066; border-radius: 3px; padding: 0 2px; color: inherit; }
     .bible-loading { text-align: center; padding: 40px 20px; color: var(--text-sub); font-size: 14px; }
 
     /* Book/chapitre picker */
@@ -750,7 +1109,104 @@
     }
     .pick-item.active { background: #C0001A; color: #fff; }
 
-    /* ── Prières ── */
+    /* ── Parole du jour ── */
+    .pdj-card {
+      background: linear-gradient(135deg,rgba(5,150,105,.06),rgba(16,185,129,.02));
+      border: 1px solid rgba(5,150,105,.2); border-radius: 18px; padding: 20px; margin-bottom: 16px;
+    }
+    .pdj-ref { font-size: 13px; font-weight: 800; color: #10B981; letter-spacing: .5px; margin-bottom: 10px; }
+    .pdj-texte { font-size: 15px; color: var(--text); line-height: 1.85; white-space: pre-wrap; font-style: italic; }
+    /* section headers */
+    .pdj-section-hdr {
+      display: flex; align-items: center; gap: 8px;
+      margin: 22px 0 10px; padding-bottom: 8px;
+    }
+    .pdj-sec-cmt  { border-bottom: 1.5px solid rgba(59,130,246,.25); }
+    .pdj-sec-sug  { border-bottom: 1.5px solid rgba(212,175,55,.3); }
+    .pdj-sec-icon {
+      width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 14px;
+    }
+    .pdj-sec-cmt .pdj-sec-icon { background: rgba(59,130,246,.15); }
+    .pdj-sec-sug .pdj-sec-icon { background: rgba(212,175,55,.15); }
+    .pdj-sec-label {
+      font-size: 12px; font-weight: 900; letter-spacing: .8px;
+      text-transform: uppercase; flex: 1;
+    }
+    .pdj-sec-cmt .pdj-sec-label { color: #60A5FA; }
+    .pdj-sec-sug .pdj-sec-label { color: #D4AF37; }
+    .pdj-sec-count {
+      font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 10px;
+    }
+    .pdj-sec-cmt .pdj-sec-count { background: rgba(59,130,246,.15); color: #60A5FA; }
+    .pdj-sec-sug .pdj-sec-count { background: rgba(212,175,55,.12); color: #D4AF37; }
+
+    /* commentaire item — bulle bleue */
+    .pdj-cmt-item {
+      background: rgba(59,130,246,.05);
+      border: 1px solid rgba(59,130,246,.15);
+      border-left: 3px solid #60A5FA;
+      border-radius: 0 14px 14px 0; padding: 12px 14px; margin-bottom: 10px;
+    }
+    .pdj-cmt-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+    .pdj-cmt-avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: rgba(59,130,246,.2); color: #60A5FA;
+      font-size: 12px; font-weight: 900;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .pdj-cmt-auteur { font-size: 12px; font-weight: 800; color: #60A5FA; flex: 1; }
+    .pdj-cmt-date   { font-size: 11px; color: var(--text-muted); }
+    .pdj-cmt-texte  { font-size: 14px; color: var(--text); line-height: 1.65; }
+
+    /* suggestion item — carte dorée */
+    .pdj-sug-item {
+      background: rgba(212,175,55,.06);
+      border: 1px solid rgba(212,175,55,.2);
+      border-radius: 14px; padding: 14px 16px; margin-bottom: 10px;
+      display: flex; gap: 12px; align-items: flex-start;
+    }
+    .pdj-sug-bulb {
+      width: 34px; height: 34px; border-radius: 10px;
+      background: rgba(212,175,55,.15); flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 16px;
+    }
+    .pdj-sug-body  { flex: 1; min-width: 0; }
+    .pdj-sug-label {
+      display: inline-block; font-size: 9px; font-weight: 900;
+      letter-spacing: .7px; text-transform: uppercase;
+      background: rgba(212,175,55,.15); color: #D4AF37;
+      border-radius: 5px; padding: 2px 7px; margin-bottom: 5px;
+    }
+    .pdj-sug-auteur { font-size: 12px; font-weight: 800; color: #D4AF37; margin-bottom: 4px; }
+    .pdj-sug-texte  { font-size: 14px; color: var(--text); line-height: 1.65; }
+    .pdj-sug-date   { font-size: 11px; color: var(--text-muted); margin-top: 5px; }
+
+    /* réponse pasteur (commune) */
+    .pdj-reply { background: rgba(212,175,55,.07); border-left: 3px solid #D4AF37;
+      border-radius: 8px; padding: 10px 12px; margin-top: 10px; }
+    .pdj-reply-label { font-size: 10px; font-weight: 800; color: #D4AF37;
+      letter-spacing: .5px; margin-bottom: 4px; }
+    .pdj-reply-texte { font-size: 13px; color: var(--text); line-height: 1.6; }
+    .pdj-actions { display: flex; gap: 10px; margin: 20px 0 12px; }
+    .pdj-action-btn { flex:1; padding: 13px 10px; border-radius: 14px;
+      background: rgba(5,150,105,.12); border: 1.5px solid rgba(5,150,105,.3);
+      color: #10B981; font-size: 13px; font-weight: 800; font-family: inherit;
+      cursor: pointer; transition: background .15s; }
+    .pdj-action-btn:active { background: rgba(5,150,105,.22); }
+    .pdj-action-suggest { background: rgba(212,175,55,.1);
+      border-color: rgba(212,175,55,.3); color: #D4AF37; }
+    .pdj-action-suggest:active { background: rgba(212,175,55,.2); }
+    .pdj-textarea { width: 100%; box-sizing: border-box;
+      background: rgba(255,255,255,.05); border: 1.5px solid rgba(255,255,255,.12);
+      color: var(--text); border-radius: 12px; padding: 13px 14px;
+      font-size: 14px; font-family: inherit; resize: none; outline: none;
+      transition: border-color .2s; min-height: 90px; }
+    .pdj-textarea:focus { border-color: rgba(212,175,55,.5); }
+    .pdj-submit-btn { width: 100%; padding: 13px; margin-top: 10px; margin-bottom: 20px;
+      background: linear-gradient(135deg,#D4AF37,#B8942A); border: none; border-radius: 12px;
+      color: #070F1C; font-size: 14px; font-weight: 900; font-family: inherit; cursor: pointer; }
+    /* ── Prières (conservé pour rétrocompat.) ── */
     .priere-card {
       background: #fff; border-radius: 14px; padding: 16px; margin-bottom: 10px;
       box-shadow: 0 1px 6px rgba(0,0,0,0.05);
@@ -884,6 +1340,39 @@
       margin-top: 4px;
     }
     .mf-btn:active { opacity: 0.85; }
+    .mf-row { display: flex; gap: 10px; }
+    .mf-col { flex: 1; min-width: 0; }
+    .mf-pays-wrap { position: relative; margin-bottom: 12px; }
+    .mf-pays-wrap .mf-input { margin-bottom: 0; }
+    .mf-pays-dropdown {
+      position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 600;
+      background: #fff; border: 1.5px solid #C0001A; border-radius: 12px;
+      max-height: 190px; overflow-y: auto;
+      box-shadow: 0 6px 28px rgba(0,0,0,0.16);
+    }
+    .mf-pays-option {
+      padding: 11px 14px; cursor: pointer; font-size: 14px; color: var(--text);
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+    .mf-pays-option:last-child { border-bottom: none; }
+    .mf-pays-option:active { background: #FFF0F0; }
+    .mf-pays-code { font-size: 12px; font-weight: 700; color: #C0001A; }
+    .mf-tel-wrap { display: flex; align-items: stretch; gap: 8px; margin-bottom: 12px; }
+    .mf-tel-code {
+      background: var(--bg); border: 1.5px solid var(--border); border-radius: 12px;
+      padding: 0 12px; font-size: 14px; font-weight: 800; color: #C0001A;
+      min-width: 64px; text-align: center; display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .mf-tel-input { flex: 1; margin-bottom: 0 !important; }
+    .mf-sexe-row { display: flex; gap: 10px; margin-bottom: 12px; }
+    .mf-sexe-btn {
+      flex: 1; padding: 12px; border: 1.5px solid var(--border); border-radius: 12px;
+      background: var(--bg); font-size: 14px; font-weight: 700; color: var(--text-sub);
+      cursor: pointer; transition: all .15s;
+    }
+    .mf-sexe-btn.active { border-color: #C0001A; background: #FFF0F0; color: #C0001A; }
   </style>
 </head>
 <body>
@@ -893,6 +1382,67 @@
   <img id="splash-logo" class="splash-logo" src="/logo.jpg" alt="Maranatha" />
   <div class="splash-church-name">Communauté des Églises<br>Missionnaire Maranatha</div>
   <div class="splash-spinner"></div>
+</div>
+
+<!-- ══════════════ ÉCRAN AUTHENTIFICATION ══════════════ -->
+<div id="auth-screen">
+  <div class="auth-box">
+    <img class="auth-logo" src="/logo.jpg" alt="Maranatha" />
+    <div class="auth-church-name">Maranatha</div>
+    <div class="auth-tagline">Bienvenue parmi nous</div>
+
+    <!-- ÉTAPE 1 — Numéro de téléphone -->
+    <div id="auth-step-1" class="auth-step">
+      <div class="auth-label">Numéro de téléphone</div>
+      <input class="auth-input" id="auth-tel-input" type="tel"
+        placeholder="+243 8X XXX XXXX"
+        onkeydown="if(event.key==='Enter')authVerifierTel()" />
+      <div class="auth-err" id="auth-tel-err"></div>
+      <button class="auth-btn" id="auth-btn-continuer" onclick="authVerifierTel()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        Continuer
+      </button>
+      <div class="auth-divider">ou</div>
+      <button class="auth-skip-btn" onclick="authSansCompte()">Continuer sans compte</button>
+    </div>
+
+    <!-- ÉTAPE 2A — Bon retour -->
+    <div id="auth-step-2a" class="auth-step" style="display:none">
+      <div class="auth-welcome-avatar">👋</div>
+      <div class="auth-welcome-title">Bon retour,<br><span id="auth-welcome-prenom" style="color:#D4AF37"></span> !</div>
+      <div class="auth-welcome-sub" id="auth-welcome-sub"></div>
+      <button class="auth-btn" onclick="authEntrer()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+        Entrer dans l'application
+      </button>
+      <button class="auth-skip-btn" onclick="authRetourStep1()">← Changer de numéro</button>
+    </div>
+
+    <!-- ÉTAPE 2B — Créer un compte -->
+    <div id="auth-step-2b" class="auth-step" style="display:none">
+      <div class="auth-reg-title">Créer votre compte</div>
+      <div class="auth-reg-sub">Rejoignez la communauté Maranatha</div>
+
+      <div class="auth-tel-badge">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 6.06 6.06l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        <span class="auth-tel-badge-num" id="auth-reg-tel-display"></span>
+        <span class="auth-tel-badge-chg" onclick="authRetourStep1()">Changer</span>
+      </div>
+
+      <div class="auth-input-row">
+        <input class="auth-input" id="auth-reg-nom" type="text" placeholder="Nom *" style="flex:1" />
+        <input class="auth-input" id="auth-reg-postnom" type="text" placeholder="Post-nom" style="flex:1" />
+      </div>
+      <input class="auth-input" id="auth-reg-prenom" type="text" placeholder="Prénom *"
+        onkeydown="if(event.key==='Enter')authCreerCompte()" style="margin-top:10px" />
+      <div class="auth-err" id="auth-reg-err"></div>
+      <button class="auth-btn" id="auth-btn-creer" onclick="authCreerCompte()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Créer mon compte
+      </button>
+      <button class="auth-skip-btn" onclick="authSansCompte()">Continuer sans compte</button>
+    </div>
+  </div>
 </div>
 
 <!-- ============ LOADER CENTRÉ ============ -->
@@ -916,8 +1466,8 @@
 <div id="live-overlay">
   <div class="lov-badge"><div class="lov-dot"></div> EN DIRECT</div>
   <div class="lov-title" id="lov-titre">Culte en direct</div>
-  <div class="lov-sub">La prédication vient de commencer.<br>Appuyez pour écouter.</div>
   <button class="lov-btn" onclick="ecouterLive()">▶ ÉCOUTER MAINTENANT</button>
+  <div class="lov-sub">Rejoignez-nous maintenant et adorons ensemble !</div>
   <button class="lov-skip" onclick="fermerOverlay()">Pas maintenant</button>
 </div>
 
@@ -929,15 +1479,24 @@
     <div class="hdr-logo"><img src="/logo.jpg" alt="Maranatha" /></div>
     <div class="hdr-church-name">Communauté des Églises<br>Missionnaires Maranatha</div>
     <div class="hdr-actions">
+      <a id="hdr-fb" href="#" target="_blank" rel="noopener" class="hdr-social-btn">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="#fff"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+      </a>
+      <a id="hdr-yt" href="#" target="_blank" rel="noopener" class="hdr-social-btn">
+        <svg width="19" height="14" viewBox="0 0 24 17"><rect width="24" height="17" rx="4" fill="rgba(255,255,255,0.92)"/><polygon fill="#C0001A" points="9.5,4 9.5,13 17.5,8.5"/></svg>
+      </a>
+      <a id="hdr-tt" href="#" target="_blank" rel="noopener" class="hdr-social-btn">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="#fff"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.28 6.28 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.8a8.18 8.18 0 0 0 4.78 1.52V6.87a4.85 4.85 0 0 1-1.01-.18z"/></svg>
+      </a>
       <button class="icon-btn" onclick="showToast('Aucune nouvelle notification')">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B6B8A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
           <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
         </svg>
         <div class="notif-dot" id="notif-dot" style="display:none"></div>
       </button>
       <button class="icon-btn" onclick="switchTab('settings')">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B6B8A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
           <circle cx="12" cy="7" r="4"/>
         </svg>
@@ -950,6 +1509,7 @@
 
     <!-- Hero live card -->
     <div class="hero-card" id="hero-card" onclick="scrollToPlayer()">
+      <img id="hero-img-prev" src="" alt="" />
       <img class="hero-img" id="hero-img" src="" alt="" />
       <div class="hero-content">
         <div class="hero-badge" id="hero-badge">
@@ -966,6 +1526,21 @@
         </div>
         <!-- Dots carousel YouTube (cachés par défaut) -->
         <div id="yt-dots" style="display:none;justify-content:center;gap:5px;margin-top:12px"></div>
+        <!-- Réseaux sociaux sous le bouton YT -->
+        <div id="hero-social" style="display:none;gap:8px;margin-top:14px;align-items:center">
+          <a id="hs-fb" href="#" target="_blank" rel="noopener" class="hs-btn" onclick="event.stopPropagation()" style="display:none">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+            Facebook
+          </a>
+          <a id="hs-yt" href="#" target="_blank" rel="noopener" class="hs-btn" onclick="event.stopPropagation()" style="display:none">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46A2.78 2.78 0 0 0 1.46 6.42 29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.95 1.96C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.96A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="#111"/></svg>
+            YouTube
+          </a>
+          <a id="hs-tt" href="#" target="_blank" rel="noopener" class="hs-btn" onclick="event.stopPropagation()" style="display:none">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.76a4.85 4.85 0 0 1-1.01-.07z"/></svg>
+            TikTok
+          </a>
+        </div>
       </div>
     </div>
 
@@ -1028,53 +1603,65 @@
       <!-- Bible -->
       <div class="quick-card" onclick="ouvrirBible()">
         <div class="quick-icon" style="background:linear-gradient(135deg,#4F46E5,#7C3AED)">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" fill="rgba(255,255,255,0.15)"/>
             <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" fill="rgba(255,255,255,0.15)"/>
           </svg>
         </div>
         <div class="quick-label">Bible</div>
-        <div class="quick-sub">Lire la Parole</div>
       </div>
 
-      <!-- Prières -->
+      <!-- Parole du jour -->
       <div class="quick-card" onclick="ouvrirPrieres()">
         <div class="quick-icon" style="background:linear-gradient(135deg,#059669,#10B981)">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <path d="M18 11V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3v5" fill="rgba(255,255,255,0.12)"/>
             <path d="M6 11V6a3 3 0 0 1 3-3 3 3 0 0 1 3 3"/>
             <path d="M12 11v3a6 6 0 0 1-6 6H5a5 5 0 0 1-5-5v-3h6v-3h12v3a5 5 0 0 1-5 5h-1"/>
             <path d="M12 14v7" stroke-dasharray="2 2"/>
           </svg>
         </div>
-        <div class="quick-label">Prières</div>
-        <div class="quick-sub">Se recueillir</div>
+        <div class="quick-label">Parole du jour</div>
       </div>
 
-      <!-- Offrande → ouvre modal don -->
+      <!-- Don -->
       <div class="quick-card" onclick="ouvrirModalDon()">
         <div class="quick-icon" style="background:linear-gradient(135deg,#C0001A,#E53E3E)">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" fill="rgba(255,255,255,0.2)"/>
           </svg>
         </div>
-        <div class="quick-label">Offrande</div>
-        <div class="quick-sub">Donner</div>
+        <div class="quick-label">Don</div>
       </div>
 
       <!-- Notes -->
       <div class="quick-card" onclick="ouvrirNotes()">
         <div class="quick-icon" style="background:linear-gradient(135deg,#D97706,#F59E0B)">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="rgba(255,255,255,0.15)"/>
             <polyline points="14 2 14 8 20 8"/>
             <line x1="8" y1="13" x2="16" y2="13"/>
             <line x1="8" y1="17" x2="13" y2="17"/>
-            <path d="M17 17l1.5-1.5a1 1 0 0 1 1.5 1.5L18.5 18.5 17 19z" fill="#fff"/>
           </svg>
         </div>
         <div class="quick-label">Notes</div>
-        <div class="quick-sub">Mes notes</div>
+      </div>
+
+      <!-- Devenir membre — pleine largeur -->
+      <div class="membre-quick-btn" onclick="ouvrirModalMembre()">
+        <div class="membre-quick-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <line x1="19" y1="8" x2="19" y2="14"/>
+            <line x1="22" y1="11" x2="16" y2="11"/>
+          </svg>
+        </div>
+        <div>
+          <div class="membre-quick-label">Devenir membre</div>
+          <div class="membre-quick-sub">Rejoindre la communauté Maranatha</div>
+        </div>
+        <svg style="margin-left:auto;flex-shrink:0" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
       </div>
 
     </div>
@@ -1088,18 +1675,43 @@
       <div id="etude-home-card"></div>
     </div>
 
-    <!-- Prédications récentes -->
+    <!-- Programme de la semaine -->
     <div class="sec-row">
-      <div class="sec-title">Prédications récentes</div>
+      <div class="sec-title">Programme de la semaine</div>
       <div class="sec-voir" onclick="switchTab('library')">Voir tout <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
     </div>
-    <div class="sermon-list" id="home-sermons"></div>
+    <div class="prog-scroll" id="home-sermons"></div>
 
-    <!-- Évènements à venir -->
-    <div class="sec-row" style="margin-top:24px">
-      <div class="sec-title">Évènements à venir</div>
-      <div class="sec-voir" onclick="showToast('Agenda — Bientôt disponible')">Voir tout <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+    <!-- Réseaux sociaux -->
+    <div class="social-section" id="social-section" style="display:none">
+      <div class="social-section-title">Suivez-nous sur</div>
+      <div class="social-row">
+        <a id="social-fb-link" href="#" target="_blank" class="social-card social-fb">
+          <div class="social-logo">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+          </div>
+          <div class="social-name">Facebook</div>
+        </a>
+        <a id="social-yt-link" href="#" target="_blank" class="social-card social-yt">
+          <div class="social-logo">
+            <svg width="26" height="18" viewBox="0 0 24 17" fill="none">
+              <rect width="24" height="17" rx="4" fill="#fff"/>
+              <polygon fill="#FF0000" points="9.5,4 9.5,13 17.5,8.5"/>
+            </svg>
+          </div>
+          <div class="social-name">YouTube</div>
+        </a>
+        <a id="social-tt-link" href="#" target="_blank" class="social-card social-tt">
+          <div class="social-logo">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.28 6.28 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.8a8.18 8.18 0 0 0 4.78 1.52V6.87a4.85 4.85 0 0 1-1.01-.18z"/></svg>
+          </div>
+          <div class="social-name">TikTok</div>
+        </a>
+      </div>
     </div>
+
+    <!-- Évènements à venir (masqué) -->
+    <div style="display:none">
     <div class="event-list" id="events-list">
       <!-- Veillée de prière -->
       <div class="ev-card">
@@ -1134,37 +1746,23 @@
         </div>
       </div>
     </div>
+    </div><!-- fin events masqués -->
 
-    <!-- ===== DEVENIR MEMBRE ===== -->
-    <div class="membre-card" onclick="ouvrirModalMembre()">
-      <div class="membre-card-icon">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-          <circle cx="9" cy="7" r="4"/>
-          <line x1="19" y1="8" x2="19" y2="14"/>
-          <line x1="22" y1="11" x2="16" y2="11"/>
-        </svg>
+    <!-- ===== COMMENTAIRES (toggle) ===== -->
+    <button class="comment-toggle-btn" onclick="toggleCommentaires()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C0001A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      Commentaires de la communauté
+      <span class="comment-toggle-badge" id="comment-count-badge">Voir</span>
+    </button>
+    <div class="comment-section-inner" id="comment-section-inner">
+      <div class="comment-form-area">
+        <textarea id="comment-input" class="comment-textarea" placeholder="Partagez un message, une prière ou un témoignage…" maxlength="500"></textarea>
+        <button class="comment-send-btn" onclick="envoyerCommentaire()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          Envoyer
+        </button>
       </div>
-      <div class="membre-card-text">
-        <div class="membre-card-title">Devenir membre</div>
-        <div class="membre-card-sub">Rejoindre la communauté Maranatha</div>
-      </div>
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-    </div>
-
-    <!-- ===== COMMENTAIRES ===== -->
-    <div class="sec-row" style="margin: 4px 0 12px">
-      <div class="sec-title">Commentaires</div>
-    </div>
-    <div class="comment-form-area">
-      <textarea id="comment-input" class="comment-textarea" placeholder="Partagez un message, une prière ou un témoignage…" maxlength="500"></textarea>
-      <button class="comment-send-btn" onclick="envoyerCommentaire()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-        Envoyer
-      </button>
-    </div>
-    <div class="comment-list" id="comment-list">
-      <div class="empty-state"><p>Chargement…</p></div>
+      <div class="comment-list" id="comment-list"></div>
     </div>
 
     <div class="ph"></div>
@@ -1249,6 +1847,30 @@
         <div class="settings-row-arrow">›</div>
       </div>
 
+      <div style="height:1px;background:var(--border);margin:8px 0"></div>
+
+      <div class="settings-row" onclick="ouvrirInfo('apropos')">
+        <div class="settings-row-icon" style="background:#FFF0F2">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C0001A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <div class="settings-row-label">À propos de nous</div>
+        <div class="settings-row-arrow">›</div>
+      </div>
+      <div class="settings-row" onclick="ouvrirInfo('aide')">
+        <div class="settings-row-icon" style="background:rgba(59,130,246,.08)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div class="settings-row-label">Aide</div>
+        <div class="settings-row-arrow">›</div>
+      </div>
+      <div class="settings-row" onclick="ouvrirInfo('regles')">
+        <div class="settings-row-icon" style="background:rgba(212,175,55,.1)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        </div>
+        <div class="settings-row-label">Règles &amp; Confidentialité</div>
+        <div class="settings-row-arrow">›</div>
+      </div>
+
     </div>
   </div>
 
@@ -1307,95 +1929,113 @@
 
 <!-- ============ MODAL : DON ============ -->
 <div class="modal-overlay" id="modal-don" onclick="fermerModal('don')">
-  <div class="modal-sheet" onclick="event.stopPropagation()">
+  <div class="modal-sheet" onclick="event.stopPropagation()" style="text-align:center">
     <div class="modal-handle"></div>
-    <div class="modal-title">💝 Faire un don</div>
+    <div class="modal-title">Faire un don</div>
     <div class="modal-sub">Soutenez le ministère Maranatha</div>
     <div class="don-tabs">
-      <button class="don-tab active" id="tab-mensuel-btn" onclick="switchDon('mensuel')">Don mensuel</button>
-      <button class="don-tab"        id="tab-unique-btn"  onclick="switchDon('unique')">Don unique</button>
+      <button class="don-tab active" id="tab-airtel-btn"  onclick="switchDon('airtel')">AIRTEL</button>
+      <button class="don-tab"        id="tab-orange-btn"  onclick="switchDon('orange')">ORANGE</button>
+      <button class="don-tab"        id="tab-vodacom-btn" onclick="switchDon('vodacom')">VODACOM</button>
+      <button class="don-tab"        id="tab-banque-btn"  onclick="switchDon('banque')">BANQUE</button>
     </div>
 
-    <!-- DON MENSUEL -->
-    <div class="don-panel active" id="don-mensuel-panel">
-      <div id="don-mensuel-content">
-        <div class="don-row">
-          <div class="don-row-icon" style="background:#E8F5E9">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="2" stroke-linecap="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg>
-          </div>
-          <div class="flex-1">
-            <div class="don-row-label">Mobile Money</div>
-            <div class="don-row-value" id="don-tel1-m">—</div>
-          </div>
-          <button class="don-copy-btn" onclick="copier('don-tel1-m','Numéro copié')">Copier</button>
+    <!-- AIRTEL -->
+    <div class="don-panel active" id="don-airtel-panel">
+      <div class="don-row" id="don-airtel-row">
+        <div class="don-row-icon" style="background:#FFEBEE">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#E53935" stroke-width="2" stroke-linecap="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="9" y1="18" x2="15" y2="18"/></svg>
         </div>
-        <div class="don-row" id="don-tel2-m-row" style="display:none">
-          <div class="don-row-icon" style="background:#E3F2FD">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2" stroke-linecap="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg>
-          </div>
-          <div class="flex-1">
-            <div class="don-row-label">Autre numéro</div>
-            <div class="don-row-value" id="don-tel2-m">—</div>
-          </div>
-          <button class="don-copy-btn" onclick="copier('don-tel2-m','Numéro copié')">Copier</button>
+        <div class="flex-1" style="text-align:left">
+          <div class="don-row-label">AIRTEL Money</div>
+          <div class="don-row-value" id="don-num-airtel">—</div>
         </div>
+        <button class="don-copy-btn" onclick="copier('don-num-airtel','Numéro copié',this)">Copier</button>
       </div>
-      <div id="don-mensuel-instructions"></div>
+      <div id="don-airtel-instructions"></div>
     </div>
 
-    <!-- DON UNIQUE -->
-    <div class="don-panel" id="don-unique-panel">
-      <div id="don-unique-content">
-        <div class="don-row">
-          <div class="don-row-icon" style="background:#F3E5F5">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7B1FA2" stroke-width="2" stroke-linecap="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
-          </div>
-          <div class="flex-1">
-            <div class="don-row-label">Titulaire</div>
-            <div class="don-row-value" id="don-titulaire">—</div>
-          </div>
+    <!-- ORANGE -->
+    <div class="don-panel" id="don-orange-panel">
+      <div class="don-row" id="don-orange-row">
+        <div class="don-row-icon" style="background:#FFF3E0">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F57C00" stroke-width="2" stroke-linecap="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="9" y1="18" x2="15" y2="18"/></svg>
         </div>
-        <div class="don-row">
-          <div class="don-row-icon" style="background:#FFF8E1">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F57F17" stroke-width="2" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-          </div>
-          <div class="flex-1">
-            <div class="don-row-label">Banque</div>
-            <div class="don-row-value" id="don-banque">—</div>
-          </div>
+        <div class="flex-1" style="text-align:left">
+          <div class="don-row-label">ORANGE Money</div>
+          <div class="don-row-value" id="don-num-orange">—</div>
         </div>
-        <div class="don-row" id="don-compte-row">
-          <div class="don-row-icon" style="background:#E8F5E9">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="2" stroke-linecap="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
-          </div>
-          <div class="flex-1">
-            <div class="don-row-label">N° de compte</div>
-            <div class="don-row-value" id="don-compte">—</div>
-          </div>
-          <button class="don-copy-btn" onclick="copier('don-compte','Copié')">Copier</button>
-        </div>
-        <div class="don-row" id="don-iban-row">
-          <div class="don-row-icon" style="background:#E3F2FD">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2" stroke-linecap="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-          </div>
-          <div class="flex-1">
-            <div class="don-row-label">IBAN</div>
-            <div class="don-row-value" id="don-iban">—</div>
-          </div>
-          <button class="don-copy-btn" onclick="copier('don-iban','IBAN copié')">Copier</button>
-        </div>
-        <div class="don-row" id="don-bic-row">
-          <div class="don-row-icon" style="background:#FCE4EC">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C62828" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-          </div>
-          <div class="flex-1">
-            <div class="don-row-label">BIC / SWIFT</div>
-            <div class="don-row-value" id="don-bic">—</div>
-          </div>
-          <button class="don-copy-btn" onclick="copier('don-bic','BIC copié')">Copier</button>
-        </div>
-        <div id="don-unique-instructions"></div>
+        <button class="don-copy-btn" onclick="copier('don-num-orange','Numéro copié',this)">Copier</button>
       </div>
+      <div id="don-orange-instructions"></div>
+    </div>
+
+    <!-- VODACOM -->
+    <div class="don-panel" id="don-vodacom-panel">
+      <div class="don-row" id="don-vodacom-row">
+        <div class="don-row-icon" style="background:#FFEBEE">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#E53935" stroke-width="2" stroke-linecap="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="9" y1="18" x2="15" y2="18"/></svg>
+        </div>
+        <div class="flex-1" style="text-align:left">
+          <div class="don-row-label">M-Pesa (VODACOM)</div>
+          <div class="don-row-value" id="don-num-vodacom">—</div>
+        </div>
+        <button class="don-copy-btn" onclick="copier('don-num-vodacom','Numéro copié',this)">Copier</button>
+      </div>
+      <div id="don-vodacom-instructions"></div>
+    </div>
+
+    <!-- BANQUE -->
+    <div class="don-panel" id="don-banque-panel">
+      <div class="don-row">
+        <div class="don-row-icon" style="background:#F3E5F5">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7B1FA2" stroke-width="2" stroke-linecap="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+        </div>
+        <div class="flex-1" style="text-align:left">
+          <div class="don-row-label">Titulaire</div>
+          <div class="don-row-value" id="don-titulaire">—</div>
+        </div>
+      </div>
+      <div class="don-row">
+        <div class="don-row-icon" style="background:#E3F2FD">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+        </div>
+        <div class="flex-1" style="text-align:left">
+          <div class="don-row-label">Banque</div>
+          <div class="don-row-value" id="don-banque">—</div>
+        </div>
+      </div>
+      <div class="don-row" id="don-compte-row" style="display:none">
+        <div class="don-row-icon" style="background:#E8F5E9">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="2" stroke-linecap="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+        </div>
+        <div class="flex-1" style="text-align:left">
+          <div class="don-row-label">N° de compte</div>
+          <div class="don-row-value" id="don-compte">—</div>
+        </div>
+        <button class="don-copy-btn" onclick="copier('don-compte','Copié',this)">Copier</button>
+      </div>
+      <div class="don-row" id="don-iban-row" style="display:none">
+        <div class="don-row-icon" style="background:#E3F2FD">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2" stroke-linecap="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        </div>
+        <div class="flex-1" style="text-align:left">
+          <div class="don-row-label">IBAN</div>
+          <div class="don-row-value" id="don-iban">—</div>
+        </div>
+        <button class="don-copy-btn" onclick="copier('don-iban','IBAN copié',this)">Copier</button>
+      </div>
+      <div class="don-row" id="don-bic-row" style="display:none">
+        <div class="don-row-icon" style="background:#FCE4EC">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C62828" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        </div>
+        <div class="flex-1" style="text-align:left">
+          <div class="don-row-label">BIC / SWIFT</div>
+          <div class="don-row-value" id="don-bic">—</div>
+        </div>
+        <button class="don-copy-btn" onclick="copier('don-bic','BIC copié',this)">Copier</button>
+      </div>
+      <div id="don-banque-instructions"></div>
     </div>
   </div>
 </div>
@@ -1406,12 +2046,52 @@
     <div class="modal-handle"></div>
     <div class="modal-title">Devenir membre</div>
     <div class="modal-sub">Remplissez ce formulaire pour rejoindre l'église Maranatha</div>
-    <label class="mf-label">Nom complet *</label>
-    <input type="text" class="mf-input" id="mf-nom" placeholder="Ex : Jean Dupont" />
-    <label class="mf-label">Numéro de téléphone *</label>
-    <input type="tel" class="mf-input" id="mf-tel" placeholder="Ex : 06 00 00 00 00" />
-    <label class="mf-label">Adresse *</label>
-    <input type="text" class="mf-input" id="mf-adresse" placeholder="Ex : 12 Rue des Fleurs, Quartier Nord" />
+
+    <div class="mf-row">
+      <div class="mf-col">
+        <label class="mf-label">Nom *</label>
+        <input type="text" class="mf-input" id="mf-nom" placeholder="Nom" />
+      </div>
+      <div class="mf-col">
+        <label class="mf-label">Post-nom</label>
+        <input type="text" class="mf-input" id="mf-postnom" placeholder="Post-nom" />
+      </div>
+    </div>
+
+    <div class="mf-row">
+      <div class="mf-col">
+        <label class="mf-label">Prénom *</label>
+        <input type="text" class="mf-input" id="mf-prenom" placeholder="Prénom" />
+      </div>
+      <div class="mf-col">
+        <label class="mf-label">Âge *</label>
+        <input type="number" class="mf-input" id="mf-age" placeholder="Âge" min="5" max="120" />
+      </div>
+    </div>
+
+    <label class="mf-label">Sexe *</label>
+    <div class="mf-sexe-row">
+      <button type="button" class="mf-sexe-btn" id="mf-sexe-h" onclick="choisirSexe('Homme')">♂ Homme</button>
+      <button type="button" class="mf-sexe-btn" id="mf-sexe-f" onclick="choisirSexe('Femme')">♀ Femme</button>
+    </div>
+    <input type="hidden" id="mf-sexe" />
+
+    <label class="mf-label">Pays *</label>
+    <div class="mf-pays-wrap" id="mf-pays-wrap">
+      <input type="text" class="mf-input" id="mf-pays-search"
+        placeholder="🔍 Rechercher un pays…" autocomplete="off"
+        oninput="filtrerPays()" onfocus="ouvrirDropdownPays()" />
+      <input type="hidden" id="mf-pays" />
+      <input type="hidden" id="mf-indicatif" />
+      <div id="mf-pays-dropdown" class="mf-pays-dropdown" style="display:none"></div>
+    </div>
+
+    <label class="mf-label">Téléphone *</label>
+    <div class="mf-tel-wrap">
+      <div class="mf-tel-code" id="mf-tel-code">+--</div>
+      <input type="tel" class="mf-input mf-tel-input" id="mf-tel" placeholder="Numéro de téléphone" />
+    </div>
+
     <button class="mf-btn" id="mf-submit" onclick="soumettreMembre()">Envoyer ma demande</button>
   </div>
 </div>
@@ -1429,6 +2109,17 @@
       <button class="bible-sel-btn" id="bible-book-btn" onclick="ouvrirBookPicker()">Jean ▾</button>
       <button class="bible-sel-btn chap" id="bible-chap-btn" onclick="ouvrirChapPicker()">Ch. 3 ▾</button>
     </div>
+    <div class="bible-search-bar">
+      <input type="search" class="bible-search-input" id="bible-search-input"
+        placeholder="Rechercher un mot ou Jean 3:16…"
+        onkeydown="if(event.key==='Enter')bibleSearch()"
+        oninput="if(this.value==='')bibleClearSearch()">
+      <button class="bible-search-btn" onclick="bibleSearch()" title="Rechercher">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+      <button class="bible-search-clear" id="bible-search-clear" onclick="bibleClearSearch()" title="Effacer">✕</button>
+    </div>
+    <div class="bible-search-info" id="bible-search-info"></div>
     <div class="bible-nav">
       <button class="bible-nav-btn" id="bible-prev-btn" onclick="bibleNavPrev()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
@@ -1467,7 +2158,7 @@
     <button class="ov-back" onclick="fermerOverlay('priere')">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
     </button>
-    <div class="ov-title">Prières</div>
+    <div class="ov-title">Parole du jour</div>
   </div>
   <div class="ov-body" id="prieres-body">
     <div class="empty-state"><p>Chargement…</p></div>
@@ -1534,6 +2225,7 @@
   let youtubeLinks = [];    // tableau [{url, label}] — carousel
   let ytCarouselIdx = 0;
   let ytCarouselTimer = null;
+  let programmeItems = [];  // affiches de la semaine depuis /settings/programme
 
   // ── FCM TOKEN INJECTION depuis Flutter ─────────────────────────────────────
   // Flutter appelle window.__onFcmToken("TOKEN") après chaque chargement de page.
@@ -1571,7 +2263,13 @@
 
     setTimeout(() => {
       splash.classList.add('fade-out');
-      setTimeout(() => { splash.remove(); }, 500);
+      setTimeout(() => {
+        splash.remove();
+        // Afficher écran auth si jamais connecté
+        if (!localStorage.getItem('maranatha_auth_done')) {
+          afficherAuthScreen();
+        }
+      }, 500);
     }, duree);
 
     lancerApp();
@@ -1630,12 +2328,132 @@
     Promise.all([chargerSermons(), chargerEtudeJour()])
       .finally(() => cacherLoader());
     chargerYoutube();
+    chargerProgramme();
     connecterSSE();
   }
 
   // SUPPRIMÉ — plus de déconnexion manuelle
   function logout() {
     switchTab('home');
+  }
+
+  // ══════════════ AUTHENTIFICATION ══════════════
+  let _authTel = '';   // numéro saisi à l'étape 1
+  let _authMembre = null; // données du membre trouvé
+
+  function afficherAuthScreen() {
+    const s = document.getElementById('auth-screen');
+    if (s) { s.style.display = 'flex'; requestAnimationFrame(() => s.classList.add('auth-visible')); }
+  }
+
+  function masquerAuthScreen() {
+    const s = document.getElementById('auth-screen');
+    if (!s) return;
+    s.classList.remove('auth-visible');
+    setTimeout(() => { s.style.display = 'none'; }, 450);
+  }
+
+  function authRetourStep1() {
+    document.getElementById('auth-step-2a').style.display = 'none';
+    document.getElementById('auth-step-2b').style.display = 'none';
+    const s1 = document.getElementById('auth-step-1');
+    s1.style.display = 'block';
+    s1.classList.remove('auth-step'); void s1.offsetWidth; s1.classList.add('auth-step');
+    document.getElementById('auth-tel-err').textContent = '';
+  }
+
+  function authShowStep(id) {
+    ['auth-step-1','auth-step-2a','auth-step-2b'].forEach(s => {
+      const el = document.getElementById(s);
+      if (el) el.style.display = s === id ? 'block' : 'none';
+    });
+    const el = document.getElementById(id);
+    if (el) { el.classList.remove('auth-step'); void el.offsetWidth; el.classList.add('auth-step'); }
+  }
+
+  async function authVerifierTel() {
+    const tel = (document.getElementById('auth-tel-input').value || '').trim();
+    const errEl = document.getElementById('auth-tel-err');
+    if (!tel || tel.length < 7) { errEl.textContent = 'Entrez un numéro de téléphone valide'; return; }
+    errEl.textContent = '';
+    const btn = document.getElementById('auth-btn-continuer');
+    btn.disabled = true; btn.innerHTML = 'Vérification…';
+    _authTel = tel;
+    try {
+      const res = await fetch(API + '/membres/phone/' + encodeURIComponent(tel));
+      if (res.ok) {
+        // Membre trouvé — étape 2A
+        _authMembre = await res.json();
+        document.getElementById('auth-welcome-prenom').textContent = _authMembre.prenom;
+        const sub = _authMembre.statut === 'accepte' ? '✓ Membre actif' :
+                    _authMembre.statut === 'en_attente' ? '⏳ Demande en cours d\'examen' : '';
+        document.getElementById('auth-welcome-sub').textContent = sub;
+        authShowStep('auth-step-2a');
+      } else if (res.status === 404) {
+        // Nouveau — étape 2B inscription
+        _authMembre = null;
+        document.getElementById('auth-reg-tel-display').textContent = tel;
+        document.getElementById('auth-reg-nom').value = '';
+        document.getElementById('auth-reg-postnom').value = '';
+        document.getElementById('auth-reg-prenom').value = '';
+        document.getElementById('auth-reg-err').textContent = '';
+        authShowStep('auth-step-2b');
+        setTimeout(() => document.getElementById('auth-reg-nom').focus(), 300);
+      } else {
+        errEl.textContent = 'Erreur réseau, réessayez';
+      }
+    } catch(e) { errEl.textContent = 'Impossible de se connecter au serveur'; }
+    finally { btn.disabled = false; btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg> Continuer'; }
+  }
+
+  function authEntrer() {
+    // Connexion avec compte existant
+    if (_authMembre) {
+      localStorage.setItem('maranatha_auth_done', 'compte');
+      localStorage.setItem('maranatha_membre_id', _authMembre._id);
+      localStorage.setItem('maranatha_prenom', _authMembre.prenom);
+      localStorage.setItem('maranatha_nom', _authMembre.nom);
+      localStorage.setItem('maranatha_tel', _authMembre.telephone);
+      localStorage.setItem('maranatha_user', _authMembre.prenom + ' ' + _authMembre.nom);
+    }
+    masquerAuthScreen();
+  }
+
+  async function authCreerCompte() {
+    const nom    = (document.getElementById('auth-reg-nom').value    || '').trim();
+    const postNom= (document.getElementById('auth-reg-postnom').value|| '').trim();
+    const prenom = (document.getElementById('auth-reg-prenom').value || '').trim();
+    const errEl  = document.getElementById('auth-reg-err');
+    if (!nom)    { errEl.textContent = 'Le nom est requis'; return; }
+    if (!prenom) { errEl.textContent = 'Le prénom est requis'; return; }
+    errEl.textContent = '';
+    const btn = document.getElementById('auth-btn-creer');
+    btn.disabled = true; btn.innerHTML = 'Création…';
+    try {
+      const res = await fetch(API + '/membres', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nom, postNom, prenom, telephone: _authTel }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        localStorage.setItem('maranatha_auth_done', 'compte');
+        localStorage.setItem('maranatha_membre_id', data._id);
+        localStorage.setItem('maranatha_prenom', prenom);
+        localStorage.setItem('maranatha_nom', nom);
+        localStorage.setItem('maranatha_tel', _authTel);
+        localStorage.setItem('maranatha_user', prenom + ' ' + nom);
+        masquerAuthScreen();
+      } else {
+        errEl.textContent = data.error || 'Erreur lors de la création du compte';
+      }
+    } catch(e) { errEl.textContent = 'Impossible de se connecter au serveur'; }
+    finally { btn.disabled = false; btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Créer mon compte'; }
+  }
+
+  function authSansCompte() {
+    localStorage.setItem('maranatha_auth_done', 'anonyme');
+    masquerAuthScreen();
   }
 
   // ============ YOUTUBE ============
@@ -1661,7 +2479,87 @@
 
       if (sermons !== null) afficherAccueil();
       demarrerCarouselYT();
+      // Réseaux sociaux
+      const fb = cfg.facebookUrl       || '';
+      const yt = cfg.youtubeChannelUrl || '';
+      const tt = cfg.tiktokUrl         || '';
+      // Mettre en cache pour affichage instantané au prochain chargement
+      try { localStorage.setItem('maranatha_social', JSON.stringify({ fb, yt, tt })); } catch(_) {}
+      _appliquerIconesSociales(fb, yt, tt);
     } catch(e) {}
+  }
+
+  function _appliquerIconesSociales(fb, yt, tt) {
+    // ── Icônes hero (sous le bouton YouTube) ──
+    const hsFb = document.getElementById('hs-fb');
+    const hsYt = document.getElementById('hs-yt');
+    const hsTt = document.getElementById('hs-tt');
+    const heroSoc = document.getElementById('hero-social');
+    if (hsFb) { if (fb) { hsFb.href = fb; hsFb.style.display = 'inline-flex'; } else hsFb.style.display = 'none'; }
+    if (hsYt) { if (yt) { hsYt.href = yt; hsYt.style.display = 'inline-flex'; } else hsYt.style.display = 'none'; }
+    if (hsTt) { if (tt) { hsTt.href = tt; hsTt.style.display = 'inline-flex'; } else hsTt.style.display = 'none'; }
+    if (heroSoc && (fb || yt || tt)) heroSoc.style.display = 'flex';
+    // ── Icônes header (conservées) ──
+    const hFb = document.getElementById('hdr-fb');
+    const hYt = document.getElementById('hdr-yt');
+    const hTt = document.getElementById('hdr-tt');
+    if (fb && hFb) { hFb.href = fb; hFb.style.display = 'flex'; }
+    if (yt && hYt) { hYt.href = yt; hYt.style.display = 'flex'; }
+    if (tt && hTt) { hTt.href = tt; hTt.style.display = 'flex'; }
+    // ── Section sociale en bas ──
+    if (fb || yt || tt) {
+      const sec = document.getElementById('social-section');
+      if (sec) sec.style.display = 'block';
+      const sFb = document.getElementById('social-fb-link');
+      const sYt = document.getElementById('social-yt-link');
+      const sTt = document.getElementById('social-tt-link');
+      if (fb && sFb) sFb.href = fb; else if (sFb) sFb.style.display = 'none';
+      if (yt && sYt) sYt.href = yt; else if (sYt) sYt.style.display = 'none';
+      if (tt && sTt) sTt.href = tt; else if (sTt) sTt.style.display = 'none';
+    }
+  }
+
+  // Affichage immédiat depuis le cache (avant que l'API réponde)
+  (function() {
+    try {
+      const c = JSON.parse(localStorage.getItem('maranatha_social') || '{}');
+      if (c.fb || c.yt || c.tt) _appliquerIconesSociales(c.fb||'', c.yt||'', c.tt||'');
+    } catch(_) {}
+  })();
+
+  // ============ PROGRAMME — AFFICHES ============
+  async function chargerProgramme() {
+    try {
+      const res = await fetch(API + '/settings/programme');
+      if (!res.ok) return;
+      const data = await res.json();
+      programmeItems = Array.isArray(data.items) ? data.items : [];
+      afficherAccueil();
+    } catch(e) {}
+  }
+
+  function ouvrirDetailProgrammeItem(idx) {
+    const item = programmeItems[idx];
+    if (!item) return;
+    const imgHtml = item.imageUrl
+      ? `<img class="prog-detail-img" src="${escHtml(item.imageUrl)}" alt="${escHtml(item.titre)}" onerror="this.style.display='none'">`
+      : `<div class="prog-detail-no-img"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1.2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>`;
+    const meta = [item.dateStr, item.heureStr, item.lieu].filter(Boolean).join(' · ');
+    document.getElementById('prog-detail-inner').innerHTML = `
+      <div style="position:relative">
+        ${imgHtml}
+        <button class="prog-detail-close" onclick="fermerDetailProgramme()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div style="padding:20px">
+        <div style="display:inline-block;background:#C0001A;color:#fff;font-size:10px;font-weight:800;letter-spacing:1.5px;border-radius:6px;padding:3px 10px;margin-bottom:12px">${escHtml(item.badge||'PROGRAMME')}</div>
+        <div style="font-size:19px;font-weight:800;margin-bottom:8px;line-height:1.3">${escHtml(item.titre)}</div>
+        ${meta ? `<div style="font-size:13px;color:rgba(255,255,255,0.55);margin-bottom:12px">${escHtml(meta)}</div>` : ''}
+        ${item.description ? `<div style="font-size:14px;color:rgba(255,255,255,0.75);line-height:1.6">${escHtml(item.description)}</div>` : ''}
+      </div>`;
+    document.getElementById('overlay-prog-detail').classList.add('visible');
+    document.body.style.overflow = 'hidden';
   }
 
   // Carousel : change de lien YouTube toutes les 6 secondes si plusieurs
@@ -1679,23 +2577,51 @@
     }, 6000);
   }
 
-  // Met à jour seulement le bloc YouTube du hero (sans toucher au reste)
+  // Met à jour le bloc YouTube du hero avec transition SLIDE-PUSH
   function afficherAccueilYT() {
     const live = sermons.find(s => s.statut === 'en_cours');
-    if (live) return; // sermon prioritaire
+    if (live) return;
     const hero = document.getElementById('hero-card');
     if (!youtubeUrl) return;
-    hero.style.background = '#111827';
+
+    const img     = document.getElementById('hero-img');
+    const imgPrev = document.getElementById('hero-img-prev');
+    const content = hero.querySelector('.hero-content');
+
+    // ── Phase 1 : capturer l'image actuelle dans la couche "prev" ──
+    if (imgPrev && img.src && !img.src.endsWith('/')) {
+      imgPrev.src = img.src;
+      imgPrev.style.display = 'block';
+      imgPrev.classList.remove('hero-img-anim-out');
+      void imgPrev.offsetWidth; // force reflow
+      imgPrev.classList.add('hero-img-anim-out');
+      setTimeout(() => { imgPrev.style.display = 'none'; imgPrev.classList.remove('hero-img-anim-out'); }, 450);
+    }
+
+    // ── Phase 2 : nouvelle image entre depuis la droite ──
     const vid = ytVideoId(youtubeUrl);
-    const img = document.getElementById('hero-img');
+    img.classList.remove('hero-img-anim-in');
+    void img.offsetWidth;
     img.src = vid ? `https://img.youtube.com/vi/${vid}/hqdefault.jpg` : '';
+    img.classList.add('hero-img-anim-in');
+    setTimeout(() => img.classList.remove('hero-img-anim-in'), 480);
+
+    // ── Phase 3 : contenu glisse légèrement depuis la droite ──
+    hero.style.background = '#111827';
     document.getElementById('hero-title').textContent = ytLabel;
     const btn = document.getElementById('hero-btn');
     btn.style.background = 'rgba(255,255,255,0.92)';
     btn.style.color = '#111827';
     btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg> ${ytLabel}`;
     hero.onclick = () => window.open(youtubeUrl, '_blank');
-    // Dots de pagination si plusieurs liens
+
+    if (content) {
+      content.classList.remove('hero-content-anim');
+      void content.offsetWidth;
+      content.classList.add('hero-content-anim');
+      setTimeout(() => content.classList.remove('hero-content-anim'), 520);
+    }
+
     const dots = document.getElementById('yt-dots');
     if (dots && youtubeLinks.length > 1) {
       dots.innerHTML = youtubeLinks.map((_, i) =>
@@ -1938,47 +2864,106 @@
       mini.classList.remove('visible');
     }
 
-    // Prédications récentes (liste)
-    const termines = sermons.filter(s => s.statut === 'termine' || s.statut === 'en_cours').slice(0, 4);
+    // Programme de la semaine — affiches
+    // Priorité : affiches admin (programmeItems) sinon fallback sur sermons terminés/en cours
     const el = document.getElementById('home-sermons');
+
+    if (programmeItems && programmeItems.length) {
+      el.innerHTML = programmeItems.map((item, idx) => {
+        const imgContent = item.imageUrl
+          ? `<img class="prog-card-img" src="${escHtml(item.imageUrl)}" alt="${escHtml(item.titre)}" onerror="this.style.display='none'">`
+          : `<div class="prog-no-img"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>`;
+        const sousText = [item.heureStr, item.lieu].filter(Boolean).join(' · ');
+        return `
+          <div class="prog-card" onclick="ouvrirDetailProgrammeItem(${idx})">
+            ${imgContent}
+            <div class="prog-card-gradient"></div>
+            <div class="prog-card-info">
+              <div class="prog-card-badge">${escHtml(item.badge || 'PRÉDICATION')}</div>
+              <div class="prog-card-title">${escHtml(item.titre)}</div>
+              <div class="prog-card-date">${escHtml(item.dateStr || '')}${sousText ? ' · ' + escHtml(sousText) : ''}</div>
+            </div>
+          </div>`;
+      }).join('');
+      return;
+    }
+
+    // Fallback : sermons terminés/en cours
+    const termines = sermons.filter(s => s.statut === 'termine' || s.statut === 'en_cours').slice(0, 8);
     if (!termines.length) {
-      el.innerHTML = `<div class="empty-state"><p>Les prédications apparaîtront ici</p></div>`;
+      el.innerHTML = `<div style="padding:0 16px"><div class="empty-state"><p>Les programmes apparaîtront ici</p></div></div>`;
       return;
     }
     el.innerHTML = termines.map(s => {
       const d = new Date(s.dateDiffusion);
-      const dateStr = d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
-      const thumb = s.coverUrl
-        ? `<img src="${s.coverUrl}" alt="" />`
-        : `<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>`;
+      const dateStr = d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
       const auteur = s.auteur || s.pasteur || 'Église Maranatha';
-      const dureeMin = s.duree ? Math.round(s.duree / 60) + ' min' : '';
+      const imgContent = s.coverUrl
+        ? `<img class="prog-card-img" src="${s.coverUrl}" alt="${s.titre}">`
+        : `<div class="prog-no-img"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>`;
       return `
-        <div class="sl-card" onclick="jouerSermon('${s._id}')">
-          <div class="sl-thumb">
-            ${thumb}
-            <div class="sl-play-over">
-              <div class="sl-play-circle">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-              </div>
-            </div>
-          </div>
-          <div class="sl-info">
-            <div class="sl-top">
-              <div class="sl-title">${s.titre}</div>
-              <div class="sl-bookmark" onclick="event.stopPropagation();showToast('Sauvegardé')">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-              </div>
-            </div>
-            <div class="sl-author">${auteur}</div>
-            <div class="sl-meta">
-              <span style="display:inline-flex;align-items:center;gap:3px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> ${dateStr}</span>
-              ${dureeMin ? `<span style="display:inline-flex;align-items:center;gap:3px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> ${dureeMin}</span>` : ''}
-            </div>
-            <div class="sl-action">Lire la prédication <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+        <div class="prog-card" onclick="ouvrirDetailProgramme('${s._id}')">
+          ${imgContent}
+          <div class="prog-card-gradient"></div>
+          <div class="prog-card-info">
+            <div class="prog-card-badge">${s.statut === 'en_cours' ? '🔴 EN DIRECT' : 'PRÉDICATION'}</div>
+            <div class="prog-card-title">${escHtml(s.titre)}</div>
+            <div class="prog-card-date">${auteur} · ${dateStr}</div>
           </div>
         </div>`;
     }).join('');
+  }
+
+  // ── Détail programme ─────────────────────────────────────────
+  function ouvrirDetailProgramme(id) {
+    const s = sermons.find(x => String(x._id) === String(id));
+    if (!s) return;
+    const d = new Date(s.dateDiffusion);
+    const dateStr = d.toLocaleDateString('fr-FR', { weekday:'long', day:'2-digit', month:'long', year:'numeric' });
+    const heureStr = d.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
+    const auteur = s.auteur || s.pasteur || 'Église Maranatha';
+    const dureeMin = s.duree ? Math.round(s.duree / 60) + ' min' : null;
+
+    const imgHtml = s.coverUrl
+      ? `<img class="prog-detail-img" src="${s.coverUrl}" alt="${s.titre}">`
+      : `<div class="prog-detail-no-img"><svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1.2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>`;
+
+    const playBtn = s.audioUrl
+      ? `<button class="prog-detail-play" onclick="jouerSermon('${s._id}');fermerDetailProgramme()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Écouter la prédication
+         </button>`
+      : '';
+
+    document.getElementById('prog-detail-inner').innerHTML = `
+      <div style="position:relative">
+        ${imgHtml}
+        <button class="prog-detail-close" onclick="fermerDetailProgramme()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="prog-detail-body">
+        <div class="prog-detail-tag">${s.statut === 'en_cours' ? '🔴 EN DIRECT' : 'PRÉDICATION'}</div>
+        <div class="prog-detail-title">${escHtml(s.titre)}</div>
+        <div class="prog-detail-auteur">${escHtml(auteur)}</div>
+        <div class="prog-detail-meta">
+          <span class="prog-detail-meta-item">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#C0001A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            ${dateStr}
+          </span>
+          <span class="prog-detail-meta-item">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#C0001A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            ${heureStr}${dureeMin ? ' · ' + dureeMin : ''}
+          </span>
+        </div>
+        ${s.description ? `<div class="prog-detail-desc">${escHtml(s.description)}</div>` : ''}
+        ${playBtn}
+      </div>`;
+    document.getElementById('prog-detail-overlay').classList.add('open');
+  }
+
+  function fermerDetailProgramme() {
+    document.getElementById('prog-detail-overlay').classList.remove('open');
   }
 
   // ============ BIBLIOTHÈQUE ============
@@ -2071,9 +3056,11 @@
     { fr:'Apocalypse',api:'revelation',ch:22 },
   ];
   const BIBLE_AT_COUNT = 39;
-  let bibleBookIdx = 43; // Jean (index 43)
-  let bibleChap    = 3;
-  let bibleVerse   = null;
+  let bibleBookIdx    = 43; // Jean (index 43)
+  let bibleChap       = 3;
+  let bibleVerse      = null;
+  let bibleSearchTerm = '';
+  let bibleVerseCache = []; // versets du chapitre en cours
 
   function ouvrirBible() {
     document.getElementById('overlay-bible').classList.add('visible');
@@ -2143,20 +3130,107 @@
   }
 
   async function chargerChapBible() {
+    bibleSearchTerm = '';
+    const inp = document.getElementById('bible-search-input');
+    if (inp) inp.value = '';
+    bibleClearSearch();
     const el = document.getElementById('bible-verses');
     el.innerHTML = '<div class="bible-loading">Chargement du chapitre…</div>';
-    const l = BIBLE_LIVRES[bibleBookIdx];
+    const bookNum = bibleBookIdx + 1;
     try {
-      const r = await fetch(`https://bible-api.com/${l.api}+${bibleChap}?translation=lsg`);
+      const r = await fetch(`/api/bible/${bookNum}/${bibleChap}`);
       if (!r.ok) throw new Error('HTTP ' + r.status);
       const data = await r.json();
       if (!data.verses || !data.verses.length) throw new Error('Aucun verset');
-      el.innerHTML = data.verses.map(v =>
-        `<div class="bible-verse"><span class="bible-vnum">${v.verse}</span><span class="bible-vtext">${escHtml(v.text.trim())}</span></div>`
-      ).join('');
+      bibleVerseCache = data.verses;
+      bibleRenderVerses(bibleVerseCache, '');
     } catch(e) {
-      el.innerHTML = '<div class="bible-loading">Impossible de charger ce passage.<br><small>Vérifiez votre connexion internet.</small></div>';
+      bibleVerseCache = [];
+      el.innerHTML = '<div class="bible-loading" style="color:#C0001A">⚠️ Impossible de charger ce passage.<br><small style="color:#888">Vérifiez votre connexion internet.</small></div>';
     }
+  }
+
+  function bibleRenderVerses(verses, term) {
+    const el = document.getElementById('bible-verses');
+    const l  = BIBLE_LIVRES[bibleBookIdx];
+    const header = `<div class="bible-chap-header">
+      <div class="bible-chap-header-title">${l.fr} — Chapitre ${bibleChap}</div>
+      <div class="bible-chap-header-sub">${bibleBookIdx < BIBLE_AT_COUNT ? 'Ancien Testament' : 'Nouveau Testament'}</div>
+    </div>`;
+
+    const re = term ? new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), 'gi') : null;
+    const rows = verses.map(v => {
+      let txt = escHtml(v.text);
+      let match = false;
+      if (re) {
+        const newTxt = txt.replace(re, m => { match = true; return `<mark class="bible-hl">${m}</mark>`; });
+        txt = newTxt;
+      }
+      const cls = match ? ' highlighted' : '';
+      return `<div class="bible-verse${cls}" id="bv-${v.verse}"><span class="bible-vnum">${v.verse}</span><span class="bible-vtext">${txt}</span></div>`;
+    }).join('');
+    el.innerHTML = header + rows;
+  }
+
+  // ── Recherche Bible ──────────────────────────────────────────
+  function bibleSearch() {
+    const raw = (document.getElementById('bible-search-input').value || '').trim();
+    if (!raw) return;
+
+    // Détection référence type "Jean 3:16" ou "Jean 3 16"
+    const refRe = /^(.+?)\s+(\d+)[:\s](\d+)$/i;
+    const m = raw.match(refRe);
+    if (m) {
+      const bookQ = m[1].toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+      const chapN  = parseInt(m[2]);
+      const verseN = parseInt(m[3]);
+      const idx = BIBLE_LIVRES.findIndex(l => {
+        const n = l.fr.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+        return n === bookQ || n.endsWith(bookQ) || bookQ.endsWith(n.split(' ').pop());
+      });
+      if (idx >= 0 && chapN >= 1 && chapN <= BIBLE_LIVRES[idx].ch) {
+        bibleBookIdx = idx; bibleChap = chapN;
+        updateBibleSelectors();
+        document.getElementById('bible-scroll').scrollTop = 0;
+        chargerChapBible().then(() => {
+          // Après chargement, surligner le verset demandé
+          const target = document.getElementById('bv-' + verseN);
+          if (target) {
+            target.classList.add('highlighted');
+            target.scrollIntoView({ behavior:'smooth', block:'center' });
+          }
+          const info = document.getElementById('bible-search-info');
+          info.style.display = 'block';
+          info.textContent = `Référence : ${BIBLE_LIVRES[idx].fr} ${chapN}:${verseN}`;
+          document.getElementById('bible-search-clear').style.display = 'flex';
+        });
+        return;
+      }
+    }
+
+    // Recherche de mot dans le chapitre actuel
+    bibleSearchTerm = raw;
+    bibleRenderVerses(bibleVerseCache, raw);
+    const hits = document.querySelectorAll('#bible-verses .bible-verse.highlighted').length;
+    const info = document.getElementById('bible-search-info');
+    info.style.display = 'block';
+    if (hits === 0) {
+      info.textContent = `Aucun résultat pour « ${raw} » dans ce chapitre.`;
+    } else {
+      info.textContent = `${hits} verset${hits>1?'s':''} trouvé${hits>1?'s':''} pour « ${raw} »`;
+      const first = document.querySelector('#bible-verses .bible-verse.highlighted');
+      if (first) first.scrollIntoView({ behavior:'smooth', block:'center' });
+    }
+    document.getElementById('bible-search-clear').style.display = 'flex';
+  }
+
+  function bibleClearSearch() {
+    bibleSearchTerm = '';
+    const info = document.getElementById('bible-search-info');
+    const clear = document.getElementById('bible-search-clear');
+    if (info)  { info.style.display  = 'none'; info.textContent = ''; }
+    if (clear) { clear.style.display = 'none'; }
+    if (bibleVerseCache.length) bibleRenderVerses(bibleVerseCache, '');
   }
 
   function escHtml(s) {
@@ -2168,22 +3242,134 @@
   // ══════════════════════════════════════════════════════════
   async function ouvrirPrieres() {
     document.getElementById('overlay-priere').classList.add('visible');
-    document.getElementById('prieres-body').innerHTML = '<div class="empty-state"><p>Chargement…</p></div>';
+    const body = document.getElementById('prieres-body');
+    body.innerHTML = '<div class="empty-state"><p>Chargement…</p></div>';
     try {
-      const r = await fetch(`${API}/prieres`);
-      const list = await r.json();
-      if (!list.length) {
-        document.getElementById('prieres-body').innerHTML = '<div class="empty-state"><p>Aucune prière publiée pour l\'instant.</p></div>';
-        return;
+      const [rP, rC] = await Promise.all([
+        fetch(`${API}/prieres`),
+        fetch(`${API}/comments?section=parole`),
+      ]);
+      const paroles  = rP.ok ? await rP.json() : [];
+      const comments = rC.ok ? await rC.json() : [];
+
+      const commentaires = comments.filter(c => (c.type || 'commentaire') === 'commentaire');
+      const suggestions  = comments.filter(c => c.type === 'suggestion');
+
+      let html = '';
+      if (!paroles.length) {
+        html += '<div class="empty-state" style="padding:32px 16px">Aucune parole du jour publiée pour l\'instant.</div>';
+      } else {
+        html += paroles.map(p => `
+          <div class="pdj-card">
+            <div class="pdj-ref">${escHtml(p.titre)}</div>
+            <div class="pdj-texte">${escHtml(p.texte)}</div>
+          </div>`).join('');
       }
-      document.getElementById('prieres-body').innerHTML = list.map(p => `
-        <div class="priere-card">
-          <div class="priere-titre">${escHtml(p.titre)}</div>
-          <div class="priere-texte">${escHtml(p.texte)}</div>
-        </div>`).join('');
+
+      const replyHtml = c => c.adminReponse
+        ? `<div class="pdj-reply"><div class="pdj-reply-label">RÉPONSE DU PASTEUR</div><div class="pdj-reply-texte">${escHtml(c.adminReponse)}</div></div>`
+        : '';
+
+      const renderComment = c => {
+        const date = new Date(c.dateEnvoi).toLocaleDateString('fr-FR', { day:'2-digit', month:'long' });
+        const initiale = (c.auteur || 'F')[0].toUpperCase();
+        return `<div class="pdj-cmt-item">
+          <div class="pdj-cmt-header">
+            <div class="pdj-cmt-avatar">${initiale}</div>
+            <div class="pdj-cmt-auteur">${escHtml(c.auteur || 'Fidèle anonyme')}</div>
+            <div class="pdj-cmt-date">${date}</div>
+          </div>
+          <div class="pdj-cmt-texte">${escHtml(c.texte)}</div>
+          ${replyHtml(c)}
+        </div>`;
+      };
+
+      const renderSuggestion = c => {
+        const date = new Date(c.dateEnvoi).toLocaleDateString('fr-FR', { day:'2-digit', month:'long' });
+        return `<div class="pdj-sug-item">
+          <div class="pdj-sug-bulb">💡</div>
+          <div class="pdj-sug-body">
+            <span class="pdj-sug-label">Sujet proposé</span>
+            <div class="pdj-sug-auteur">${escHtml(c.auteur || 'Fidèle anonyme')}</div>
+            <div class="pdj-sug-texte">${escHtml(c.texte)}</div>
+            <div class="pdj-sug-date">${date}</div>
+            ${replyHtml(c)}
+          </div>
+        </div>`;
+      };
+
+      if (commentaires.length) {
+        html += `<div class="pdj-section-hdr pdj-sec-cmt">
+          <div class="pdj-sec-icon">💬</div>
+          <div class="pdj-sec-label">Commentaires</div>
+          <span class="pdj-sec-count">${commentaires.length}</span>
+        </div>`;
+        html += commentaires.map(renderComment).join('');
+      }
+      if (suggestions.length) {
+        html += `<div class="pdj-section-hdr pdj-sec-sug">
+          <div class="pdj-sec-icon">💡</div>
+          <div class="pdj-sec-label">Sujets suggérés</div>
+          <span class="pdj-sec-count">${suggestions.length}</span>
+        </div>`;
+        html += suggestions.map(renderSuggestion).join('');
+      }
+
+      html += `
+        <div class="pdj-actions">
+          <button class="pdj-action-btn" onclick="pdjToggle('comment')">💬 Commenter</button>
+          <button class="pdj-action-btn pdj-action-suggest" onclick="pdjToggle('suggest')">✏️ Suggérer un sujet</button>
+        </div>
+        <div id="pdj-form-comment" style="display:none">
+          <textarea id="pdj-txt-comment" class="pdj-textarea" rows="4" placeholder="Partagez votre réflexion sur cette parole…"></textarea>
+          <button class="pdj-submit-btn" onclick="pdjEnvoyer('commentaire')">Envoyer le commentaire</button>
+        </div>
+        <div id="pdj-form-suggest" style="display:none">
+          <textarea id="pdj-txt-suggest" class="pdj-textarea" rows="4" placeholder="Proposez un sujet pour la prochaine parole du jour…"></textarea>
+          <button class="pdj-submit-btn" onclick="pdjEnvoyer('suggestion')">Envoyer la suggestion</button>
+        </div>`;
+
+      body.innerHTML = html;
     } catch(e) {
-      document.getElementById('prieres-body').innerHTML = '<div class="empty-state"><p>Erreur de connexion</p></div>';
+      body.innerHTML = '<div class="empty-state"><p>Erreur de connexion</p></div>';
     }
+  }
+
+  function pdjToggle(type) {
+    const fc = document.getElementById('pdj-form-comment');
+    const fs = document.getElementById('pdj-form-suggest');
+    if (!fc || !fs) return;
+    if (type === 'comment') {
+      const open = fc.style.display === 'none';
+      fc.style.display = open ? 'block' : 'none';
+      fs.style.display = 'none';
+      if (open) setTimeout(() => document.getElementById('pdj-txt-comment')?.focus(), 80);
+    } else {
+      const open = fs.style.display === 'none';
+      fs.style.display = open ? 'block' : 'none';
+      fc.style.display = 'none';
+      if (open) setTimeout(() => document.getElementById('pdj-txt-suggest')?.focus(), 80);
+    }
+  }
+
+  async function pdjEnvoyer(type) {
+    const txtId = type === 'commentaire' ? 'pdj-txt-comment' : 'pdj-txt-suggest';
+    const texte = (document.getElementById(txtId)?.value || '').trim();
+    if (!texte) { showToast('Écrivez quelque chose avant d\'envoyer'); return; }
+    const auteur = localStorage.getItem('maranatha_prenom') || localStorage.getItem('maranatha_user') || '';
+    try {
+      const res = await fetch(`${API}/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ texte, type, auteur, section: 'parole' }),
+      });
+      if (res.ok) {
+        showToast(type === 'commentaire' ? '✅ Commentaire envoyé !' : '✅ Suggestion envoyée !');
+        ouvrirPrieres();
+      } else {
+        showToast('Erreur lors de l\'envoi');
+      }
+    } catch(e) { showToast('Erreur réseau'); }
   }
 
   // ══════════════════════════════════════════════════════════
@@ -2570,18 +3756,21 @@
       if (!res.ok) return;
       donData = await res.json();
       const d = donData;
-      // Mensuel — téléphones
-      if (d.telephone1) { document.getElementById('don-tel1-m').textContent = d.telephone1; }
-      if (d.telephone2) {
-        document.getElementById('don-tel2-m').textContent = d.telephone2;
-        document.getElementById('don-tel2-m-row').style.display = 'flex';
-      }
-      if (d.instructions) {
-        const html = `<div class="don-instructions">ℹ️ ${d.instructions}</div>`;
-        document.getElementById('don-mensuel-instructions').innerHTML = html;
-        document.getElementById('don-unique-instructions').innerHTML = html;
-      }
-      // Unique — coordonnées bancaires
+      const instrHtml = d.instructions ? `<div class="don-instructions">ℹ️ ${d.instructions}</div>` : '';
+
+      // AIRTEL
+      document.getElementById('don-num-airtel').textContent = d.airtel || '—';
+      document.getElementById('don-airtel-instructions').innerHTML = instrHtml;
+
+      // ORANGE
+      document.getElementById('don-num-orange').textContent = d.orange || '—';
+      document.getElementById('don-orange-instructions').innerHTML = instrHtml;
+
+      // VODACOM
+      document.getElementById('don-num-vodacom').textContent = d.vodacom || '—';
+      document.getElementById('don-vodacom-instructions').innerHTML = instrHtml;
+
+      // BANQUE
       if (d.nomTitulaire) document.getElementById('don-titulaire').textContent = d.nomTitulaire;
       if (d.nomBanque)    document.getElementById('don-banque').textContent    = d.nomBanque;
       if (d.numeroCompte) {
@@ -2596,6 +3785,7 @@
         document.getElementById('don-bic').textContent = d.bic;
         document.getElementById('don-bic-row').style.display = 'flex';
       }
+      document.getElementById('don-banque-instructions').innerHTML = instrHtml;
     } catch(e) {}
   }
   chargerDon();
@@ -2603,44 +3793,141 @@
   function ouvrirModalDon() { ouvrirModal('don'); }
 
   function switchDon(type) {
-    const isM = (type === 'mensuel');
-    document.getElementById('don-mensuel-panel').classList.toggle('active', isM);
-    document.getElementById('don-unique-panel').classList.toggle('active', !isM);
-    document.getElementById('tab-mensuel-btn').classList.toggle('active', isM);
-    document.getElementById('tab-unique-btn').classList.toggle('active', !isM);
+    ['airtel','orange','vodacom','banque'].forEach(t => {
+      document.getElementById('don-' + t + '-panel').classList.toggle('active', t === type);
+      document.getElementById('tab-' + t + '-btn').classList.toggle('active', t === type);
+    });
   }
 
-  function copier(elId, label) {
+  function copier(elId, label, btn) {
     const v = document.getElementById(elId).textContent.trim();
     if (!v || v === '—') return;
-    navigator.clipboard.writeText(v).then(() => showToast('✅ ' + label)).catch(() => {
+    const ok = () => {
+      showToast('✅ ' + label);
+      if (btn) {
+        const orig = btn.textContent;
+        btn.textContent = '✓ Copié !';
+        btn.classList.add('copied');
+        setTimeout(() => { btn.textContent = orig; btn.classList.remove('copied'); }, 2000);
+      }
+    };
+    navigator.clipboard.writeText(v).then(ok).catch(() => {
       const ta = document.createElement('textarea');
       ta.value = v; document.body.appendChild(ta); ta.select();
       document.execCommand('copy'); document.body.removeChild(ta);
-      showToast('✅ ' + label);
+      ok();
     });
   }
 
   // ============ DEVENIR MEMBRE ============
+  // ══════════════════════════════════════════════════════════
+  //  PAYS — données + recherche + code tel
+  // ══════════════════════════════════════════════════════════
+  const PAYS_DATA = [
+    {f:'🇦🇫',n:'Afghanistan',t:'+93'},{f:'🇿🇦',n:'Afrique du Sud',t:'+27'},{f:'🇦🇱',n:'Albanie',t:'+355'},
+    {f:'🇩🇿',n:'Algérie',t:'+213'},{f:'🇩🇪',n:'Allemagne',t:'+49'},{f:'🇦🇴',n:'Angola',t:'+244'},
+    {f:'🇸🇦',n:'Arabie Saoudite',t:'+966'},{f:'🇦🇷',n:'Argentine',t:'+54'},{f:'🇦🇺',n:'Australie',t:'+61'},
+    {f:'🇦🇹',n:'Autriche',t:'+43'},{f:'🇧🇪',n:'Belgique',t:'+32'},{f:'🇧🇯',n:'Bénin',t:'+229'},
+    {f:'🇧🇷',n:'Brésil',t:'+55'},{f:'🇧🇫',n:'Burkina Faso',t:'+226'},{f:'🇧🇮',n:'Burundi',t:'+257'},
+    {f:'🇨🇲',n:'Cameroun',t:'+237'},{f:'🇨🇦',n:'Canada',t:'+1'},{f:'🇨🇫',n:'Centrafrique',t:'+236'},
+    {f:'🇰🇲',n:'Comores',t:'+269'},{f:'🇨🇬',n:'Congo (Brazzaville)',t:'+242'},{f:'🇨🇩',n:'Congo (RDC)',t:'+243'},
+    {f:'🇨🇮',n:'Côte d\'Ivoire',t:'+225'},{f:'🇩🇰',n:'Danemark',t:'+45'},{f:'🇩🇯',n:'Djibouti',t:'+253'},
+    {f:'🇪🇬',n:'Égypte',t:'+20'},{f:'🇦🇪',n:'Émirats Arabes Unis',t:'+971'},{f:'🇪🇸',n:'Espagne',t:'+34'},
+    {f:'🇪🇹',n:'Éthiopie',t:'+251'},{f:'🇺🇸',n:'États-Unis',t:'+1'},{f:'🇫🇮',n:'Finlande',t:'+358'},
+    {f:'🇫🇷',n:'France',t:'+33'},{f:'🇬🇦',n:'Gabon',t:'+241'},{f:'🇬🇭',n:'Ghana',t:'+233'},
+    {f:'🇬🇷',n:'Grèce',t:'+30'},{f:'🇬🇳',n:'Guinée',t:'+224'},{f:'🇬🇼',n:'Guinée-Bissau',t:'+245'},
+    {f:'🇬🇶',n:'Guinée équatoriale',t:'+240'},{f:'🇭🇹',n:'Haïti',t:'+509'},{f:'🇮🇳',n:'Inde',t:'+91'},
+    {f:'🇮🇪',n:'Irlande',t:'+353'},{f:'🇮🇹',n:'Italie',t:'+39'},{f:'🇰🇪',n:'Kenya',t:'+254'},
+    {f:'🇱🇧',n:'Liban',t:'+961'},{f:'🇱🇷',n:'Liberia',t:'+231'},{f:'🇱🇺',n:'Luxembourg',t:'+352'},
+    {f:'🇲🇬',n:'Madagascar',t:'+261'},{f:'🇲🇼',n:'Malawi',t:'+265'},{f:'🇲🇱',n:'Mali',t:'+223'},
+    {f:'🇲🇦',n:'Maroc',t:'+212'},{f:'🇲🇺',n:'Maurice',t:'+230'},{f:'🇲🇷',n:'Mauritanie',t:'+222'},
+    {f:'🇲🇽',n:'Mexique',t:'+52'},{f:'🇲🇿',n:'Mozambique',t:'+258'},{f:'🇳🇦',n:'Namibie',t:'+264'},
+    {f:'🇳🇪',n:'Niger',t:'+227'},{f:'🇳🇬',n:'Nigeria',t:'+234'},{f:'🇳🇴',n:'Norvège',t:'+47'},
+    {f:'🇺🇬',n:'Ouganda',t:'+256'},{f:'🇳🇱',n:'Pays-Bas',t:'+31'},{f:'🇵🇹',n:'Portugal',t:'+351'},
+    {f:'🇨🇫',n:'République Centrafricaine',t:'+236'},{f:'🇬🇧',n:'Royaume-Uni',t:'+44'},
+    {f:'🇷🇼',n:'Rwanda',t:'+250'},{f:'🇸🇳',n:'Sénégal',t:'+221'},{f:'🇸🇱',n:'Sierra Leone',t:'+232'},
+    {f:'🇸🇴',n:'Somalie',t:'+252'},{f:'🇸🇩',n:'Soudan',t:'+249'},{f:'🇸🇪',n:'Suède',t:'+46'},
+    {f:'🇨🇭',n:'Suisse',t:'+41'},{f:'🇹🇿',n:'Tanzanie',t:'+255'},{f:'🇹🇩',n:'Tchad',t:'+235'},
+    {f:'🇹🇬',n:'Togo',t:'+228'},{f:'🇹🇳',n:'Tunisie',t:'+216'},{f:'🇹🇷',n:'Turquie',t:'+90'},
+    {f:'🇿🇲',n:'Zambie',t:'+260'},{f:'🇿🇼',n:'Zimbabwe',t:'+263'},
+  ];
+
+  function ouvrirDropdownPays() {
+    filtrerPays();
+    document.getElementById('mf-pays-dropdown').style.display = 'block';
+  }
+
+  function filtrerPays() {
+    const q = document.getElementById('mf-pays-search').value.toLowerCase();
+    const dd = document.getElementById('mf-pays-dropdown');
+    const filtered = q
+      ? PAYS_DATA.filter(p => p.n.toLowerCase().includes(q))
+      : PAYS_DATA;
+    if (!filtered.length) { dd.innerHTML = '<div class="mf-pays-option" style="color:#999">Aucun résultat</div>'; dd.style.display='block'; return; }
+    dd.innerHTML = filtered.map(p =>
+      `<div class="mf-pays-option" onmousedown="selectionnerPays('${p.n.replace(/'/g,"\\'")}','${p.t}','${p.f||''}')">
+        <span style="display:flex;align-items:center;gap:8px"><span style="font-size:18px;line-height:1">${p.f||''}</span><span>${p.n}</span></span>
+        <span class="mf-pays-code">${p.t}</span>
+      </div>`
+    ).join('');
+    dd.style.display = 'block';
+  }
+
+  function selectionnerPays(nom, tel, flag) {
+    document.getElementById('mf-pays-search').value = (flag ? flag + ' ' : '') + nom;
+    document.getElementById('mf-pays').value = nom;
+    document.getElementById('mf-indicatif').value = tel;
+    document.getElementById('mf-tel-code').textContent = tel;
+    document.getElementById('mf-pays-dropdown').style.display = 'none';
+  }
+
+  function choisirSexe(val) {
+    document.getElementById('mf-sexe').value = val;
+    document.getElementById('mf-sexe-h').classList.toggle('active', val === 'Homme');
+    document.getElementById('mf-sexe-f').classList.toggle('active', val === 'Femme');
+  }
+
   function ouvrirModalMembre() {
-    document.getElementById('mf-nom').value = '';
-    document.getElementById('mf-tel').value = '';
-    document.getElementById('mf-adresse').value = '';
+    ['mf-nom','mf-postnom','mf-prenom','mf-age','mf-tel','mf-pays-search'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.value = '';
+    });
+    document.getElementById('mf-sexe').value = '';
+    document.getElementById('mf-pays').value = '';
+    document.getElementById('mf-indicatif').value = '';
+    document.getElementById('mf-tel-code').textContent = '+--';
+    document.getElementById('mf-pays-dropdown').style.display = 'none';
+    document.getElementById('mf-sexe-h').classList.remove('active');
+    document.getElementById('mf-sexe-f').classList.remove('active');
     ouvrirModal('membre');
   }
 
+  document.addEventListener('click', e => {
+    if (!document.getElementById('mf-pays-wrap')?.contains(e.target))
+      document.getElementById('mf-pays-dropdown') && (document.getElementById('mf-pays-dropdown').style.display = 'none');
+  });
+
   async function soumettreMembre() {
-    const nom     = document.getElementById('mf-nom').value.trim();
-    const tel     = document.getElementById('mf-tel').value.trim();
-    const adresse = document.getElementById('mf-adresse').value.trim();
-    if (!nom || !tel || !adresse) { showToast('Veuillez remplir tous les champs'); return; }
+    const nom      = document.getElementById('mf-nom').value.trim();
+    const postNom  = document.getElementById('mf-postnom').value.trim();
+    const prenom   = document.getElementById('mf-prenom').value.trim();
+    const age      = document.getElementById('mf-age').value.trim();
+    const sexe     = document.getElementById('mf-sexe').value;
+    const pays     = document.getElementById('mf-pays').value.trim();
+    const indicatif= document.getElementById('mf-indicatif').value.trim();
+    const tel      = document.getElementById('mf-tel').value.trim();
+    if (!nom)    { showToast('Veuillez entrer votre nom'); return; }
+    if (!prenom) { showToast('Veuillez entrer votre prénom'); return; }
+    if (!age)    { showToast('Veuillez entrer votre âge'); return; }
+    if (!sexe)   { showToast('Veuillez choisir votre sexe'); return; }
+    if (!pays)   { showToast('Veuillez choisir un pays'); return; }
+    if (!tel)    { showToast('Veuillez entrer votre téléphone'); return; }
     const btn = document.getElementById('mf-submit');
     btn.disabled = true; btn.textContent = 'Envoi…';
     try {
       const res = await fetch(API + '/membres', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nom, telephone: tel, adresse }),
+        body: JSON.stringify({ nom, postNom, prenom, age: Number(age), sexe, telephone: indicatif + tel, indicatif, pays }),
       });
       if (res.ok) {
         showToast('✅ Demande envoyée ! Le pasteur vous contactera.');
@@ -2654,12 +3941,15 @@
   }
 
   // ============ COMMENTAIRES ============
+  let commentairesCharges = false;
   async function chargerCommentaires() {
     try {
-      const res = await fetch(API + '/comments');
+      const res = await fetch(API + '/comments?section=communaute');
       if (!res.ok) return;
       const list = await res.json();
       const el = document.getElementById('comment-list');
+      const badge = document.getElementById('comment-count-badge');
+      if (badge && list.length) badge.textContent = list.length + ' message' + (list.length > 1 ? 's' : '');
       if (!list.length) {
         el.innerHTML = '<div class="empty-state"><p>Aucun message pour l\'instant</p></div>';
         return;
@@ -2676,7 +3966,28 @@
         </div>`).join('');
     } catch(e) {}
   }
-  chargerCommentaires();
+
+  function toggleCommentaires() {
+    const inner = document.getElementById('comment-section-inner');
+    const isOpen = inner.classList.toggle('open');
+    if (isOpen && !commentairesCharges) {
+      commentairesCharges = true;
+      document.getElementById('comment-list').innerHTML = '<div class="empty-state"><p>Chargement…</p></div>';
+      chargerCommentaires();
+    }
+    inner.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  // Charger le compteur au démarrage (sans afficher la liste)
+  (async () => {
+    try {
+      const res = await fetch(API + '/comments?section=communaute');
+      if (!res.ok) return;
+      const list = await res.json();
+      const badge = document.getElementById('comment-count-badge');
+      if (badge && list.length) badge.textContent = list.length + ' message' + (list.length > 1 ? 's' : '');
+    } catch(e) {}
+  })();
 
   async function envoyerCommentaire() {
     const input = document.getElementById('comment-input');
@@ -2686,7 +3997,7 @@
       const res = await fetch(API + '/comments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ texte }),
+        body: JSON.stringify({ texte, section: 'communaute' }),
       });
       if (res.ok) {
         input.value = '';
@@ -2705,6 +4016,237 @@
     return dt.toLocaleDateString('fr-FR', { day:'numeric', month:'long', year:'numeric' })
       + ' · ' + dt.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
   }
+
+  // ═══════════════════════════════════════════════════════
+  //  MEDIA SESSION API — contrôles écran de verrouillage
+  // ═══════════════════════════════════════════════════════
+  function updateMediaSession(title, playing) {
+    if (!('mediaSession' in navigator)) return;
+    try {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title:  title || 'Maranatha',
+        artist: 'Communauté des Églises Missionnaires Maranatha',
+        album:  'Direct & Sermons',
+        artwork: [
+          { src: '/logo.png', sizes: '192x192', type: 'image/png' },
+          { src: '/logo.png', sizes: '512x512', type: 'image/png' }
+        ]
+      });
+      navigator.mediaSession.playbackState = playing ? 'playing' : 'paused';
+      navigator.mediaSession.setActionHandler('play',         () => { const a = document.getElementById('main-audio'); if (a) { a.play().then(() => setPlayIcon(true)).catch(()=>{}); } });
+      navigator.mediaSession.setActionHandler('pause',        () => { const a = document.getElementById('main-audio'); if (a) { a.pause(); setPlayIcon(false); } });
+      navigator.mediaSession.setActionHandler('stop',         () => { const a = document.getElementById('main-audio'); if (a) { a.pause(); a.currentTime = 0; setPlayIcon(false); } });
+      navigator.mediaSession.setActionHandler('seekbackward', () => skipBack());
+      navigator.mediaSession.setActionHandler('seekforward',  () => skipForward());
+      navigator.mediaSession.setActionHandler('previoustrack', null);
+      navigator.mediaSession.setActionHandler('nexttrack',     null);
+    } catch(_) {}
+  }
+
+  // Patch setPlayIcon — Media Session + notification Flutter foreground service
+  const _origSetPlayIcon = setPlayIcon;
+  function setPlayIcon(playing) {
+    _origSetPlayIcon(playing);
+    const title = document.getElementById('mp-title')?.textContent || 'Maranatha';
+    updateMediaSession(title, playing);
+    // Notifier l'app Android (si WebView Flutter) → démarre/arrête le foreground service
+    try {
+      if (typeof window.FlutterAudio !== 'undefined') {
+        window.FlutterAudio.postMessage(JSON.stringify({ action: playing ? 'play' : 'pause', titre: title }));
+      }
+    } catch(_) {}
+  }
+
+  // Arrêt naturel de l'audio → stopper le foreground service
+  (function() {
+    const audio = document.getElementById('main-audio');
+    if (audio) {
+      audio.addEventListener('ended', function() {
+        try {
+          if (typeof window.FlutterAudio !== 'undefined') {
+            window.FlutterAudio.postMessage(JSON.stringify({ action: 'stop' }));
+          }
+        } catch(_) {}
+      });
+    }
+  })();
+
+  // ═══════════════════════════════════════════════════════
+  //  SERVICE WORKER — PWA + audio arrière-plan
+  // ═══════════════════════════════════════════════════════
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  }
+
+  // ═══════════════════════════════════════════════════════
+  //  À PROPOS / AIDE / RÈGLES — overlays
+  // ═══════════════════════════════════════════════════════
+  function ouvrirInfo(page) {
+    const id = { apropos: 'overlay-apropos', aide: 'overlay-aide', regles: 'overlay-regles' }[page];
+    if (!id) return;
+    const el = document.getElementById(id);
+    if (el) { el.classList.add('open'); el.scrollTop = 0; }
+  }
+  function fermerInfo(page) {
+    const id = { apropos: 'overlay-apropos', aide: 'overlay-aide', regles: 'overlay-regles' }[page];
+    if (!id) return;
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('open');
+  }
 </script>
+
+<!-- ============ OVERLAY DÉTAIL PROGRAMME ============ -->
+<div class="prog-detail-overlay" id="prog-detail-overlay" onclick="fermerDetailProgramme()">
+  <div class="prog-detail-sheet" onclick="event.stopPropagation()" id="prog-detail-inner"></div>
+</div>
+
+<!-- ============ OVERLAY À PROPOS ============ -->
+<div class="info-overlay" id="overlay-apropos">
+  <div class="info-hdr">
+    <button class="info-hdr-back" onclick="fermerInfo('apropos')">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="info-hdr-title">À propos de nous</div>
+  </div>
+  <div class="info-body">
+    <div style="text-align:center;padding:24px 0 28px">
+      <img src="/logo.png" alt="Maranatha" style="width:80px;height:80px;object-fit:contain;border-radius:20px;box-shadow:0 4px 16px rgba(192,0,26,.2)"/>
+      <div style="font-size:18px;font-weight:900;color:var(--text);margin-top:14px">Communauté des Églises<br>Missionnaires Maranatha</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:6px">Application v1.0</div>
+    </div>
+    <div class="info-section">
+      <div class="info-section-title">Notre mission</div>
+      <p>Maranatha est une communauté chrétienne fondée sur la Parole de Dieu, dédiée à l'évangélisation, la formation spirituelle et la croissance des croyants en Christ Jésus.</p>
+      <p>Notre vision est de voir des vies transformées par l'Évangile et de bâtir une Église vivante, ancrée dans la prière et le service.</p>
+    </div>
+    <div class="info-section">
+      <div class="info-section-title">Ce que nous offrons</div>
+      <div class="info-card">
+        <div class="info-card-title">📖 Bible intégrée</div>
+        <p>Accès complet aux Écritures Saintes directement depuis l'application.</p>
+      </div>
+      <div class="info-card">
+        <div class="info-card-title">🎙️ Directs & cultes</div>
+        <p>Suivez les cultes en direct et écoutez les sermons archivés à tout moment.</p>
+      </div>
+      <div class="info-card">
+        <div class="info-card-title">✨ Parole du jour</div>
+        <p>Une méditation quotidienne pour nourrir votre vie spirituelle chaque jour.</p>
+      </div>
+      <div class="info-card">
+        <div class="info-card-title">🤝 Communauté</div>
+        <p>Partagez des prières, des témoignages et restez connecté avec vos frères et sœurs.</p>
+      </div>
+    </div>
+    <div class="info-section">
+      <div class="info-section-title">Contact</div>
+      <p>Pour toute question ou information, contactez-nous via nos réseaux sociaux ou lors de nos cultes.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ============ OVERLAY AIDE ============ -->
+<div class="info-overlay" id="overlay-aide">
+  <div class="info-hdr">
+    <button class="info-hdr-back" onclick="fermerInfo('aide')">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="info-hdr-title">Aide</div>
+  </div>
+  <div class="info-body">
+    <div class="info-section">
+      <div class="info-section-title">Écouter un direct</div>
+      <div class="info-card">
+        <div class="info-card-title">Comment écouter le culte en direct ?</div>
+        <p>Quand un culte est en cours, la bannière rouge "EN DIRECT" apparaît en haut de l'accueil. Appuyez sur ▶ dans le lecteur pour lancer l'audio. Le son continue même si vous verrouillez votre écran.</p>
+      </div>
+      <div class="info-card">
+        <div class="info-card-title">Le son s'arrête en arrière-plan ?</div>
+        <p>Pour que l'audio continue : ajoutez l'application à votre écran d'accueil (option "Ajouter à l'écran d'accueil" dans votre navigateur). Sur Android, autorisez les médias en arrière-plan dans les paramètres du navigateur.</p>
+      </div>
+    </div>
+    <div class="info-section">
+      <div class="info-section-title">Parole du jour</div>
+      <div class="info-card">
+        <div class="info-card-title">Comment commenter ou suggérer un sujet ?</div>
+        <p>Ouvrez "Parole du jour" depuis l'accueil, faites défiler jusqu'en bas et appuyez sur 💬 Commenter ou ✏️ Suggérer un sujet. Votre nom enregistré sera automatiquement utilisé.</p>
+      </div>
+    </div>
+    <div class="info-section">
+      <div class="info-section-title">Faire un don</div>
+      <div class="info-card">
+        <div class="info-card-title">Comment donner en ligne ?</div>
+        <p>Appuyez sur l'icône ❤️ Don depuis les actions rapides. Choisissez votre mode de paiement (MobileMoney, virement ou autre) configuré par votre pasteur.</p>
+      </div>
+    </div>
+    <div class="info-section">
+      <div class="info-section-title">Devenir membre</div>
+      <div class="info-card">
+        <div class="info-card-title">Comment m'inscrire comme membre ?</div>
+        <p>Depuis l'accueil, appuyez sur "Devenir membre". Remplissez le formulaire avec votre prénom, nom et numéro de téléphone. Votre profil sera visible du pasteur.</p>
+      </div>
+    </div>
+    <div class="info-section">
+      <div class="info-section-title">Bible</div>
+      <div class="info-card">
+        <div class="info-card-title">Comment naviguer dans la Bible ?</div>
+        <p>Depuis "Bible" dans les actions rapides ou l'onglet Bibliothèque, sélectionnez un livre et un chapitre. Vous pouvez prendre des notes sur chaque passage via l'onglet "Notes".</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ OVERLAY RÈGLES & CONFIDENTIALITÉ ============ -->
+<div class="info-overlay" id="overlay-regles">
+  <div class="info-hdr">
+    <button class="info-hdr-back" onclick="fermerInfo('regles')">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="info-hdr-title">Règles &amp; Confidentialité</div>
+  </div>
+  <div class="info-body">
+    <div class="info-section">
+      <div class="info-section-title">Règles d'utilisation</div>
+      <p>En utilisant cette application, vous acceptez de :</p>
+      <ul>
+        <li>Respecter les autres membres de la communauté dans vos commentaires</li>
+        <li>Ne pas publier de contenu offensant, diffamatoire ou contraire aux valeurs chrétiennes</li>
+        <li>Utiliser l'application à des fins spirituelles et communautaires</li>
+        <li>Ne pas partager vos identifiants de connexion avec d'autres personnes</li>
+        <li>Signaler tout comportement inapproprié à l'administration</li>
+      </ul>
+    </div>
+    <div class="info-section">
+      <div class="info-section-title">Données personnelles</div>
+      <div class="info-card">
+        <div class="info-card-title">Quelles données collectons-nous ?</div>
+        <p>Prénom, nom et numéro de téléphone lors de l'inscription comme membre. Ces données sont utilisées uniquement pour la gestion de la communauté.</p>
+      </div>
+      <div class="info-card">
+        <div class="info-card-title">Comment sont utilisées vos données ?</div>
+        <p>Vos informations ne sont jamais vendues ni partagées avec des tiers. Elles sont accessibles uniquement par le pasteur et l'administration de l'église.</p>
+      </div>
+      <div class="info-card">
+        <div class="info-card-title">Stockage local</div>
+        <p>L'application utilise le stockage local de votre téléphone (localStorage) pour sauvegarder vos préférences et vos notes personnelles. Ces données restent sur votre appareil.</p>
+      </div>
+    </div>
+    <div class="info-section">
+      <div class="info-section-title">Audio &amp; Médias</div>
+      <div class="info-card">
+        <div class="info-card-title">Lectures audio</div>
+        <p>Les sermons et directs sont diffusés via des liens externes. L'application ne stocke pas les fichiers audio sur votre appareil.</p>
+      </div>
+    </div>
+    <div class="info-section">
+      <div class="info-section-title">Suppression de compte</div>
+      <p>Pour supprimer vos données de membre, contactez l'administration de l'église. Vos commentaires et suggestions resteront anonymisés.</p>
+    </div>
+    <div style="text-align:center;padding:16px 0 8px;font-size:12px;color:var(--text-muted)">
+      Dernière mise à jour : juin 2026
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
