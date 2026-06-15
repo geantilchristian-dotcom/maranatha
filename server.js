@@ -4,9 +4,11 @@ const cors = require('cors');
 const path = require('path');
 require('dotenv').config();
 
-const userRoutes = require('./routes/userRoutes');
-const sermonRoutes = require('./routes/sermonRoutes');
-const settingsRoutes = require('./routes/settingsRoutes');
+const userRoutes    = require('./routes/userRoutes');
+const sermonRoutes  = require('./routes/sermonRoutes');
+const settingsRoutes= require('./routes/settingsRoutes');
+const commentRoutes = require('./routes/commentRoutes');
+const membreRoutes  = require('./routes/membreRoutes');
 
 const app = express();
 
@@ -33,9 +35,11 @@ app.get('/api/admin/verify', adminAuth, (req, res) => {
 });
 
 // Routes de l'API
-app.use('/api/users', userRoutes);
-app.use('/api/sermons', sermonRoutes);
+app.use('/api/users',    userRoutes);
+app.use('/api/sermons',  sermonRoutes);
 app.use('/api/settings', settingsRoutes);
+app.use('/api/comments', commentRoutes);
+app.use('/api/membres',  membreRoutes);
 
 // Initialisation du planificateur automatique (L'Horloge)
 require('./utils/scheduler');
