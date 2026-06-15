@@ -1,0 +1,2599 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Maranatha</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    :root {
+      --primary:    #5C5CFF;
+      --primary-lt: #EEEEFF;
+      --green:      #22A87A;
+      --green-lt:   #E5F6EF;
+      --red:        #E84040;
+      --red-lt:     #FDEAEA;
+      --orange:     #F5A623;
+      --orange-lt:  #FEF5E6;
+      --bg:         #F4F4FB;
+      --card:       #FFFFFF;
+      --text:       #1A1A2E;
+      --text-sub:   #6B6B8A;
+      --text-muted: #AEAEC2;
+      --border:     #EBEBF5;
+      --nav-h:      76px;
+      --radius:     16px;
+      --safe-top:   env(safe-area-inset-top, 0px);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      max-width: 430px;
+      margin: 0 auto;
+    }
+
+
+    /* ============================
+       SPLASH
+    ============================ */
+    #splash-screen {
+      position: fixed; inset: 0; z-index: 9999;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      background: #fff; transition: opacity .5s;
+    }
+    #splash-screen.fade-out { opacity: 0; pointer-events: none; }
+    .splash-logo { width: 140px; height: 140px; object-fit: contain; margin-bottom: 16px; }
+    .splash-church-name {
+      font-size: 11px; font-weight: 400; color: #AAA;
+      text-transform: uppercase; letter-spacing: 1px;
+      text-align: center; line-height: 1.7; max-width: 210px; margin-bottom: 48px;
+    }
+    .splash-spinner {
+      width: 26px; height: 26px;
+      border: 3px solid rgba(0,0,0,0.08);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ============================
+       APP
+    ============================ */
+    #app { display: block; padding-bottom: var(--nav-h); min-height: 100vh; }
+    audio { display: none; }
+
+    /* ======= HEADER — ligne unique ======= */
+    .app-header {
+      background: #fff;
+      padding: calc(var(--safe-top) + 10px) 14px 12px;
+      display: flex; flex-direction: row; align-items: center;
+      gap: 10px; border-bottom: 1px solid #F0F0F5;
+    }
+    .hdr-logo {
+      width: 46px; height: 46px; flex-shrink: 0; overflow: hidden;
+    }
+    .hdr-logo img { width: 100%; height: 100%; object-fit: contain; }
+    .hdr-church-name {
+      flex: 1; font-size: 10.5px; font-weight: 900;
+      color: #1A1A2E; text-align: left;
+      letter-spacing: 0.6px; line-height: 1.35;
+      text-transform: uppercase;
+    }
+    .hdr-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .icon-btn {
+      width: 40px; height: 40px; border-radius: 50%;
+      background: var(--bg); border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      position: relative;
+    }
+    .icon-btn:active { opacity: 0.7; }
+    .notif-dot {
+      position: absolute; top: 8px; right: 8px;
+      width: 8px; height: 8px;
+      background: var(--primary); border-radius: 50%;
+      border: 2px solid #fff;
+    }
+
+    /* ======= SCROLLABLE CONTENT ======= */
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* ======= HERO CARD ======= */
+    .hero-card {
+      margin: 0 16px 16px;
+      border-radius: 22px; overflow: hidden;
+      position: relative; cursor: pointer;
+      background: #1a1040;
+      display: none; min-height: 210px;
+    }
+    .hero-card.visible { display: block; }
+    .hero-img {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      object-fit: cover; opacity: 0.5;
+    }
+    .hero-content {
+      position: relative; z-index: 1;
+      padding: 22px 20px 24px;
+      display: flex; flex-direction: column; align-items: flex-start;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(255,255,255,0.2); backdrop-filter: blur(4px); color: #fff;
+      font-size: 10px; font-weight: 800; letter-spacing: 1px;
+      padding: 5px 12px; border-radius: 20px; margin-bottom: 14px;
+      border: 1px solid rgba(255,255,255,0.3);
+    }
+    .hero-badge-dot { width: 6px; height: 6px; background: #FF4444; border-radius: 50%; animation: blink 1s infinite; box-shadow: 0 0 6px #FF4444; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    .hero-title { font-size: 26px; font-weight: 900; color: #fff; letter-spacing: -0.5px; margin-bottom: 6px; line-height: 1.1; }
+    .hero-sub { font-size: 13px; color: rgba(255,255,255,0.7); margin-bottom: 22px; line-height: 1.4; }
+    .hero-btn-wrap { width: 100%; display: flex; justify-content: center; }
+    .hero-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(255,255,255,0.95); color: #1a1040;
+      border: none; border-radius: 30px;
+      padding: 8px 20px; font-size: 12px; font-weight: 800;
+      cursor: pointer; transition: opacity .2s;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.2);
+    }
+    .hero-btn:active { opacity: 0.85; }
+
+    /* ═══════════════════════════════════════
+       LECTEUR AUDIO — COMPACT
+    ═══════════════════════════════════════ */
+    .mini-player {
+      margin: 0 14px 16px;
+      background: linear-gradient(135deg, #7A0015 0%, #3D0009 100%);
+      border-radius: 16px; padding: 11px 14px 12px; display: none;
+      box-shadow: 0 4px 18px rgba(120,0,20,0.35);
+    }
+    .mini-player.visible { display: block; }
+
+    /* ── Ligne 1 : icône + titre/badge + bouton play ── */
+    .mp-top { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; }
+    .mp-album {
+      width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
+      background: rgba(255,255,255,0.13); border: 1px solid rgba(255,255,255,0.18);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .mp-meta { flex: 1; min-width: 0; }
+    .mp-title {
+      font-size: 13px; font-weight: 800; color: #fff;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      letter-spacing: -0.2px; line-height: 1.2;
+    }
+    .mp-live-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: rgba(255,80,80,0.22); border: 1px solid rgba(255,100,100,0.35);
+      border-radius: 20px; padding: 2px 7px; margin-top: 3px;
+      font-size: 9px; font-weight: 700; color: #FFB3B3; letter-spacing: 0.5px;
+    }
+    .mp-live-dot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: #FF6B6B; animation: blink 1s infinite;
+    }
+    .mp-status { font-size: 10px; color: rgba(255,190,190,0.7); margin-top: 2px; }
+    .mp-play-btn {
+      width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0;
+      background: #fff; border: none;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.3);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: transform .12s;
+    }
+    .mp-play-btn:active { transform: scale(0.9); }
+    .mp-play-btn.need-tap { animation: pulse-tap 1.4s infinite; }
+
+    /* ── Ligne 2 : barre de progression + temps ── */
+    .mp-progress {
+      width: 100%; height: 4px;
+      background: rgba(255,255,255,0.15); border-radius: 2px;
+      cursor: pointer; overflow: hidden; margin-bottom: 4px;
+    }
+    .mp-fill {
+      height: 100%; background: rgba(255,255,255,0.75);
+      border-radius: 2px; transition: width .3s linear; min-width: 4px;
+    }
+    .mp-times {
+      display: flex; justify-content: space-between;
+      color: rgba(255,190,190,0.5); font-size: 9.5px; font-weight: 600;
+      letter-spacing: 0.2px; margin-bottom: 8px;
+    }
+
+    /* ── Ligne 3 : skip + volume ── */
+    .mp-controls {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 8px;
+    }
+    .mp-skip {
+      background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 50px; color: #fff; cursor: pointer;
+      display: flex; align-items: center; gap: 3px;
+      font-size: 10px; font-weight: 700; padding: 6px 11px;
+      transition: background .15s;
+    }
+    .mp-skip:active { background: rgba(255,255,255,0.22); }
+    .mp-vol-row {
+      display: flex; align-items: center; gap: 6px; flex: 1; justify-content: flex-end;
+    }
+    .mp-vol-slider {
+      width: 60px; -webkit-appearance: none; height: 3px;
+      background: rgba(255,255,255,0.2); border-radius: 2px;
+      outline: none; cursor: pointer;
+    }
+    .mp-vol-slider::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 13px; height: 13px;
+      border-radius: 50%; background: #fff;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.4); cursor: pointer;
+    }
+
+
+    /* ======= OVERLAY LIVE (plein écran, 1 seul tap suffit) ======= */
+    #live-overlay {
+      display: none; position: fixed; inset: 0; z-index: 9999;
+      background: rgba(160,0,26,0.96); backdrop-filter: blur(6px);
+      flex-direction: column; align-items: center; justify-content: center;
+      padding: 32px; animation: fadeIn .4s ease;
+    }
+    #live-overlay.visible { display: flex; }
+    .lov-badge {
+      display: flex; align-items: center; gap: 8px;
+      background: rgba(255,255,255,0.15); border-radius: 20px;
+      padding: 6px 16px; font-size: 13px; font-weight: 700; color: #fff;
+      letter-spacing: 1px; margin-bottom: 28px;
+    }
+    .lov-dot {
+      width: 10px; height: 10px; border-radius: 50%; background: #fff;
+      animation: blink 1s infinite;
+    }
+    .lov-title {
+      font-size: 28px; font-weight: 900; color: #fff;
+      text-align: center; line-height: 1.25; margin-bottom: 12px;
+    }
+    .lov-sub {
+      font-size: 15px; color: rgba(255,255,255,0.75);
+      text-align: center; line-height: 1.5; margin-bottom: 48px;
+    }
+    .lov-btn {
+      width: 100%; max-width: 340px;
+      background: #fff; color: #A0001A;
+      border: none; border-radius: 18px;
+      padding: 20px; font-size: 20px; font-weight: 900;
+      cursor: pointer; letter-spacing: 0.5px;
+      animation: pulse-tap 1.2s infinite;
+    }
+    .lov-skip {
+      margin-top: 20px; background: none; border: none;
+      color: rgba(255,255,255,0.5); font-size: 14px; cursor: pointer;
+    }
+
+    @keyframes pulse-tap { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.82;transform:scale(.93)} }
+
+    /* ======= SECTION HEADER ======= */
+    .sec-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 18px; margin-bottom: 14px;
+    }
+    .sec-title { font-size: 18px; font-weight: 800; color: var(--text); letter-spacing: -0.3px; }
+    .sec-voir {
+      display: flex; align-items: center; gap: 3px;
+      font-size: 13px; color: var(--primary); font-weight: 600; cursor: pointer;
+    }
+
+    /* ======= QUICK ACTIONS ======= */
+    .quick-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 10px; padding: 0 16px; margin-bottom: 24px;
+    }
+    .quick-card {
+      background: var(--card); border-radius: 18px;
+      padding: 16px 6px 14px;
+      display: flex; flex-direction: column; align-items: center; gap: 9px;
+      cursor: pointer; box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+      transition: transform .12s, box-shadow .12s;
+    }
+    .quick-card:active { transform: scale(0.93); box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+    .quick-icon {
+      width: 50px; height: 50px; border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .quick-label { font-size: 11.5px; font-weight: 800; color: var(--text); text-align: center; }
+    .quick-sub { font-size: 9.5px; color: var(--text-muted); text-align: center; margin-top: -5px; }
+
+    /* ======= SERMON LIST ======= */
+    .sermon-list { padding: 0 16px; display: flex; flex-direction: column; gap: 12px; }
+    .sl-card {
+      background: var(--card); border-radius: 16px;
+      display: flex; gap: 12px; padding: 12px;
+      cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      transition: transform .1s; position: relative;
+    }
+    .sl-card:active { transform: scale(0.99); }
+    .sl-thumb {
+      width: 100px; height: 90px; border-radius: 12px;
+      background: var(--primary-lt, #EEEEFF); flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden; position: relative;
+    }
+    .sl-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .sl-play-over {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(0,0,0,0.18);
+    }
+    .sl-play-circle {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--primary);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .sl-info { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: space-between; }
+    .sl-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 6px; }
+    .sl-title { font-size: 14px; font-weight: 800; color: var(--text); line-height: 1.3; flex: 1; }
+    .sl-bookmark { color: var(--text-muted); cursor: pointer; flex-shrink: 0; margin-top: 1px; }
+    .sl-author { font-size: 12px; color: var(--text-sub); margin-top: 3px; }
+    .sl-meta { font-size: 11px; color: var(--text-muted); margin-top: 4px; display: flex; gap: 8px; align-items: center; }
+    .sl-action {
+      font-size: 12px; color: var(--primary); font-weight: 600;
+      margin-top: 6px; display: flex; align-items: center; gap: 2px;
+    }
+
+    /* ======= EVENTS ======= */
+    .event-list { padding: 0 16px; display: flex; flex-direction: column; gap: 12px; margin-bottom: 8px; }
+
+    .ev-card {
+      background: var(--card);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 4px 18px rgba(92,92,255,0.10);
+      position: relative;
+    }
+
+    /* Bandeau couleur en haut */
+    .ev-band {
+      height: 5px;
+      background: linear-gradient(90deg, #C0001A 0%, #ff4d6d 100%);
+    }
+
+    .ev-body {
+      display: flex; gap: 14px; padding: 14px 14px 16px;
+      align-items: flex-start;
+    }
+
+    /* Bloc date calendrier */
+    .ev-date-box {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      width: 52px; min-width: 52px; height: 56px;
+      background: linear-gradient(160deg, #C0001A 0%, #8B0000 100%);
+      border-radius: 14px;
+      color: #fff;
+      flex-shrink: 0;
+      box-shadow: 0 4px 12px rgba(192,0,26,0.35);
+    }
+    .ev-date-day   { font-size: 22px; font-weight: 900; line-height: 1; }
+    .ev-date-month { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; opacity: .85; }
+
+    .ev-info { flex: 1; min-width: 0; }
+
+    .ev-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 6px; }
+
+    .ev-title { font-size: 14px; font-weight: 800; color: var(--text); line-height: 1.3; }
+
+    /* Badge compte à rebours */
+    .ev-countdown {
+      flex-shrink: 0;
+      background: #FEF3F5; color: #C0001A;
+      border-radius: 20px; padding: 3px 9px;
+      font-size: 10px; font-weight: 800;
+      white-space: nowrap; letter-spacing: .3px;
+      border: 1px solid rgba(192,0,26,.18);
+    }
+    .ev-countdown.today { background: #C0001A; color: #fff; border-color: transparent; }
+
+    .ev-meta-row {
+      display: flex; flex-direction: column; gap: 3px; margin-top: 7px;
+    }
+    .ev-meta-line {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 11.5px; color: var(--text-sub); line-height: 1.4;
+    }
+    .ev-meta-line svg { flex-shrink: 0; opacity: .6; }
+
+    /* Bouton Participer */
+    .ev-footer {
+      padding: 0 14px 14px;
+    }
+    .ev-btn {
+      width: 100%;
+      background: linear-gradient(90deg, #C0001A 0%, #e8003a 100%);
+      color: #fff;
+      border: none; border-radius: 14px;
+      padding: 13px 16px;
+      font-size: 13px; font-weight: 800;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 7px;
+      letter-spacing: .3px;
+      box-shadow: 0 4px 14px rgba(192,0,26,.30);
+      transition: transform .12s, box-shadow .12s;
+    }
+    .ev-btn:active { transform: scale(0.98); box-shadow: 0 2px 8px rgba(192,0,26,.25); }
+
+    /* ======= BIBLIOTHÈQUE ======= */
+    .lib-list { padding: 0 16px; display: flex; flex-direction: column; gap: 10px; }
+    .lib-item {
+      background: var(--card); border-radius: 14px;
+      padding: 13px 14px; display: flex; align-items: center; gap: 12px;
+      cursor: pointer; box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+      transition: transform .1s;
+    }
+    .lib-item:active { transform: scale(0.99); }
+    .lib-icon {
+      width: 48px; height: 48px; border-radius: 12px;
+      background: var(--primary-lt,#EEEEFF);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      overflow: hidden;
+    }
+    .lib-icon img { width: 100%; height: 100%; object-fit: cover; }
+    .lib-info { flex: 1; min-width: 0; }
+    .lib-title { font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .lib-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .lib-play {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--primary); border: none;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; flex-shrink: 0;
+    }
+
+    /* ======= DIRECT TAB ======= */
+    .direct-wrap { padding: 24px 16px; }
+    .direct-empty { text-align: center; padding: 60px 20px; }
+    .direct-empty-icon {
+      width: 80px; height: 80px; border-radius: 50%;
+      background: var(--primary-lt,#EEEEFF);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 16px;
+    }
+    .direct-empty-title { font-size: 18px; font-weight: 800; color: var(--text); margin-bottom: 6px; }
+    .direct-empty-sub { font-size: 14px; color: var(--text-sub); line-height: 1.5; }
+
+    /* ======= PARAMÈTRES ======= */
+    .settings-wrap { padding: 24px 16px; }
+    .settings-avatar {
+      width: 72px; height: 72px; border-radius: 50%;
+      background: var(--primary-lt,#EEEEFF);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 10px;
+    }
+    .settings-name { font-size: 20px; font-weight: 800; text-align: center; margin-bottom: 4px; }
+    .settings-sub { font-size: 13px; color: var(--text-sub); text-align: center; margin-bottom: 28px; }
+    .settings-row {
+      display: flex; align-items: center; gap: 14px;
+      background: var(--card); border-radius: 14px;
+      padding: 15px 16px; margin-bottom: 10px;
+      cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    }
+    .settings-row-icon {
+      width: 38px; height: 38px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .settings-row-label { flex: 1; font-size: 15px; font-weight: 600; color: var(--text); }
+    .settings-row-arrow { color: var(--text-muted); font-size: 18px; }
+
+    /* ======= BOTTOM NAV — rouge Maranatha ======= */
+    .bottom-nav {
+      position: fixed; bottom: 0;
+      left: 50%; transform: translateX(-50%);
+      width: 100%; max-width: 430px;
+      height: var(--nav-h);
+      background: #C0001A;
+      border-top: none;
+      display: flex; align-items: center; justify-content: space-around;
+      padding: 0 0 8px; z-index: 100;
+      box-shadow: 0 -4px 20px rgba(192,0,26,0.35);
+    }
+    .nav-item {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 3px; cursor: pointer; flex: 1;
+      padding: 8px 4px; position: relative;
+    }
+    .nav-item.active::before {
+      content: ''; position: absolute; top: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 32px; height: 3px;
+      background: #fff; border-radius: 0 0 4px 4px;
+    }
+    .nav-icon-wrap {
+      width: 36px; height: 36px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .15s;
+    }
+    .nav-item.active .nav-icon-wrap {
+      background: rgba(255,255,255,0.18);
+    }
+    .nav-label { font-size: 9.5px; font-weight: 700; color: rgba(255,255,255,0.6); letter-spacing: 0.2px; }
+    .nav-item.active .nav-label { color: #fff; }
+    .nav-item svg { stroke: rgba(255,255,255,0.55); fill: none; transition: stroke .15s; }
+    .nav-item.active svg { stroke: #fff; }
+
+    /* ======= EMPTY STATE ======= */
+    .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
+    .empty-state p { font-size: 14px; margin-top: 12px; }
+
+    /* ======= TOAST ======= */
+    .toast {
+      position: fixed;
+      bottom: calc(var(--nav-h) + 14px); left: 50%;
+      transform: translateX(-50%) translateY(8px);
+      background: var(--text); color: #fff;
+      padding: 10px 20px; border-radius: 12px;
+      font-size: 13px; font-weight: 500; z-index: 300;
+      opacity: 0; white-space: nowrap; transition: all .3s;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* spacers */
+    .ph { height: 24px; }
+
+    /* ======= MODAL OVERLAY ======= */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 500;
+      background: rgba(0,0,0,0.55); backdrop-filter: blur(3px);
+      display: flex; align-items: flex-end; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity .25s;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal-sheet {
+      width: 100%; max-width: 430px;
+      background: #fff; border-radius: 24px 24px 0 0;
+      padding: 20px 20px 36px;
+      transform: translateY(40px); transition: transform .3s;
+      max-height: 85vh; overflow-y: auto;
+    }
+    .modal-overlay.open .modal-sheet { transform: translateY(0); }
+    .modal-handle { width: 40px; height: 4px; background: #e0e0e8; border-radius: 2px; margin: 0 auto 20px; }
+    .modal-title { font-size: 20px; font-weight: 800; color: var(--text); margin-bottom: 6px; }
+    .modal-sub   { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
+
+    /* Don tabs */
+    .don-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+    .don-tab {
+      flex: 1; padding: 10px; border-radius: 12px; font-size: 13px; font-weight: 700;
+      border: 2px solid var(--border); background: #fff; color: var(--text-muted); cursor: pointer;
+      transition: all .15s;
+    }
+    .don-tab.active { border-color: #C0001A; color: #C0001A; background: #FFF0F2; }
+    .don-panel { display: none; }
+    .don-panel.active { display: block; }
+    .don-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px; background: var(--bg); border-radius: 14px; margin-bottom: 10px;
+    }
+    .don-row-icon {
+      width: 42px; height: 42px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .don-row-label { font-size: 12px; color: var(--text-muted); margin-bottom: 2px; }
+    .don-row-value { font-size: 15px; font-weight: 700; color: var(--text); word-break: break-all; }
+    .don-copy-btn {
+      margin-left: auto; padding: 6px 12px; border-radius: 8px;
+      background: var(--primary); color: #fff; border: none; font-size: 12px;
+      font-weight: 700; cursor: pointer; flex-shrink: 0;
+    }
+    .don-copy-btn:active { opacity: 0.8; }
+    .don-instructions {
+      padding: 14px; background: #FFF8E1; border-radius: 14px; margin-top: 12px;
+      font-size: 13px; color: #7A6200; line-height: 1.6;
+    }
+
+    /* Membre card */
+    .membre-card {
+      margin: 0 16px 20px;
+      background: linear-gradient(135deg, #C0001A, #8B0010);
+      border-radius: 20px; padding: 20px;
+      display: flex; align-items: center; gap: 16px; cursor: pointer;
+      box-shadow: 0 6px 20px rgba(192,0,26,0.3);
+      transition: transform .12s;
+    }
+    .membre-card:active { transform: scale(0.97); }
+    .membre-card-icon {
+      width: 52px; height: 52px; border-radius: 16px;
+      background: rgba(255,255,255,0.2); flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .membre-card-text { flex: 1; }
+    .membre-card-title { font-size: 17px; font-weight: 800; color: #fff; }
+    .membre-card-sub   { font-size: 12px; color: rgba(255,255,255,0.75); margin-top: 3px; }
+
+    /* Commentaires */
+    .comment-form-area {
+      margin: 0 16px 8px;
+      background: var(--card); border-radius: 16px; padding: 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .comment-textarea {
+      width: 100%; min-height: 80px; resize: none;
+      background: var(--bg); border: 1.5px solid var(--border);
+      border-radius: 10px; padding: 10px 12px;
+      font-size: 14px; color: var(--text); font-family: inherit;
+      outline: none; transition: border-color .2s;
+    }
+    .comment-textarea:focus { border-color: var(--primary); }
+    .comment-send-btn {
+      width: 100%; margin-top: 8px; padding: 12px;
+      background: var(--primary); color: #fff; border: none;
+      border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer;
+    }
+    .comment-send-btn:active { opacity: 0.85; }
+    .comment-list { padding: 0 16px; display: flex; flex-direction: column; gap: 10px; margin-bottom: 8px; }
+    .comment-item {
+      background: var(--card); border-radius: 14px; padding: 14px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+    }
+    .comment-text { font-size: 14px; color: var(--text); line-height: 1.5; }
+    .comment-date { font-size: 11px; color: var(--text-muted); margin-top: 6px; }
+    .comment-reply {
+      margin-top: 10px; padding: 10px 12px;
+      background: #F0F4FF; border-radius: 10px; border-left: 3px solid var(--primary);
+    }
+    .comment-reply-label { font-size: 10px; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+    .comment-reply-text  { font-size: 13px; color: var(--text); line-height: 1.5; }
+
+    /* ═══════════════════════════════════════
+       OVERLAYS PLEIN ÉCRAN
+    ═══════════════════════════════════════ */
+    .overlay-full {
+      position: fixed; inset: 0; z-index: 900;
+      background: var(--bg); display: none;
+      flex-direction: column; overflow: hidden;
+    }
+    .overlay-full.visible { display: flex; }
+    .ov-header {
+      background: #fff; border-bottom: 1px solid var(--border);
+      padding: calc(var(--safe-top) + 12px) 16px 12px;
+      display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+    }
+    .ov-back {
+      width: 36px; height: 36px; border-radius: 12px;
+      background: var(--bg); border: none;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; flex-shrink: 0;
+    }
+    .ov-title { font-size: 17px; font-weight: 800; color: var(--text); flex: 1; }
+    .ov-body { flex: 1; overflow-y: auto; padding: 16px; }
+
+    /* ── Bible ── */
+    .bible-toolbar { display: flex; gap: 8px; margin-bottom: 12px; }
+    .bible-sel-btn {
+      flex: 1; background: #fff; border: 1.5px solid var(--border);
+      border-radius: 12px; padding: 9px 12px; font-size: 13px; font-weight: 700;
+      color: var(--text); text-align: left; cursor: pointer;
+    }
+    .bible-sel-btn.chap { flex: 0 0 auto; min-width: 80px; text-align: center; }
+    .bible-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .bible-nav-btn {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: #fff; border: 1.5px solid var(--border);
+      display: flex; align-items: center; justify-content: center; cursor: pointer;
+    }
+    .bible-nav-btn:disabled { opacity: 0.3; pointer-events: none; }
+    .bible-chap-label { font-size: 13px; font-weight: 700; color: var(--text-sub); }
+    .bible-verse { display: flex; gap: 8px; margin-bottom: 12px; line-height: 1.75; }
+    .bible-vnum { font-size: 9.5px; font-weight: 800; color: #C0001A; min-width: 18px; text-align: right; padding-top: 4px; flex-shrink: 0; }
+    .bible-vtext { font-size: 15px; color: var(--text); }
+    .bible-loading { text-align: center; padding: 40px 20px; color: var(--text-sub); font-size: 14px; }
+
+    /* Book/chapitre picker */
+    .picker-overlay {
+      position: fixed; inset: 0; z-index: 1000;
+      background: rgba(0,0,0,0.45); display: none; align-items: flex-end;
+    }
+    .picker-overlay.visible { display: flex; }
+    .picker-sheet {
+      background: #fff; border-radius: 20px 20px 0 0;
+      width: 100%; max-height: 72vh; overflow-y: auto; padding: 16px 16px 32px;
+    }
+    .picker-title { font-size: 16px; font-weight: 800; margin-bottom: 4px; color: var(--text); }
+    .picker-section { font-size: 10px; font-weight: 800; color: #C0001A; letter-spacing: 1.2px; margin: 14px 0 6px; }
+    .picker-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+    .picker-grid-6 { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; }
+    .pick-item {
+      background: var(--bg); border: none; border-radius: 9px;
+      padding: 8px 4px; font-size: 11.5px; font-weight: 600; color: var(--text);
+      cursor: pointer; text-align: center; line-height: 1.3;
+    }
+    .pick-item.active { background: #C0001A; color: #fff; }
+
+    /* ── Prières ── */
+    .priere-card {
+      background: #fff; border-radius: 14px; padding: 16px; margin-bottom: 10px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+    }
+    .priere-titre { font-size: 15px; font-weight: 800; color: var(--text); margin-bottom: 8px; }
+    .priere-texte { font-size: 14px; color: var(--text-sub); line-height: 1.75; white-space: pre-wrap; }
+
+    /* ── Notes ── */
+    .note-item {
+      background: #fff; border-radius: 14px; padding: 13px 14px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.05); cursor: pointer;
+      display: flex; align-items: flex-start; gap: 11px; margin-bottom: 8px;
+    }
+    .note-icon {
+      width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
+      background: linear-gradient(135deg, #D97706, #F59E0B);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .note-meta { flex: 1; min-width: 0; }
+    .note-titre { font-size: 14px; font-weight: 700; color: var(--text); }
+    .note-preview { font-size: 12px; color: var(--text-sub); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .note-date { font-size: 10px; color: var(--text-muted); margin-top: 3px; }
+    .note-fab {
+      position: absolute; bottom: 16px; right: 16px;
+      width: 50px; height: 50px; border-radius: 50%;
+      background: linear-gradient(135deg, #D97706, #F59E0B);
+      border: none; box-shadow: 0 4px 16px rgba(217,119,6,0.4);
+      display: flex; align-items: center; justify-content: center; cursor: pointer;
+    }
+    .note-editor-title {
+      font-size: 20px; font-weight: 800; border: none; outline: none;
+      background: transparent; width: 100%; color: var(--text); padding: 16px 16px 8px;
+      font-family: inherit;
+    }
+    .note-editor-body {
+      font-size: 15px; border: none; outline: none;
+      background: transparent; width: 100%; min-height: 300px;
+      resize: none; color: var(--text); line-height: 1.75; padding: 0 16px;
+      font-family: inherit; flex: 1;
+    }
+
+    /* ── Étude du jour ── */
+    .etude-home-card {
+      margin: 0 16px 16px;
+      background: linear-gradient(135deg, #1e3a5f 0%, #0f1f35 100%);
+      border-radius: 16px; padding: 16px; cursor: pointer;
+      box-shadow: 0 4px 16px rgba(15,31,53,0.25);
+    }
+    .etude-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: rgba(255,255,255,0.15); border-radius: 20px;
+      padding: 3px 10px; font-size: 9px; font-weight: 800;
+      color: rgba(255,255,255,0.9); letter-spacing: 1px; margin-bottom: 10px;
+    }
+    .etude-titre { font-size: 16px; font-weight: 800; color: #fff; margin-bottom: 5px; line-height: 1.3; }
+    .etude-preview { font-size: 12px; color: rgba(255,255,255,0.6); line-height: 1.5; }
+    .etude-read-btn {
+      background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);
+      color: #fff; border-radius: 20px; padding: 6px 14px;
+      font-size: 11px; font-weight: 700; cursor: pointer; margin-top: 12px; display: inline-block;
+    }
+    .etude-detail { font-size: 15px; color: var(--text); line-height: 1.85; white-space: pre-wrap; }
+    .etude-pdf-btn {
+      display: flex; align-items: center; gap: 8px; justify-content: center;
+      background: #C0001A; color: #fff; border: none; border-radius: 14px;
+      padding: 14px 20px; font-size: 14px; font-weight: 800; cursor: pointer;
+      width: 100%; margin-top: 20px;
+    }
+
+    /* ── Bibliothèque — sous-onglets ── */
+    .lib-tabs {
+      display: flex; gap: 6px; padding: 14px 16px 0; overflow-x: auto;
+    }
+    .lib-tab-btn {
+      flex-shrink: 0; background: #fff; border: 1.5px solid var(--border);
+      border-radius: 20px; padding: 6px 14px; font-size: 12px; font-weight: 700;
+      color: var(--text-sub); cursor: pointer; white-space: nowrap;
+    }
+    .lib-tab-btn.active { background: #C0001A; border-color: #C0001A; color: #fff; }
+    .lib-section { display: none; padding: 14px 16px 0; }
+    .lib-section.active { display: block; }
+
+    /* ── Livre card ── */
+    .livre-card {
+      background: #fff; border-radius: 14px; padding: 12px;
+      display: flex; gap: 12px; cursor: pointer; margin-bottom: 10px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.05); transition: transform .1s;
+    }
+    .livre-card:active { transform: scale(0.98); }
+    .livre-cover {
+      width: 54px; height: 74px; border-radius: 8px; flex-shrink: 0;
+      background: linear-gradient(135deg, #4F46E5, #7C3AED);
+      display: flex; align-items: center; justify-content: center; overflow: hidden;
+    }
+    .livre-cover img { width: 100%; height: 100%; object-fit: cover; }
+    .livre-info { flex: 1; min-width: 0; }
+    .livre-cat { font-size: 9.5px; font-weight: 700; color: #C0001A; letter-spacing: .7px; margin-bottom: 3px; text-transform: uppercase; }
+    .livre-titre { font-size: 14px; font-weight: 800; color: var(--text); line-height: 1.3; margin-bottom: 2px; }
+    .livre-auteur { font-size: 12px; color: var(--text-sub); }
+    .cat-header { font-size: 11px; font-weight: 700; color: var(--text-muted); letter-spacing: .8px; text-transform: uppercase; padding: 10px 0 6px; }
+
+    /* ── Vidéo card ── */
+    .video-card {
+      background: #fff; border-radius: 14px; overflow: hidden;
+      margin-bottom: 10px; box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+      cursor: pointer; transition: transform .1s;
+    }
+    .video-card:active { transform: scale(0.98); }
+    .video-thumb-wrap { position: relative; height: 130px; background: #111827; display: flex; align-items: center; justify-content: center; }
+    .video-thumb-wrap img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .video-play-ovl {
+      position: relative; z-index: 1; width: 44px; height: 44px; border-radius: 50%;
+      background: rgba(255,255,255,0.9); display: flex; align-items: center; justify-content: center;
+    }
+    .video-info { padding: 10px 13px 12px; }
+    .video-cat { font-size: 9.5px; font-weight: 700; color: #C0001A; letter-spacing: .7px; text-transform: uppercase; margin-bottom: 2px; }
+    .video-titre { font-size: 14px; font-weight: 700; color: var(--text); }
+
+    /* Modal membre form */
+    .mf-input {
+      width: 100%; padding: 13px 14px; background: var(--bg);
+      border: 1.5px solid var(--border); border-radius: 12px;
+      font-size: 15px; color: var(--text); font-family: inherit;
+      outline: none; margin-bottom: 12px; transition: border-color .2s;
+    }
+    .mf-input:focus { border-color: #C0001A; }
+    .mf-label { font-size: 11px; font-weight: 700; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; display: block; }
+    .mf-btn {
+      width: 100%; padding: 15px; background: #C0001A; color: #fff;
+      border: none; border-radius: 14px; font-size: 16px; font-weight: 800; cursor: pointer;
+      margin-top: 4px;
+    }
+    .mf-btn:active { opacity: 0.85; }
+  </style>
+</head>
+<body>
+
+<!-- ============ SPLASH ============ -->
+<div id="splash-screen">
+  <img id="splash-logo" class="splash-logo" src="/logo.jpg" alt="Maranatha" />
+  <div class="splash-church-name">Communauté des Églises<br>Missionnaire Maranatha</div>
+  <div class="splash-spinner"></div>
+</div>
+
+
+<!-- ============ OVERLAY LIVE (plein écran) ============ -->
+<div id="live-overlay">
+  <div class="lov-badge"><div class="lov-dot"></div> EN DIRECT</div>
+  <div class="lov-title" id="lov-titre">Culte en direct</div>
+  <div class="lov-sub">La prédication vient de commencer.<br>Appuyez pour écouter.</div>
+  <button class="lov-btn" onclick="ecouterLive()">▶ ÉCOUTER MAINTENANT</button>
+  <button class="lov-skip" onclick="fermerOverlay()">Pas maintenant</button>
+</div>
+
+<!-- ============ APP ============ -->
+<div id="app">
+
+  <!-- Header : logo gauche + nom + icônes droite -->
+  <header class="app-header">
+    <div class="hdr-logo"><img src="/logo.jpg" alt="Maranatha" /></div>
+    <div class="hdr-church-name">Communauté des Églises<br>Missionnaires Maranatha</div>
+    <div class="hdr-actions">
+      <button class="icon-btn" onclick="showToast('Aucune nouvelle notification')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B6B8A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+        </svg>
+        <div class="notif-dot" id="notif-dot" style="display:none"></div>
+      </button>
+      <button class="icon-btn" onclick="switchTab('settings')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B6B8A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ==== TAB : ACCUEIL ==== -->
+  <div id="tab-home" class="tab-content active">
+
+    <!-- Hero live card -->
+    <div class="hero-card" id="hero-card" onclick="scrollToPlayer()">
+      <img class="hero-img" id="hero-img" src="" alt="" />
+      <div class="hero-content">
+        <div class="hero-badge" id="hero-badge">
+          <div class="hero-badge-dot"></div>
+          EN DIRECT
+        </div>
+        <div class="hero-title" id="hero-title">Culte en direct</div>
+        <div class="hero-sub" id="hero-sub">Rejoignez-nous maintenant<br>et adorons ensemble !</div>
+        <div class="hero-btn-wrap">
+          <button class="hero-btn" id="hero-btn">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="#1a1040"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Écouter maintenant
+          </button>
+        </div>
+        <!-- Dots carousel YouTube (cachés par défaut) -->
+        <div id="yt-dots" style="display:none;justify-content:center;gap:5px;margin-top:12px"></div>
+      </div>
+    </div>
+
+    <!-- ═══ LECTEUR AUDIO COMPACT ═══ -->
+    <div class="mini-player" id="mini-player">
+      <audio id="main-audio" preload="none"></audio>
+
+      <!-- Ligne 1 : icône + titre/badge + bouton ▶ -->
+      <div class="mp-top">
+        <div class="mp-album">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+          </svg>
+        </div>
+        <div class="mp-meta">
+          <div class="mp-title" id="mp-title">—</div>
+          <div class="mp-live-badge" id="mp-live-badge">
+            <div class="mp-live-dot"></div>EN DIRECT
+          </div>
+          <div class="mp-status" id="mp-status" style="display:none">En lecture</div>
+        </div>
+        <button class="mp-play-btn" id="mp-play-btn" onclick="demarrerOuToggle()">
+          <svg id="play-icon" width="20" height="20" viewBox="0 0 24 24" fill="#7A0015"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        </button>
+      </div>
+
+      <!-- Ligne 2 : barre de progression + temps -->
+      <div class="mp-progress" id="mp-progress" onclick="seekAudio(event)">
+        <div class="mp-fill" id="mp-fill" style="width:0%"></div>
+      </div>
+      <div class="mp-times">
+        <span id="time-current">0:00</span>
+        <span id="time-total">0:00</span>
+      </div>
+
+      <!-- Ligne 3 : skip −10 | volume | skip +10 -->
+      <div class="mp-controls">
+        <button class="mp-skip" onclick="skipBack()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>−10s
+        </button>
+        <div class="mp-vol-row">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="2" stroke-linecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/></svg>
+          <input class="mp-vol-slider" type="range" min="0" max="1" step="0.05" value="1" oninput="setVolume(this.value)" />
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="2" stroke-linecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+        </div>
+        <button class="mp-skip" onclick="skipForward()">
+          +10s<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.49-3.5"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Actions rapides -->
+    <div class="sec-row" style="margin-top:4px">
+      <div class="sec-title">Actions rapides</div>
+    </div>
+    <div class="quick-grid">
+
+      <!-- Bible -->
+      <div class="quick-card" onclick="ouvrirBible()">
+        <div class="quick-icon" style="background:linear-gradient(135deg,#4F46E5,#7C3AED)">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" fill="rgba(255,255,255,0.15)"/>
+            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" fill="rgba(255,255,255,0.15)"/>
+          </svg>
+        </div>
+        <div class="quick-label">Bible</div>
+        <div class="quick-sub">Lire la Parole</div>
+      </div>
+
+      <!-- Prières -->
+      <div class="quick-card" onclick="ouvrirPrieres()">
+        <div class="quick-icon" style="background:linear-gradient(135deg,#059669,#10B981)">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 11V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3v5" fill="rgba(255,255,255,0.12)"/>
+            <path d="M6 11V6a3 3 0 0 1 3-3 3 3 0 0 1 3 3"/>
+            <path d="M12 11v3a6 6 0 0 1-6 6H5a5 5 0 0 1-5-5v-3h6v-3h12v3a5 5 0 0 1-5 5h-1"/>
+            <path d="M12 14v7" stroke-dasharray="2 2"/>
+          </svg>
+        </div>
+        <div class="quick-label">Prières</div>
+        <div class="quick-sub">Se recueillir</div>
+      </div>
+
+      <!-- Offrande → ouvre modal don -->
+      <div class="quick-card" onclick="ouvrirModalDon()">
+        <div class="quick-icon" style="background:linear-gradient(135deg,#C0001A,#E53E3E)">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" fill="rgba(255,255,255,0.2)"/>
+          </svg>
+        </div>
+        <div class="quick-label">Offrande</div>
+        <div class="quick-sub">Donner</div>
+      </div>
+
+      <!-- Notes -->
+      <div class="quick-card" onclick="ouvrirNotes()">
+        <div class="quick-icon" style="background:linear-gradient(135deg,#D97706,#F59E0B)">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="rgba(255,255,255,0.15)"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="8" y1="13" x2="16" y2="13"/>
+            <line x1="8" y1="17" x2="13" y2="17"/>
+            <path d="M17 17l1.5-1.5a1 1 0 0 1 1.5 1.5L18.5 18.5 17 19z" fill="#fff"/>
+          </svg>
+        </div>
+        <div class="quick-label">Notes</div>
+        <div class="quick-sub">Mes notes</div>
+      </div>
+
+    </div>
+
+    <!-- Étude du jour -->
+    <div id="etude-home-wrap" style="display:none">
+      <div class="sec-row" style="margin-top:4px">
+        <div class="sec-title">Étude du jour</div>
+        <div class="sec-voir" onclick="ouvrirEtudeArchive()">Toutes <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+      </div>
+      <div id="etude-home-card"></div>
+    </div>
+
+    <!-- Prédications récentes -->
+    <div class="sec-row">
+      <div class="sec-title">Prédications récentes</div>
+      <div class="sec-voir" onclick="switchTab('library')">Voir tout <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+    </div>
+    <div class="sermon-list" id="home-sermons"></div>
+
+    <!-- Évènements à venir -->
+    <div class="sec-row" style="margin-top:24px">
+      <div class="sec-title">Évènements à venir</div>
+      <div class="sec-voir" onclick="showToast('Agenda — Bientôt disponible')">Voir tout <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+    </div>
+    <div class="event-list" id="events-list">
+      <!-- Veillée de prière -->
+      <div class="ev-card">
+        <div class="ev-band"></div>
+        <div class="ev-body">
+          <div class="ev-date-box">
+            <div class="ev-date-day">27</div>
+            <div class="ev-date-month">Juin</div>
+          </div>
+          <div class="ev-info">
+            <div class="ev-header">
+              <div class="ev-title">Veillée de prière</div>
+              <div class="ev-countdown" id="ev-countdown-1">—</div>
+            </div>
+            <div class="ev-meta-row">
+              <div class="ev-meta-line">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                Vendredi 27 Juin 2026 · 20h00
+              </div>
+              <div class="ev-meta-line">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                Église Maranatha — Salle principale
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="ev-footer">
+          <button class="ev-btn" onclick="showToast('Inscription bientôt disponible')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Je participe à cet événement
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== DEVENIR MEMBRE ===== -->
+    <div class="membre-card" onclick="ouvrirModalMembre()">
+      <div class="membre-card-icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <line x1="19" y1="8" x2="19" y2="14"/>
+          <line x1="22" y1="11" x2="16" y2="11"/>
+        </svg>
+      </div>
+      <div class="membre-card-text">
+        <div class="membre-card-title">Devenir membre</div>
+        <div class="membre-card-sub">Rejoindre la communauté Maranatha</div>
+      </div>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+
+    <!-- ===== COMMENTAIRES ===== -->
+    <div class="sec-row" style="margin: 4px 0 12px">
+      <div class="sec-title">Commentaires</div>
+    </div>
+    <div class="comment-form-area">
+      <textarea id="comment-input" class="comment-textarea" placeholder="Partagez un message, une prière ou un témoignage…" maxlength="500"></textarea>
+      <button class="comment-send-btn" onclick="envoyerCommentaire()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        Envoyer
+      </button>
+    </div>
+    <div class="comment-list" id="comment-list">
+      <div class="empty-state"><p>Chargement…</p></div>
+    </div>
+
+    <div class="ph"></div>
+  </div>
+
+  <!-- ==== TAB : BIBLIOTHÈQUE ==== -->
+  <div id="tab-library" class="tab-content">
+    <div class="lib-tabs">
+      <button class="lib-tab-btn active" id="lt-predications" onclick="switchLibTab('predications')">Prédications</button>
+      <button class="lib-tab-btn" id="lt-livres"       onclick="switchLibTab('livres')">Livres</button>
+      <button class="lib-tab-btn" id="lt-videos"       onclick="switchLibTab('videos')">Vidéos</button>
+      <button class="lib-tab-btn" id="lt-audio"        onclick="switchLibTab('audio')">Audio</button>
+    </div>
+    <div class="lib-section active" id="ls-predications">
+      <div class="lib-list" id="lib-list"></div>
+    </div>
+    <div class="lib-section" id="ls-livres">
+      <div id="livres-list"></div>
+    </div>
+    <div class="lib-section" id="ls-videos">
+      <div id="videos-list"></div>
+    </div>
+    <div class="lib-section" id="ls-audio">
+      <div class="lib-list" id="audio-list"></div>
+    </div>
+    <div class="ph"></div>
+  </div>
+
+  <!-- ==== TAB : DIRECT ==== -->
+  <div id="tab-direct" class="tab-content">
+    <div class="direct-wrap">
+      <div class="direct-empty" id="direct-empty">
+        <div class="direct-empty-icon">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M1 6l10.5 6L1 18V6z" fill="none"/>
+            <path d="M1 6l10.5 6L1 18V6z"/>
+            <line x1="12" y1="6" x2="23" y2="6"/>
+            <line x1="12" y1="12" x2="23" y2="12"/>
+            <line x1="12" y1="18" x2="23" y2="18"/>
+          </svg>
+        </div>
+        <div class="direct-empty-title">Aucun direct en ce moment</div>
+        <div class="direct-empty-sub">Les cultes en direct<br>apparaîtront ici quand ils commencent.</div>
+      </div>
+      <div id="direct-player" style="display:none">
+        <!-- Le player s'affiche ici lors d'un direct -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ==== TAB : PARAMÈTRES ==== -->
+  <div id="tab-settings" class="tab-content">
+    <div class="settings-wrap">
+      <div class="settings-avatar">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+      </div>
+      <div class="settings-name" id="more-username">Fidèle</div>
+      <div class="settings-sub">Communauté Maranatha</div>
+
+      <div class="settings-row" onclick="showToast('Bientôt disponible')">
+        <div class="settings-row-icon" style="background:var(--primary-lt,#EEEEFF)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <div class="settings-row-label">Mon profil</div>
+        <div class="settings-row-arrow">›</div>
+      </div>
+      <div class="settings-row" onclick="showToast('Bientôt disponible')">
+        <div class="settings-row-icon" style="background:var(--orange-lt,#FEF5E6)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        </div>
+        <div class="settings-row-label">Notifications</div>
+        <div class="settings-row-arrow">›</div>
+      </div>
+      <div class="settings-row" onclick="showToast('Bientôt disponible')">
+        <div class="settings-row-icon" style="background:var(--green-lt,#E5F6EF)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </div>
+        <div class="settings-row-label">Paramètres</div>
+        <div class="settings-row-arrow">›</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Bottom nav — rouge, icônes blanches -->
+  <nav class="bottom-nav">
+
+    <!-- Accueil -->
+    <div class="nav-item active" id="nav-home" onclick="switchTab('home')">
+      <div class="nav-icon-wrap">
+        <svg width="22" height="22" viewBox="0 0 24 24" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="rgba(255,255,255,0.15)"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+      </div>
+      <span class="nav-label">Accueil</span>
+    </div>
+
+    <!-- Bibliothèque -->
+    <div class="nav-item" id="nav-library" onclick="switchTab('library')">
+      <div class="nav-icon-wrap">
+        <svg width="22" height="22" viewBox="0 0 24 24" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+        </svg>
+      </div>
+      <span class="nav-label">Bibliothèque</span>
+    </div>
+
+    <!-- Direct — bouton central plus grand -->
+    <div class="nav-item" id="nav-direct" onclick="switchTab('direct')">
+      <div class="nav-icon-wrap" style="width:42px;height:42px;border-radius:14px;background:rgba(255,255,255,0.22);margin-top:-6px">
+        <svg width="22" height="22" viewBox="0 0 24 24" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="2" fill="white"/>
+          <path d="M16.24 7.76a6 6 0 0 1 0 8.49"/>
+          <path d="M7.76 7.76a6 6 0 0 0 0 8.49"/>
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+          <path d="M4.93 4.93a10 10 0 0 0 0 14.14"/>
+        </svg>
+      </div>
+      <span class="nav-label">Direct</span>
+    </div>
+
+    <!-- Paramètres -->
+    <div class="nav-item" id="nav-settings" onclick="switchTab('settings')">
+      <div class="nav-icon-wrap">
+        <svg width="22" height="22" viewBox="0 0 24 24" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+      </div>
+      <span class="nav-label">Paramètres</span>
+    </div>
+
+  </nav>
+</div>
+
+<!-- ============ MODAL : DON ============ -->
+<div class="modal-overlay" id="modal-don" onclick="fermerModal('don')">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title">💝 Faire un don</div>
+    <div class="modal-sub">Soutenez le ministère Maranatha</div>
+    <div class="don-tabs">
+      <button class="don-tab active" id="tab-mensuel-btn" onclick="switchDon('mensuel')">Don mensuel</button>
+      <button class="don-tab"        id="tab-unique-btn"  onclick="switchDon('unique')">Don unique</button>
+    </div>
+
+    <!-- DON MENSUEL -->
+    <div class="don-panel active" id="don-mensuel-panel">
+      <div id="don-mensuel-content">
+        <div class="don-row">
+          <div class="don-row-icon" style="background:#E8F5E9">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="2" stroke-linecap="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg>
+          </div>
+          <div class="flex-1">
+            <div class="don-row-label">Mobile Money</div>
+            <div class="don-row-value" id="don-tel1-m">—</div>
+          </div>
+          <button class="don-copy-btn" onclick="copier('don-tel1-m','Numéro copié')">Copier</button>
+        </div>
+        <div class="don-row" id="don-tel2-m-row" style="display:none">
+          <div class="don-row-icon" style="background:#E3F2FD">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2" stroke-linecap="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg>
+          </div>
+          <div class="flex-1">
+            <div class="don-row-label">Autre numéro</div>
+            <div class="don-row-value" id="don-tel2-m">—</div>
+          </div>
+          <button class="don-copy-btn" onclick="copier('don-tel2-m','Numéro copié')">Copier</button>
+        </div>
+      </div>
+      <div id="don-mensuel-instructions"></div>
+    </div>
+
+    <!-- DON UNIQUE -->
+    <div class="don-panel" id="don-unique-panel">
+      <div id="don-unique-content">
+        <div class="don-row">
+          <div class="don-row-icon" style="background:#F3E5F5">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7B1FA2" stroke-width="2" stroke-linecap="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+          </div>
+          <div class="flex-1">
+            <div class="don-row-label">Titulaire</div>
+            <div class="don-row-value" id="don-titulaire">—</div>
+          </div>
+        </div>
+        <div class="don-row">
+          <div class="don-row-icon" style="background:#FFF8E1">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F57F17" stroke-width="2" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+          </div>
+          <div class="flex-1">
+            <div class="don-row-label">Banque</div>
+            <div class="don-row-value" id="don-banque">—</div>
+          </div>
+        </div>
+        <div class="don-row" id="don-compte-row">
+          <div class="don-row-icon" style="background:#E8F5E9">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="2" stroke-linecap="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+          </div>
+          <div class="flex-1">
+            <div class="don-row-label">N° de compte</div>
+            <div class="don-row-value" id="don-compte">—</div>
+          </div>
+          <button class="don-copy-btn" onclick="copier('don-compte','Copié')">Copier</button>
+        </div>
+        <div class="don-row" id="don-iban-row">
+          <div class="don-row-icon" style="background:#E3F2FD">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2" stroke-linecap="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+          </div>
+          <div class="flex-1">
+            <div class="don-row-label">IBAN</div>
+            <div class="don-row-value" id="don-iban">—</div>
+          </div>
+          <button class="don-copy-btn" onclick="copier('don-iban','IBAN copié')">Copier</button>
+        </div>
+        <div class="don-row" id="don-bic-row">
+          <div class="don-row-icon" style="background:#FCE4EC">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C62828" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          </div>
+          <div class="flex-1">
+            <div class="don-row-label">BIC / SWIFT</div>
+            <div class="don-row-value" id="don-bic">—</div>
+          </div>
+          <button class="don-copy-btn" onclick="copier('don-bic','BIC copié')">Copier</button>
+        </div>
+        <div id="don-unique-instructions"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODAL : DEVENIR MEMBRE ============ -->
+<div class="modal-overlay" id="modal-membre" onclick="fermerModal('membre')">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Devenir membre</div>
+    <div class="modal-sub">Remplissez ce formulaire pour rejoindre l'église Maranatha</div>
+    <label class="mf-label">Nom complet *</label>
+    <input type="text" class="mf-input" id="mf-nom" placeholder="Ex : Jean Dupont" />
+    <label class="mf-label">Numéro de téléphone *</label>
+    <input type="tel" class="mf-input" id="mf-tel" placeholder="Ex : 06 00 00 00 00" />
+    <label class="mf-label">Adresse *</label>
+    <input type="text" class="mf-input" id="mf-adresse" placeholder="Ex : 12 Rue des Fleurs, Quartier Nord" />
+    <button class="mf-btn" id="mf-submit" onclick="soumettreMembre()">Envoyer ma demande</button>
+  </div>
+</div>
+
+<!-- ============ OVERLAY : BIBLE ============ -->
+<div class="overlay-full" id="overlay-bible">
+  <div class="ov-header">
+    <button class="ov-back" onclick="fermerOverlay('bible')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="ov-title" id="bible-header-title">Bible — LSG</div>
+  </div>
+  <div class="ov-body" id="bible-scroll">
+    <div class="bible-toolbar">
+      <button class="bible-sel-btn" id="bible-book-btn" onclick="ouvrirBookPicker()">Jean ▾</button>
+      <button class="bible-sel-btn chap" id="bible-chap-btn" onclick="ouvrirChapPicker()">Ch. 3 ▾</button>
+    </div>
+    <div class="bible-nav">
+      <button class="bible-nav-btn" id="bible-prev-btn" onclick="bibleNavPrev()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <span class="bible-chap-label" id="bible-chap-label">Chapitre 3</span>
+      <button class="bible-nav-btn" id="bible-next-btn" onclick="bibleNavNext()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+    <div id="bible-verses"><div class="bible-loading">Chargement…</div></div>
+  </div>
+</div>
+
+<!-- ============ PICKER : LIVRE BIBLIQUE ============ -->
+<div class="picker-overlay" id="book-picker" onclick="fermerBookPicker()">
+  <div class="picker-sheet" onclick="event.stopPropagation()">
+    <div class="picker-title">Choisir un livre</div>
+    <div class="picker-section">ANCIEN TESTAMENT</div>
+    <div class="picker-grid-3" id="book-picker-at"></div>
+    <div class="picker-section">NOUVEAU TESTAMENT</div>
+    <div class="picker-grid-3" id="book-picker-nt"></div>
+  </div>
+</div>
+
+<!-- ============ PICKER : CHAPITRE ============ -->
+<div class="picker-overlay" id="chap-picker" onclick="fermerChapPicker()">
+  <div class="picker-sheet" onclick="event.stopPropagation()">
+    <div class="picker-title" id="chap-picker-title">Chapitres</div>
+    <div class="picker-grid-6" id="chap-picker-grid"></div>
+  </div>
+</div>
+
+<!-- ============ OVERLAY : PRIÈRES ============ -->
+<div class="overlay-full" id="overlay-priere">
+  <div class="ov-header">
+    <button class="ov-back" onclick="fermerOverlay('priere')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="ov-title">Prières</div>
+  </div>
+  <div class="ov-body" id="prieres-body">
+    <div class="empty-state"><p>Chargement…</p></div>
+  </div>
+</div>
+
+<!-- ============ OVERLAY : NOTES ============ -->
+<div class="overlay-full" id="overlay-notes" style="position:fixed">
+  <div class="ov-header">
+    <button class="ov-back" id="notes-back-btn" onclick="notesBack()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="ov-title" id="notes-ov-title">Mes notes</div>
+    <button id="note-del-btn" style="display:none;background:none;border:none;color:#C0001A;font-size:13px;font-weight:700;cursor:pointer" onclick="supprimerNote()">Supprimer</button>
+    <button id="note-save-btn" style="display:none;background:none;border:none;color:#C0001A;font-size:14px;font-weight:800;cursor:pointer" onclick="sauvegarderNote()">Enr.</button>
+  </div>
+  <!-- Liste -->
+  <div class="ov-body" id="notes-list-view" style="position:relative">
+    <div id="notes-list"></div>
+    <button class="note-fab" onclick="creerNote()">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    </button>
+  </div>
+  <!-- Éditeur -->
+  <div id="notes-editor-view" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+    <input class="note-editor-title" id="note-edit-titre" placeholder="Titre" />
+    <textarea class="note-editor-body" id="note-edit-body" placeholder="Commencez à écrire…"></textarea>
+  </div>
+</div>
+
+<!-- ============ OVERLAY : ÉTUDE DU JOUR ============ -->
+<div class="overlay-full" id="overlay-etude">
+  <div class="ov-header">
+    <button class="ov-back" onclick="fermerOverlay('etude')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="ov-title">Étude du jour</div>
+  </div>
+  <div class="ov-body" id="etude-detail-body"></div>
+</div>
+
+<!-- ============ OVERLAY : ARCHIVE ÉTUDES ============ -->
+<div class="overlay-full" id="overlay-etude-archive">
+  <div class="ov-header">
+    <button class="ov-back" onclick="fermerOverlay('etude-archive')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="ov-title">Toutes les études</div>
+  </div>
+  <div class="ov-body" id="etude-archive-body"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const API = window.location.origin + '/api';
+  let userName = '';
+  let sermons = [];
+  let activeAudioUrl = '';
+  let userPaused = false;
+  let sseSource = null;
+  let youtubeUrl = '';
+  let ytLabel = 'Regarder sur YouTube';
+  let youtubeLinks = [];    // tableau [{url, label}] — carousel
+  let ytCarouselIdx = 0;
+  let ytCarouselTimer = null;
+
+  // ── FCM TOKEN INJECTION depuis Flutter ─────────────────────────────────────
+  // Flutter appelle window.__onFcmToken("TOKEN") après chaque chargement de page.
+  // Si l'utilisateur est déjà connecté (localStorage), on met à jour le token
+  // en base IMMÉDIATEMENT — sinon il ne recevra jamais les notifications.
+  window.__onFcmToken = function(token) {
+    window.flutterFcmToken = token;
+    const tel = localStorage.getItem('maranatha_tel');
+    if (!tel) return; // pas encore inscrit, rien à faire
+    // Mise à jour silencieuse du token FCM pour cet utilisateur
+    fetch(API + '/users/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        nom: localStorage.getItem('maranatha_user') || 'Fidèle',
+        telephone: tel,
+        role: 'fidele',
+        fcmToken: token,
+      }),
+    }).catch(() => {});
+  };
+
+  // ============ SPLASH ============
+  async function lancerSplash() {
+    const splash = document.getElementById('splash-screen');
+    let duree = 2000;
+    try {
+      const res = await fetch(API + '/settings/splash');
+      if (res.ok) {
+        const cfg = await res.json();
+        if (cfg.logoUrl) document.getElementById('splash-logo').src = cfg.logoUrl;
+        if (cfg.dureeSplash) duree = cfg.dureeSplash * 1000;
+      }
+    } catch(e) {}
+
+    setTimeout(() => {
+      splash.classList.add('fade-out');
+      setTimeout(() => { splash.remove(); }, 500);
+    }, duree);
+
+    lancerApp();
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    lancerSplash();
+    majComptesARebours();
+  });
+
+  // ============ COMPTE À REBOURS ÉVÉNEMENTS ============
+  function majComptesARebours() {
+    const events = [
+      { id: 'ev-countdown-1', date: '2026-06-27' },
+    ];
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    events.forEach(({ id, date }) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const target = new Date(date);
+      target.setHours(0,0,0,0);
+      const diff = Math.round((target - today) / 86400000);
+      if (diff < 0) {
+        el.textContent = 'Passé';
+        el.style.background = '#F0F0F0'; el.style.color = '#999'; el.style.borderColor = 'transparent';
+      } else if (diff === 0) {
+        el.textContent = "Aujourd'hui !";
+        el.classList.add('today');
+      } else if (diff === 1) {
+        el.textContent = 'Demain';
+        el.classList.add('today');
+      } else {
+        el.textContent = 'Dans ' + diff + ' j';
+      }
+    });
+  }
+
+  // ============ DÉMARRAGE AUTOMATIQUE (sans connexion) ============
+  function lancerApp() {
+    // Générer un identifiant anonyme stable pour ce navigateur/appareil
+    // (utilisé uniquement pour lier le token FCM côté serveur)
+    let tel = localStorage.getItem('maranatha_tel');
+    if (!tel) {
+      tel = 'anon-' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+      localStorage.setItem('maranatha_tel', tel);
+    }
+    // Inscription silencieuse (enregistre le token FCM si déjà disponible)
+    fetch(API + '/users/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nom: 'Fidèle', telephone: tel, role: 'fidele', fcmToken: window.flutterFcmToken || '' }),
+    }).catch(() => {});
+
+    chargerSermons();
+    chargerYoutube();
+    chargerEtudeJour();
+    connecterSSE();
+  }
+
+  // SUPPRIMÉ — plus de déconnexion manuelle
+  function logout() {
+    switchTab('home');
+  }
+
+  // ============ YOUTUBE ============
+  async function chargerYoutube() {
+    try {
+      const res = await fetch(API + '/settings/home');
+      if (!res.ok) return;
+      const cfg = await res.json();
+
+      // Nouveau format : tableau de liens
+      if (Array.isArray(cfg.youtubeLinks) && cfg.youtubeLinks.length > 0) {
+        youtubeLinks = cfg.youtubeLinks;
+        ytCarouselIdx = 0;
+        youtubeUrl = youtubeLinks[0].url;
+        ytLabel    = youtubeLinks[0].label || 'Regarder sur YouTube';
+      } else if (cfg.youtubeUrl) {
+        // Rétrocompatibilité : ancien format champ unique
+        youtubeLinks = [{ url: cfg.youtubeUrl, label: cfg.ytLabel || 'Regarder sur YouTube' }];
+        ytCarouselIdx = 0;
+        youtubeUrl = cfg.youtubeUrl;
+        ytLabel    = cfg.ytLabel || 'Regarder sur YouTube';
+      }
+
+      if (sermons !== null) afficherAccueil();
+      demarrerCarouselYT();
+    } catch(e) {}
+  }
+
+  // Carousel : change de lien YouTube toutes les 6 secondes si plusieurs
+  function demarrerCarouselYT() {
+    if (ytCarouselTimer) clearInterval(ytCarouselTimer);
+    if (youtubeLinks.length < 2) return;
+    ytCarouselTimer = setInterval(() => {
+      // Ne pas tourner si un sermon est en cours
+      const live = sermons.find(s => s.statut === 'en_cours');
+      if (live) return;
+      ytCarouselIdx = (ytCarouselIdx + 1) % youtubeLinks.length;
+      youtubeUrl = youtubeLinks[ytCarouselIdx].url;
+      ytLabel    = youtubeLinks[ytCarouselIdx].label || 'Regarder sur YouTube';
+      afficherAccueilYT();
+    }, 6000);
+  }
+
+  // Met à jour seulement le bloc YouTube du hero (sans toucher au reste)
+  function afficherAccueilYT() {
+    const live = sermons.find(s => s.statut === 'en_cours');
+    if (live) return; // sermon prioritaire
+    const hero = document.getElementById('hero-card');
+    if (!youtubeUrl) return;
+    hero.style.background = '#111827';
+    const vid = ytVideoId(youtubeUrl);
+    const img = document.getElementById('hero-img');
+    img.src = vid ? `https://img.youtube.com/vi/${vid}/hqdefault.jpg` : '';
+    document.getElementById('hero-title').textContent = ytLabel;
+    const btn = document.getElementById('hero-btn');
+    btn.style.background = 'rgba(255,255,255,0.92)';
+    btn.style.color = '#111827';
+    btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg> ${ytLabel}`;
+    hero.onclick = () => window.open(youtubeUrl, '_blank');
+    // Dots de pagination si plusieurs liens
+    const dots = document.getElementById('yt-dots');
+    if (dots && youtubeLinks.length > 1) {
+      dots.innerHTML = youtubeLinks.map((_, i) =>
+        `<span style="width:${i===ytCarouselIdx?'18px':'6px'};height:6px;border-radius:3px;background:${i===ytCarouselIdx?'#fff':'rgba(255,255,255,0.35)'};display:inline-block;transition:width .3s"></span>`
+      ).join('');
+      dots.style.display = 'flex';
+    }
+  }
+
+  function ytVideoId(url) {
+    if (!url) return null;
+    const m = url.match(/(?:v=|youtu\.be\/|embed\/)([^&?/]+)/);
+    return m ? m[1] : null;
+  }
+
+  // ============ SSE ============
+  // ─── URL du sermon actuellement dans l'overlay ───
+  let liveOverlayUrl = null;
+
+  let sseRetryTimer = null;
+
+  function connecterSSE() {
+    if (sseRetryTimer) { clearTimeout(sseRetryTimer); sseRetryTimer = null; }
+    if (sseSource) { sseSource.close(); sseSource = null; }
+
+    sseSource = new EventSource(API + '/sermons/events');
+
+    sseSource.addEventListener('sermon_live', e => {
+      const sermon = JSON.parse(e.data);
+      const idx = sermons.findIndex(s => String(s._id) === String(sermon._id));
+      if (idx >= 0) sermons[idx] = sermon; else sermons.unshift(sermon);
+      afficherAccueil();
+      afficherOverlayLive(sermon);
+    });
+
+    // Toute mise à jour admin → rechargement immédiat de la liste
+    sseSource.addEventListener('sermon_update', () => chargerSermons());
+
+    // Reconnexion automatique 2 s après une coupure
+    sseSource.onerror = () => {
+      sseSource.close(); sseSource = null;
+      sseRetryTimer = setTimeout(connecterSSE, 2000);
+    };
+  }
+
+  // Reconnexion quand l'utilisateur revient sur l'app (onglet/app au premier plan)
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      const mort = !sseSource || sseSource.readyState === EventSource.CLOSED;
+      if (mort) connecterSSE();
+      // Recharger aussi les sermons pour rattraper les mises à jour manquées
+      chargerSermons();
+    }
+  });
+
+  // Reconnexion quand le réseau revient (mode avion levé, wifi reconnecté)
+  window.addEventListener('online', () => {
+    connecterSSE();
+    chargerSermons();
+  });
+
+  function afficherOverlayLive(sermon) {
+    liveOverlayUrl = sermon.audioUrl || null;
+    document.getElementById('lov-titre').textContent = sermon.titre || 'Culte en direct';
+    document.getElementById('live-overlay').classList.add('visible');
+    // Vibration courte si supportée (mobile)
+    if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+  }
+
+  function fermerOverlay() {
+    document.getElementById('live-overlay').classList.remove('visible');
+  }
+
+  function ecouterLive() {
+    fermerOverlay();
+    // L'overlay est un geste utilisateur → l'audio peut démarrer
+    switchTab('home');
+    if (liveOverlayUrl) {
+      ouvrirAudio(liveOverlayUrl);
+    } else {
+      // Pas d'URL audio : scroller vers le mini-player (diffusion en salle)
+      scrollToPlayer();
+    }
+  }
+
+  // ============ NAVIGATION ============
+  const TABS = ['home', 'library', 'direct', 'settings'];
+  let libTabActif = 'predications';
+  let libCharge = { livres: false, videos: false };
+
+  function switchTab(tab) {
+    TABS.forEach(t => {
+      document.getElementById('tab-' + t).classList.toggle('active', t === tab);
+      const nav = document.getElementById('nav-' + t);
+      if (nav) nav.classList.toggle('active', t === tab);
+    });
+    if (tab === 'library') { afficherBibliotheque(); switchLibTab(libTabActif); }
+    if (tab === 'direct')  afficherDirect();
+  }
+
+  function switchLibTab(tab) {
+    libTabActif = tab;
+    ['predications','livres','videos','audio'].forEach(t => {
+      document.getElementById('ls-' + t).classList.toggle('active', t === tab);
+      const btn = document.getElementById('lt-' + t);
+      if (btn) btn.classList.toggle('active', t === tab);
+    });
+    if (tab === 'livres'  && !libCharge.livres) { libCharge.livres = true; chargerLivres(); }
+    if (tab === 'videos'  && !libCharge.videos) { libCharge.videos = true; chargerVideos(); }
+    if (tab === 'audio')  afficherAudio();
+  }
+
+  function fermerOverlay(id) {
+    document.getElementById('overlay-' + id).classList.remove('visible');
+  }
+
+  function fermerBookPicker()  { document.getElementById('book-picker').classList.remove('visible'); }
+  function fermerChapPicker()  { document.getElementById('chap-picker').classList.remove('visible'); }
+
+  // ============ CHARGEMENT ============
+  async function chargerSermons() {
+    try {
+      const res = await fetch(`${API}/sermons`);
+      sermons = await res.json();
+      afficherAccueil();
+    } catch(e) {
+      document.getElementById('home-sermons').innerHTML =
+        `<div class="empty-state"><p>Vérifiez votre connexion</p></div>`;
+    }
+  }
+
+  // ============ ACCUEIL ============
+  function afficherAccueil() {
+    const live = sermons.find(s => s.statut === 'en_cours');
+    const hero = document.getElementById('hero-card');
+    const mini = document.getElementById('mini-player');
+
+    if (live) {
+      // ── Culte en direct (ROUGE) ──
+      hero.style.background = '#C0001A';
+      document.getElementById('hero-title').textContent = live.titre || 'Culte en direct';
+      document.getElementById('hero-sub').textContent = 'Rejoignez-nous maintenant\net adorons ensemble !';
+      document.getElementById('hero-badge').style.display = 'inline-flex';
+      document.getElementById('hero-btn').textContent = '▶  Écouter maintenant';
+      if (live.coverUrl) document.getElementById('hero-img').src = live.coverUrl;
+      hero.onclick = scrollToPlayer;
+      hero.classList.add('visible');
+      // Player audio — chargé mais PAS lancé automatiquement
+      // L'utilisateur doit appuyer sur ▶ lui-même
+      mini.classList.add('visible');
+      document.getElementById('mp-title').textContent = live.titre;
+      document.getElementById('mp-live-badge').style.display = 'inline-flex';
+      document.getElementById('mp-status').style.display = 'none';
+      preparerAudio(live.audioUrl);
+
+    } else if (youtubeUrl) {
+      // ── Vidéo YouTube vedette ──
+      hero.style.background = '#111827';
+      hero.style.removeProperty('color');
+      const vid = ytVideoId(youtubeUrl);
+      if (vid) document.getElementById('hero-img').src = `https://img.youtube.com/vi/${vid}/hqdefault.jpg`;
+      document.getElementById('hero-title').textContent = ytLabel || 'Regarder sur YouTube';
+      document.getElementById('hero-sub').textContent = 'Regardez notre dernière vidéo\nsur notre chaîne YouTube';
+      document.getElementById('hero-badge').style.display = 'none';
+      const btn = document.getElementById('hero-btn');
+      btn.style.background = 'rgba(255,255,255,0.92)';
+      btn.style.color = '#111827';
+      btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg> ${ytLabel || 'Regarder sur YouTube'}`;
+      hero.onclick = () => window.open(youtubeUrl, '_blank');
+      hero.classList.add('visible');
+      mini.classList.remove('visible');
+      // Dots de pagination carousel
+      const dots = document.getElementById('yt-dots');
+      if (dots) {
+        if (youtubeLinks.length > 1) {
+          dots.innerHTML = youtubeLinks.map((_, i) =>
+            `<span style="width:${i===ytCarouselIdx?'18px':'6px'};height:6px;border-radius:3px;background:${i===ytCarouselIdx?'#fff':'rgba(255,255,255,0.35)'};display:inline-block;transition:width .3s"></span>`
+          ).join('');
+          dots.style.display = 'flex';
+        } else {
+          dots.style.display = 'none';
+        }
+      }
+
+    } else {
+      hero.classList.remove('visible');
+      mini.classList.remove('visible');
+    }
+
+    // Prédications récentes (liste)
+    const termines = sermons.filter(s => s.statut === 'termine' || s.statut === 'en_cours').slice(0, 4);
+    const el = document.getElementById('home-sermons');
+    if (!termines.length) {
+      el.innerHTML = `<div class="empty-state"><p>Les prédications apparaîtront ici</p></div>`;
+      return;
+    }
+    el.innerHTML = termines.map(s => {
+      const d = new Date(s.dateDiffusion);
+      const dateStr = d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
+      const thumb = s.coverUrl
+        ? `<img src="${s.coverUrl}" alt="" />`
+        : `<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>`;
+      const auteur = s.auteur || s.pasteur || 'Église Maranatha';
+      const dureeMin = s.duree ? Math.round(s.duree / 60) + ' min' : '';
+      return `
+        <div class="sl-card" onclick="jouerSermon('${s._id}')">
+          <div class="sl-thumb">
+            ${thumb}
+            <div class="sl-play-over">
+              <div class="sl-play-circle">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              </div>
+            </div>
+          </div>
+          <div class="sl-info">
+            <div class="sl-top">
+              <div class="sl-title">${s.titre}</div>
+              <div class="sl-bookmark" onclick="event.stopPropagation();showToast('Sauvegardé')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+              </div>
+            </div>
+            <div class="sl-author">${auteur}</div>
+            <div class="sl-meta">
+              <span style="display:inline-flex;align-items:center;gap:3px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> ${dateStr}</span>
+              ${dureeMin ? `<span style="display:inline-flex;align-items:center;gap:3px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> ${dureeMin}</span>` : ''}
+            </div>
+            <div class="sl-action">Lire la prédication <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  // ============ BIBLIOTHÈQUE ============
+  function afficherBibliotheque() {
+    const termines = sermons.filter(s => s.statut === 'termine' || s.statut === 'en_cours');
+    const el = document.getElementById('lib-list');
+    if (!termines.length) {
+      el.innerHTML = `<div class="empty-state"><p>Les prédications apparaîtront ici</p></div>`;
+      return;
+    }
+    el.innerHTML = termines.map(s => {
+      const d = new Date(s.dateDiffusion);
+      const dateStr = d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
+      const icon = s.coverUrl
+        ? `<img src="${s.coverUrl}" alt="" />`
+        : `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>`;
+      return `
+        <div class="lib-item" onclick="jouerSermon('${s._id}')">
+          <div class="lib-icon">${icon}</div>
+          <div class="lib-info">
+            <div class="lib-title">${s.titre}</div>
+            <div class="lib-meta">${dateStr}${s.description ? ' · ' + s.description.substring(0, 30) : ''}</div>
+          </div>
+          <button class="lib-play" onclick="event.stopPropagation();jouerSermon('${s._id}')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          </button>
+        </div>`;
+    }).join('');
+  }
+
+  // ============ DIRECT TAB ============
+  function afficherDirect() {
+    const live = sermons.find(s => s.statut === 'en_cours');
+    document.getElementById('direct-empty').style.display = live ? 'none' : 'block';
+    const dp = document.getElementById('direct-player');
+    if (live) {
+      dp.style.display = 'block';
+      dp.innerHTML = `
+        <div style="text-align:center;padding:20px 0 12px">
+          <div style="display:inline-flex;align-items:center;gap:6px;background:var(--primary);color:#fff;font-size:11px;font-weight:800;padding:5px 14px;border-radius:20px;margin-bottom:12px">
+            <div style="width:6px;height:6px;background:#fff;border-radius:50%;animation:blink 1s infinite"></div>
+            EN DIRECT
+          </div>
+          <div style="font-size:18px;font-weight:800;color:var(--text);margin-bottom:4px">${live.titre}</div>
+        </div>`;
+    } else {
+      dp.style.display = 'none';
+    }
+  }
+
+  // ══════════════════════════════════════════════════════════
+  //  BIBLE LSG (bible-api.com)
+  // ══════════════════════════════════════════════════════════
+  const BIBLE_LIVRES = [
+    // AT
+    { fr:'Genèse',api:'genesis',ch:50 },{ fr:'Exode',api:'exodus',ch:40 },
+    { fr:'Lévitique',api:'leviticus',ch:27 },{ fr:'Nombres',api:'numbers',ch:36 },
+    { fr:'Deutéronome',api:'deuteronomy',ch:34 },{ fr:'Josué',api:'joshua',ch:24 },
+    { fr:'Juges',api:'judges',ch:21 },{ fr:'Ruth',api:'ruth',ch:4 },
+    { fr:'1 Samuel',api:'1+samuel',ch:31 },{ fr:'2 Samuel',api:'2+samuel',ch:24 },
+    { fr:'1 Rois',api:'1+kings',ch:22 },{ fr:'2 Rois',api:'2+kings',ch:25 },
+    { fr:'1 Chroniques',api:'1+chronicles',ch:29 },{ fr:'2 Chroniques',api:'2+chronicles',ch:36 },
+    { fr:'Esdras',api:'ezra',ch:10 },{ fr:'Néhémie',api:'nehemiah',ch:13 },
+    { fr:'Esther',api:'esther',ch:10 },{ fr:'Job',api:'job',ch:42 },
+    { fr:'Psaumes',api:'psalms',ch:150 },{ fr:'Proverbes',api:'proverbs',ch:31 },
+    { fr:'Ecclésiaste',api:'ecclesiastes',ch:12 },{ fr:'Cantique',api:'song+of+solomon',ch:8 },
+    { fr:'Ésaïe',api:'isaiah',ch:66 },{ fr:'Jérémie',api:'jeremiah',ch:52 },
+    { fr:'Lamentations',api:'lamentations',ch:5 },{ fr:'Ézéchiel',api:'ezekiel',ch:48 },
+    { fr:'Daniel',api:'daniel',ch:12 },{ fr:'Osée',api:'hosea',ch:14 },
+    { fr:'Joël',api:'joel',ch:3 },{ fr:'Amos',api:'amos',ch:9 },
+    { fr:'Abdias',api:'obadiah',ch:1 },{ fr:'Jonas',api:'jonah',ch:4 },
+    { fr:'Michée',api:'micah',ch:7 },{ fr:'Nahum',api:'nahum',ch:3 },
+    { fr:'Habacuc',api:'habakkuk',ch:3 },{ fr:'Sophonie',api:'zephaniah',ch:3 },
+    { fr:'Aggée',api:'haggai',ch:2 },{ fr:'Zacharie',api:'zechariah',ch:14 },
+    { fr:'Malachie',api:'malachi',ch:4 },
+    // NT
+    { fr:'Matthieu',api:'matthew',ch:28 },{ fr:'Marc',api:'mark',ch:16 },
+    { fr:'Luc',api:'luke',ch:24 },{ fr:'Jean',api:'john',ch:21 },
+    { fr:'Actes',api:'acts',ch:28 },{ fr:'Romains',api:'romans',ch:16 },
+    { fr:'1 Corinthiens',api:'1+corinthians',ch:16 },{ fr:'2 Corinthiens',api:'2+corinthians',ch:13 },
+    { fr:'Galates',api:'galatians',ch:6 },{ fr:'Éphésiens',api:'ephesians',ch:6 },
+    { fr:'Philippiens',api:'philippians',ch:4 },{ fr:'Colossiens',api:'colossians',ch:4 },
+    { fr:'1 Thessaloniciens',api:'1+thessalonians',ch:5 },{ fr:'2 Thessaloniciens',api:'2+thessalonians',ch:3 },
+    { fr:'1 Timothée',api:'1+timothy',ch:6 },{ fr:'2 Timothée',api:'2+timothy',ch:4 },
+    { fr:'Tite',api:'titus',ch:3 },{ fr:'Philémon',api:'philemon',ch:1 },
+    { fr:'Hébreux',api:'hebrews',ch:13 },{ fr:'Jacques',api:'james',ch:5 },
+    { fr:'1 Pierre',api:'1+peter',ch:5 },{ fr:'2 Pierre',api:'2+peter',ch:3 },
+    { fr:'1 Jean',api:'1+john',ch:5 },{ fr:'2 Jean',api:'2+john',ch:1 },
+    { fr:'3 Jean',api:'3+john',ch:1 },{ fr:'Jude',api:'jude',ch:1 },
+    { fr:'Apocalypse',api:'revelation',ch:22 },
+  ];
+  const BIBLE_AT_COUNT = 39;
+  let bibleBookIdx = 43; // Jean (index 43)
+  let bibleChap    = 3;
+  let bibleVerse   = null;
+
+  function ouvrirBible() {
+    document.getElementById('overlay-bible').classList.add('visible');
+    if (!document.getElementById('bible-verses').querySelector('.bible-verse')) {
+      bibleRenderPickers();
+      updateBibleSelectors();
+      chargerChapBible();
+    }
+  }
+
+  function bibleRenderPickers() {
+    const at = BIBLE_LIVRES.slice(0, BIBLE_AT_COUNT);
+    const nt = BIBLE_LIVRES.slice(BIBLE_AT_COUNT);
+    document.getElementById('book-picker-at').innerHTML = at.map((l,i) =>
+      `<button class="pick-item${i===bibleBookIdx?' active':''}" onclick="selectionnerLivre(${i})">${l.fr}</button>`
+    ).join('');
+    document.getElementById('book-picker-nt').innerHTML = nt.map((l,i) => {
+      const idx = i + BIBLE_AT_COUNT;
+      return `<button class="pick-item${idx===bibleBookIdx?' active':''}" onclick="selectionnerLivre(${idx})">${l.fr}</button>`;
+    }).join('');
+  }
+
+  function updateBibleSelectors() {
+    const l = BIBLE_LIVRES[bibleBookIdx];
+    document.getElementById('bible-book-btn').textContent = l.fr + ' ▾';
+    document.getElementById('bible-chap-btn').textContent = 'Ch. ' + bibleChap + ' ▾';
+    document.getElementById('bible-chap-label').textContent = 'Chapitre ' + bibleChap;
+    document.getElementById('bible-header-title').textContent = l.fr + ' ' + bibleChap;
+    document.getElementById('bible-prev-btn').disabled = bibleChap <= 1;
+    document.getElementById('bible-next-btn').disabled = bibleChap >= l.ch;
+  }
+
+  function ouvrirBookPicker() {
+    bibleRenderPickers();
+    document.getElementById('book-picker').classList.add('visible');
+  }
+
+  function ouvrirChapPicker() {
+    const l = BIBLE_LIVRES[bibleBookIdx];
+    document.getElementById('chap-picker-title').textContent = l.fr + ' — chapitres';
+    document.getElementById('chap-picker-grid').innerHTML = Array.from({length: l.ch}, (_,i) =>
+      `<button class="pick-item${i+1===bibleChap?' active':''}" onclick="selectionnerChapitre(${i+1})">${i+1}</button>`
+    ).join('');
+    document.getElementById('chap-picker').classList.add('visible');
+  }
+
+  function selectionnerLivre(idx) {
+    bibleBookIdx = idx; bibleChap = 1;
+    fermerBookPicker();
+    updateBibleSelectors();
+    chargerChapBible();
+  }
+
+  function selectionnerChapitre(n) {
+    bibleChap = n;
+    fermerChapPicker();
+    updateBibleSelectors();
+    chargerChapBible();
+    document.getElementById('bible-scroll').scrollTop = 0;
+  }
+
+  function bibleNavPrev() {
+    if (bibleChap > 1) { bibleChap--; updateBibleSelectors(); chargerChapBible(); document.getElementById('bible-scroll').scrollTop = 0; }
+  }
+  function bibleNavNext() {
+    if (bibleChap < BIBLE_LIVRES[bibleBookIdx].ch) { bibleChap++; updateBibleSelectors(); chargerChapBible(); document.getElementById('bible-scroll').scrollTop = 0; }
+  }
+
+  async function chargerChapBible() {
+    const el = document.getElementById('bible-verses');
+    el.innerHTML = '<div class="bible-loading">Chargement du chapitre…</div>';
+    const l = BIBLE_LIVRES[bibleBookIdx];
+    try {
+      const r = await fetch(`https://bible-api.com/${l.api}+${bibleChap}?translation=lsg`);
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const data = await r.json();
+      if (!data.verses || !data.verses.length) throw new Error('Aucun verset');
+      el.innerHTML = data.verses.map(v =>
+        `<div class="bible-verse"><span class="bible-vnum">${v.verse}</span><span class="bible-vtext">${escHtml(v.text.trim())}</span></div>`
+      ).join('');
+    } catch(e) {
+      el.innerHTML = '<div class="bible-loading">Impossible de charger ce passage.<br><small>Vérifiez votre connexion internet.</small></div>';
+    }
+  }
+
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // ══════════════════════════════════════════════════════════
+  //  PRIÈRES
+  // ══════════════════════════════════════════════════════════
+  async function ouvrirPrieres() {
+    document.getElementById('overlay-priere').classList.add('visible');
+    document.getElementById('prieres-body').innerHTML = '<div class="empty-state"><p>Chargement…</p></div>';
+    try {
+      const r = await fetch(`${API}/prieres`);
+      const list = await r.json();
+      if (!list.length) {
+        document.getElementById('prieres-body').innerHTML = '<div class="empty-state"><p>Aucune prière publiée pour l\'instant.</p></div>';
+        return;
+      }
+      document.getElementById('prieres-body').innerHTML = list.map(p => `
+        <div class="priere-card">
+          <div class="priere-titre">${escHtml(p.titre)}</div>
+          <div class="priere-texte">${escHtml(p.texte)}</div>
+        </div>`).join('');
+    } catch(e) {
+      document.getElementById('prieres-body').innerHTML = '<div class="empty-state"><p>Erreur de connexion</p></div>';
+    }
+  }
+
+  // ══════════════════════════════════════════════════════════
+  //  NOTES (localStorage)
+  // ══════════════════════════════════════════════════════════
+  let notes = [];
+  let noteEditId = null;
+
+  function ouvrirNotes() {
+    document.getElementById('overlay-notes').classList.add('visible');
+    notes = JSON.parse(localStorage.getItem('maranatha_notes') || '[]');
+    afficherListeNotes();
+    voirListeNotes();
+  }
+
+  function voirListeNotes() {
+    document.getElementById('notes-list-view').style.display = 'block';
+    document.getElementById('notes-editor-view').style.display = 'none';
+    document.getElementById('notes-ov-title').textContent = 'Mes notes';
+    document.getElementById('note-del-btn').style.display = 'none';
+    document.getElementById('note-save-btn').style.display = 'none';
+    noteEditId = null;
+  }
+
+  function afficherListeNotes() {
+    const el = document.getElementById('notes-list');
+    if (!notes.length) {
+      el.innerHTML = '<div class="empty-state" style="padding-top:60px"><p>Aucune note — appuyez sur + pour créer</p></div>';
+      return;
+    }
+    el.innerHTML = notes.sort((a,b) => b.updatedAt - a.updatedAt).map(n => `
+      <div class="note-item" onclick="editerNote('${n.id}')">
+        <div class="note-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>
+        </div>
+        <div class="note-meta">
+          <div class="note-titre">${escHtml(n.titre || 'Sans titre')}</div>
+          <div class="note-preview">${escHtml((n.contenu || '').split('\n')[0] || '…')}</div>
+          <div class="note-date">${new Date(n.updatedAt).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'})}</div>
+        </div>
+      </div>`).join('');
+  }
+
+  function creerNote() {
+    noteEditId = Date.now().toString();
+    ouvrirEditeur('', '');
+  }
+
+  function editerNote(id) {
+    const n = notes.find(x => x.id === id);
+    if (!n) return;
+    noteEditId = id;
+    ouvrirEditeur(n.titre, n.contenu);
+  }
+
+  function ouvrirEditeur(titre, contenu) {
+    document.getElementById('notes-list-view').style.display = 'none';
+    document.getElementById('notes-editor-view').style.display = 'flex';
+    document.getElementById('notes-ov-title').textContent = 'Éditer';
+    document.getElementById('note-del-btn').style.display = notes.find(x=>x.id===noteEditId) ? 'block' : 'none';
+    document.getElementById('note-save-btn').style.display = 'block';
+    document.getElementById('note-edit-titre').value = titre;
+    document.getElementById('note-edit-body').value = contenu;
+    document.getElementById('note-edit-titre').focus();
+  }
+
+  function sauvegarderNote() {
+    const titre   = document.getElementById('note-edit-titre').value.trim();
+    const contenu = document.getElementById('note-edit-body').value;
+    if (!titre && !contenu.trim()) { showToast('Note vide'); return; }
+    const idx = notes.findIndex(x => x.id === noteEditId);
+    if (idx >= 0) {
+      notes[idx] = { ...notes[idx], titre, contenu, updatedAt: Date.now() };
+    } else {
+      notes.push({ id: noteEditId, titre: titre || 'Sans titre', contenu, updatedAt: Date.now() });
+    }
+    localStorage.setItem('maranatha_notes', JSON.stringify(notes));
+    showToast('Note enregistrée');
+    afficherListeNotes();
+    voirListeNotes();
+  }
+
+  function supprimerNote() {
+    if (!noteEditId) return;
+    if (!confirm('Supprimer cette note ?')) return;
+    notes = notes.filter(x => x.id !== noteEditId);
+    localStorage.setItem('maranatha_notes', JSON.stringify(notes));
+    showToast('Note supprimée');
+    afficherListeNotes();
+    voirListeNotes();
+  }
+
+  function notesBack() {
+    const editVisible = document.getElementById('notes-editor-view').style.display !== 'none';
+    if (editVisible) { voirListeNotes(); afficherListeNotes(); }
+    else             { fermerOverlay('notes'); }
+  }
+
+  // ══════════════════════════════════════════════════════════
+  //  ÉTUDE DU JOUR
+  // ══════════════════════════════════════════════════════════
+  let etudeActuelle = null;
+
+  async function chargerEtudeJour() {
+    try {
+      const r = await fetch(`${API}/etudes/today`);
+      const etude = await r.json();
+      etudeActuelle = etude;
+      if (!etude) return;
+      const wrap = document.getElementById('etude-home-wrap');
+      wrap.style.display = 'block';
+      const preview = etude.texte ? etude.texte.substring(0, 90).replace(/\n/g,' ') + (etude.texte.length > 90 ? '…' : '') : 'PDF disponible';
+      const d = new Date(etude.datePublication);
+      const dateStr = d.toLocaleDateString('fr-FR', { weekday:'long', day:'numeric', month:'long' });
+      document.getElementById('etude-home-card').innerHTML = `
+        <div class="etude-home-card" onclick="ouvrirEtude()">
+          <div class="etude-badge">${dateStr.charAt(0).toUpperCase()+dateStr.slice(1)}</div>
+          <div class="etude-titre">${escHtml(etude.titre)}</div>
+          <div class="etude-preview">${escHtml(preview)}</div>
+          <div class="etude-read-btn">Lire l'étude →</div>
+        </div>`;
+    } catch(e) {}
+  }
+
+  function ouvrirEtude() {
+    if (!etudeActuelle) return;
+    const el = document.getElementById('etude-detail-body');
+    let html = '';
+    if (etudeActuelle.texte) {
+      html += `<div class="etude-detail">${escHtml(etudeActuelle.texte)}</div>`;
+    }
+    if (etudeActuelle.pdfUrl) {
+      html += `<button class="etude-pdf-btn" onclick="window.open('${etudeActuelle.pdfUrl}','_blank')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Ouvrir le PDF
+      </button>`;
+    }
+    document.getElementById('overlay-etude').querySelector('.ov-title').textContent = etudeActuelle.titre;
+    el.innerHTML = html || '<div class="empty-state"><p>Contenu non disponible</p></div>';
+    document.getElementById('overlay-etude').classList.add('visible');
+  }
+
+  async function ouvrirEtudeArchive() {
+    const el = document.getElementById('etude-archive-body');
+    el.innerHTML = '<div class="empty-state"><p>Chargement…</p></div>';
+    document.getElementById('overlay-etude-archive').classList.add('visible');
+    try {
+      const r = await fetch(`${API}/etudes`);
+      const list = await r.json();
+      if (!list.length) { el.innerHTML = '<div class="empty-state"><p>Aucune étude publiée</p></div>'; return; }
+      el.innerHTML = list.map(e => {
+        const d = new Date(e.datePublication).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'});
+        const preview = e.texte ? e.texte.substring(0,70).replace(/\n/g,' ')+'…' : 'PDF';
+        return `<div class="priere-card" style="cursor:pointer" onclick="ouvrirEtudeById('${e._id}')">
+          <div style="font-size:9.5px;font-weight:700;color:#C0001A;letter-spacing:.7px;margin-bottom:4px">${d}</div>
+          <div class="priere-titre">${escHtml(e.titre)}</div>
+          <div style="font-size:13px;color:var(--text-sub)">${escHtml(preview)}</div>
+        </div>`;
+      }).join('');
+    } catch(e) { el.innerHTML = '<div class="empty-state"><p>Erreur de connexion</p></div>'; }
+  }
+
+  async function ouvrirEtudeById(id) {
+    try {
+      const r = await fetch(`${API}/etudes`);
+      const list = await r.json();
+      const etude = list.find(x => x._id === id);
+      if (!etude) return;
+      etudeActuelle = etude;
+      ouvrirEtude();
+    } catch(e) {}
+  }
+
+  // ══════════════════════════════════════════════════════════
+  //  BIBLIOTHÈQUE — LIVRES
+  // ══════════════════════════════════════════════════════════
+  async function chargerLivres() {
+    const el = document.getElementById('livres-list');
+    el.innerHTML = '<div class="empty-state"><p>Chargement…</p></div>';
+    try {
+      const r = await fetch(`${API}/livres`);
+      const list = await r.json();
+      if (!list.length) { el.innerHTML = '<div class="empty-state"><p>Aucun livre disponible</p></div>'; return; }
+      const parCat = {};
+      list.forEach(l => { if (!parCat[l.categorie]) parCat[l.categorie] = []; parCat[l.categorie].push(l); });
+      el.innerHTML = Object.keys(parCat).sort().map(cat => `
+        <div class="cat-header">${escHtml(cat)}</div>
+        ${parCat[cat].map(l => `
+          <div class="livre-card" onclick="ouvrirLivre('${l.fichierUrl||l.lienExterne||''}')">
+            <div class="livre-cover">
+              ${l.couvertureUrl
+                ? `<img src="${l.couvertureUrl}" alt="" />`
+                : `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>`}
+            </div>
+            <div class="livre-info">
+              <div class="livre-cat">${escHtml(l.categorie)}</div>
+              <div class="livre-titre">${escHtml(l.titre)}</div>
+              ${l.auteur ? `<div class="livre-auteur">${escHtml(l.auteur)}</div>` : ''}
+              ${l.description ? `<div style="font-size:11.5px;color:var(--text-muted);margin-top:3px">${escHtml(l.description.substring(0,60))}…</div>` : ''}
+            </div>
+          </div>`).join('')}
+      `).join('');
+    } catch(e) { el.innerHTML = '<div class="empty-state"><p>Erreur de connexion</p></div>'; }
+  }
+
+  function ouvrirLivre(url) {
+    if (!url) { showToast('Lien non disponible'); return; }
+    window.open(url, '_blank');
+  }
+
+  // ══════════════════════════════════════════════════════════
+  //  BIBLIOTHÈQUE — VIDÉOS
+  // ══════════════════════════════════════════════════════════
+  async function chargerVideos() {
+    const el = document.getElementById('videos-list');
+    el.innerHTML = '<div class="empty-state"><p>Chargement…</p></div>';
+    try {
+      const r = await fetch(`${API}/videos`);
+      const list = await r.json();
+      if (!list.length) { el.innerHTML = '<div class="empty-state"><p>Aucune vidéo disponible</p></div>'; return; }
+      el.innerHTML = list.map(v => {
+        const ytId = extraireYtId(v.youtubeUrl);
+        const thumb = ytId ? `https://img.youtube.com/vi/${ytId}/mqdefault.jpg` : '';
+        return `<div class="video-card" onclick="window.open('${v.youtubeUrl}','_blank')">
+          <div class="video-thumb-wrap">
+            ${thumb ? `<img src="${thumb}" alt="" />` : ''}
+            <div class="video-play-ovl">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="#C0001A"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            </div>
+          </div>
+          <div class="video-info">
+            <div class="video-cat">${escHtml(v.categorie)}</div>
+            <div class="video-titre">${escHtml(v.titre)}</div>
+          </div>
+        </div>`;
+      }).join('');
+    } catch(e) { el.innerHTML = '<div class="empty-state"><p>Erreur de connexion</p></div>'; }
+  }
+
+  function extraireYtId(url) {
+    if (!url) return '';
+    const m = url.match(/(?:v=|youtu\.be\/|embed\/)([A-Za-z0-9_-]{11})/);
+    return m ? m[1] : '';
+  }
+
+  // ══════════════════════════════════════════════════════════
+  //  BIBLIOTHÈQUE — AUDIO (sermons audio)
+  // ══════════════════════════════════════════════════════════
+  function afficherAudio() {
+    const el = document.getElementById('audio-list');
+    const audioSermons = sermons.filter(s => s.audioUrl && (s.statut === 'termine' || s.statut === 'en_cours'));
+    if (!audioSermons.length) { el.innerHTML = '<div class="empty-state"><p>Aucun audio disponible</p></div>'; return; }
+    el.innerHTML = audioSermons.map(s => {
+      const d = new Date(s.dateDiffusion).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'});
+      const icon = s.coverUrl ? `<img src="${s.coverUrl}" alt="" />` : `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>`;
+      return `<div class="lib-item" onclick="jouerSermon('${s._id}')">
+        <div class="lib-icon">${icon}</div>
+        <div class="lib-info"><div class="lib-title">${s.titre}</div><div class="lib-meta">${d}</div></div>
+        <button class="lib-play" onclick="event.stopPropagation();jouerSermon('${s._id}')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        </button>
+      </div>`;
+    }).join('');
+  }
+
+  // ============ PLAYER AUDIO ============
+  function jouerSermon(id) {
+    const s = sermons.find(x => x._id === id);
+    if (!s) return;
+    if (!s.audioUrl) { showToast('Audio non disponible'); return; }
+    switchTab('home');
+    document.getElementById('mini-player').classList.add('visible');
+    document.getElementById('mp-title').textContent = s.titre;
+    document.getElementById('mp-live-badge').style.display = 'none';
+    document.getElementById('mp-status').style.display = 'block';
+    document.getElementById('mp-status').textContent = s.predicateur || 'En lecture';
+    ouvrirAudio(s.audioUrl);
+    document.getElementById('mini-player').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  // ── preparerAudio : charge l'URL SANS lancer la lecture ──────────────────
+  // Utilisé pour les sermons en_cours détectés au chargement de l'app.
+  // L'utilisateur doit appuyer lui-même sur ▶ pour écouter.
+  function preparerAudio(url) {
+    if (!url) return;
+    const audio = document.getElementById('main-audio');
+    if (activeAudioUrl === url) return; // déjà préparé
+    activeAudioUrl = url;
+    userPaused = false;
+    audio.src = url;
+    audio.load();
+    audio.ontimeupdate = updatePlayer;
+    audio.onended = () => { setPlayIcon(false); userPaused = false; };
+    setPlayIcon(false); // bouton ▶ affiché en état "prêt à jouer"
+  }
+
+  // ── ouvrirAudio : charge ET lance la lecture (appel explicite par l'utilisateur) ──
+  function ouvrirAudio(url) {
+    if (!url) return;
+    const audio = document.getElementById('main-audio');
+    if (activeAudioUrl !== url) {
+      activeAudioUrl = url;
+      userPaused = false;
+      audio.src = url;
+      audio.load();
+      audio.ontimeupdate = updatePlayer;
+      audio.onended = () => { setPlayIcon(false); userPaused = false; };
+    } else if (userPaused) {
+      // Même URL mais l'utilisateur a pausé volontairement → on ne relance PAS
+      return;
+    }
+    audio.play()
+      .then(() => { setPlayIcon(true); })
+      .catch(() => { /* autoplay bloqué — l'utilisateur peut appuyer sur ▶ */ });
+  }
+
+  // Appelé par le bouton ▶ : toggle play/pause
+  function demarrerOuToggle() {
+    const a = document.getElementById('main-audio');
+    if (!a.src) return;
+    if (a.paused) {
+      userPaused = false;
+      a.play()
+        .then(() => { setPlayIcon(true); })
+        .catch(() => showToast('Lecture impossible'));
+    } else {
+      userPaused = true;
+      a.pause(); setPlayIcon(false);
+    }
+  }
+
+  function togglePlay() { demarrerOuToggle(); }
+
+  function setPlayIcon(playing) {
+    document.getElementById('play-icon').outerHTML = playing
+      ? `<svg id="play-icon" width="26" height="26" viewBox="0 0 24 24" fill="#7A0015"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`
+      : `<svg id="play-icon" width="26" height="26" viewBox="0 0 24 24" fill="#7A0015"><polygon points="5 3 19 12 5 21 5 3"/></svg>`;
+  }
+
+  function updatePlayer() {
+    const a = document.getElementById('main-audio');
+    if (!a.duration) return;
+    const pct = (a.currentTime / a.duration) * 100;
+    document.getElementById('mp-fill').style.width = pct + '%';
+    document.getElementById('time-current').textContent = fmt(a.currentTime);
+    document.getElementById('time-total').textContent = fmt(a.duration);
+  }
+
+  function seekAudio(e) {
+    const a = document.getElementById('main-audio');
+    if (!a.duration) return;
+    const track = document.getElementById('mp-progress');
+    a.currentTime = (e.offsetX / track.offsetWidth) * a.duration;
+  }
+
+  function setVolume(v) { document.getElementById('main-audio').volume = v; }
+  function skipBack()    { const a = document.getElementById('main-audio'); a.currentTime = Math.max(0, a.currentTime - 10); }
+  function skipForward() { const a = document.getElementById('main-audio'); a.currentTime = Math.min(a.duration || 0, a.currentTime + 10); }
+  function scrollToPlayer() { document.getElementById('mini-player').scrollIntoView({ behavior: 'smooth' }); }
+  function fmt(s) { if (!s || isNaN(s)) return '0:00'; return Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0'); }
+
+  // ============ TOAST ============
+  let toastTimer;
+  function showToast(msg) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+  }
+
+  // Poll auto toutes les 10s
+  setInterval(chargerSermons, 10000);
+
+  // ============ MODAL HELPERS ============
+  function ouvrirModal(id) { document.getElementById('modal-' + id).classList.add('open'); }
+  function fermerModal(id) { document.getElementById('modal-' + id).classList.remove('open'); }
+
+  // ============ DON ============
+  let donData = {};
+  async function chargerDon() {
+    try {
+      const res = await fetch(API + '/settings/don');
+      if (!res.ok) return;
+      donData = await res.json();
+      const d = donData;
+      // Mensuel — téléphones
+      if (d.telephone1) { document.getElementById('don-tel1-m').textContent = d.telephone1; }
+      if (d.telephone2) {
+        document.getElementById('don-tel2-m').textContent = d.telephone2;
+        document.getElementById('don-tel2-m-row').style.display = 'flex';
+      }
+      if (d.instructions) {
+        const html = `<div class="don-instructions">ℹ️ ${d.instructions}</div>`;
+        document.getElementById('don-mensuel-instructions').innerHTML = html;
+        document.getElementById('don-unique-instructions').innerHTML = html;
+      }
+      // Unique — coordonnées bancaires
+      if (d.nomTitulaire) document.getElementById('don-titulaire').textContent = d.nomTitulaire;
+      if (d.nomBanque)    document.getElementById('don-banque').textContent    = d.nomBanque;
+      if (d.numeroCompte) {
+        document.getElementById('don-compte').textContent = d.numeroCompte;
+        document.getElementById('don-compte-row').style.display = 'flex';
+      }
+      if (d.iban) {
+        document.getElementById('don-iban').textContent = d.iban;
+        document.getElementById('don-iban-row').style.display = 'flex';
+      }
+      if (d.bic) {
+        document.getElementById('don-bic').textContent = d.bic;
+        document.getElementById('don-bic-row').style.display = 'flex';
+      }
+    } catch(e) {}
+  }
+  chargerDon();
+
+  function ouvrirModalDon() { ouvrirModal('don'); }
+
+  function switchDon(type) {
+    const isM = (type === 'mensuel');
+    document.getElementById('don-mensuel-panel').classList.toggle('active', isM);
+    document.getElementById('don-unique-panel').classList.toggle('active', !isM);
+    document.getElementById('tab-mensuel-btn').classList.toggle('active', isM);
+    document.getElementById('tab-unique-btn').classList.toggle('active', !isM);
+  }
+
+  function copier(elId, label) {
+    const v = document.getElementById(elId).textContent.trim();
+    if (!v || v === '—') return;
+    navigator.clipboard.writeText(v).then(() => showToast('✅ ' + label)).catch(() => {
+      const ta = document.createElement('textarea');
+      ta.value = v; document.body.appendChild(ta); ta.select();
+      document.execCommand('copy'); document.body.removeChild(ta);
+      showToast('✅ ' + label);
+    });
+  }
+
+  // ============ DEVENIR MEMBRE ============
+  function ouvrirModalMembre() {
+    document.getElementById('mf-nom').value = '';
+    document.getElementById('mf-tel').value = '';
+    document.getElementById('mf-adresse').value = '';
+    ouvrirModal('membre');
+  }
+
+  async function soumettreMembre() {
+    const nom     = document.getElementById('mf-nom').value.trim();
+    const tel     = document.getElementById('mf-tel').value.trim();
+    const adresse = document.getElementById('mf-adresse').value.trim();
+    if (!nom || !tel || !adresse) { showToast('Veuillez remplir tous les champs'); return; }
+    const btn = document.getElementById('mf-submit');
+    btn.disabled = true; btn.textContent = 'Envoi…';
+    try {
+      const res = await fetch(API + '/membres', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nom, telephone: tel, adresse }),
+      });
+      if (res.ok) {
+        showToast('✅ Demande envoyée ! Le pasteur vous contactera.');
+        fermerModal('membre');
+      } else {
+        const j = await res.json().catch(() => ({}));
+        showToast('Erreur : ' + (j.error || res.status));
+      }
+    } catch(e) { showToast('Erreur réseau'); }
+    finally { btn.disabled = false; btn.textContent = 'Envoyer ma demande'; }
+  }
+
+  // ============ COMMENTAIRES ============
+  async function chargerCommentaires() {
+    try {
+      const res = await fetch(API + '/comments');
+      if (!res.ok) return;
+      const list = await res.json();
+      const el = document.getElementById('comment-list');
+      if (!list.length) {
+        el.innerHTML = '<div class="empty-state"><p>Aucun message pour l\'instant</p></div>';
+        return;
+      }
+      el.innerHTML = list.map(c => `
+        <div class="comment-item">
+          <div class="comment-text">${escHtml(c.texte)}</div>
+          <div class="comment-date">${fmtDate(c.dateEnvoi)}</div>
+          ${c.adminReponse ? `
+            <div class="comment-reply">
+              <div class="comment-reply-label">— Pasteur</div>
+              <div class="comment-reply-text">${escHtml(c.adminReponse)}</div>
+            </div>` : ''}
+        </div>`).join('');
+    } catch(e) {}
+  }
+  chargerCommentaires();
+
+  async function envoyerCommentaire() {
+    const input = document.getElementById('comment-input');
+    const texte = input.value.trim();
+    if (!texte) { showToast('Écrivez un message avant d\'envoyer'); return; }
+    try {
+      const res = await fetch(API + '/comments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ texte }),
+      });
+      if (res.ok) {
+        input.value = '';
+        showToast('✅ Message envoyé');
+        chargerCommentaires();
+      } else { showToast('Erreur lors de l\'envoi'); }
+    } catch(e) { showToast('Erreur réseau'); }
+  }
+
+  function escHtml(s) {
+    return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+  }
+  function fmtDate(d) {
+    if (!d) return '';
+    const dt = new Date(d);
+    return dt.toLocaleDateString('fr-FR', { day:'numeric', month:'long', year:'numeric' })
+      + ' · ' + dt.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
+  }
+</script>
+</body>
+</html>
