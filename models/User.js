@@ -1,26 +1,26 @@
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
-  nom: { 
-    type: String, 
+  nom: {
+    type: String,
     required: true,
-    trim: true 
+    trim: true
   },
-  telephone: { 
-    type: String, 
-    required: true, 
+  telephone: {
+    type: String,
+    required: true,
     unique: true,
     trim: true
   },
-  // Le token généré par l'application mobile (Firebase Cloud Messaging)
-  fcmToken: { 
-    type: String, 
-    required: true 
-  }, 
+  // Token Firebase Cloud Messaging — optionnel (vide pour les utilisateurs web sans app)
+  fcmToken: {
+    type: String,
+    default: ''
+  },
   // Permet à l'utilisateur d'activer ou couper le mode réveil automatique
-  modeMaranathaActif: { 
-    type: Boolean, 
-    default: true 
+  modeMaranathaActif: {
+    type: Boolean,
+    default: true
   },
   // Pour différencier le Pasteur (admin) des fidèles
   role: {
@@ -28,9 +28,9 @@ const userSchema = new mongoose.Schema({
     enum: ['fidele', 'pasteur'],
     default: 'fidele'
   },
-  dateInscription: { 
-    type: Date, 
-    default: Date.now 
+  dateInscription: {
+    type: Date,
+    default: Date.now
   }
 });
 
