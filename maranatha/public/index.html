@@ -48,6 +48,47 @@
     }
     #splash-screen.fade-out { opacity: 0; pointer-events: none; }
     .splash-logo { width: 140px; height: 140px; object-fit: contain; margin-bottom: 16px; }
+
+    /* ============================
+       LOADER CENTRÉ (actualisation)
+    ============================ */
+    #page-loader {
+      position: fixed; inset: 0; z-index: 8000;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      pointer-events: none;
+      opacity: 0; transition: opacity .25s;
+    }
+    #page-loader.visible { opacity: 1; pointer-events: auto; }
+    .loader-bubble {
+      background: #fff;
+      border-radius: 24px;
+      padding: 22px 32px;
+      display: flex; flex-direction: column; align-items: center; gap: 14px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+    }
+    .loader-spinner {
+      width: 36px; height: 36px;
+      border: 3.5px solid rgba(192,0,26,0.12);
+      border-top-color: #C0001A;
+      border-radius: 50%;
+      animation: spin .75s linear infinite;
+    }
+    .loader-text {
+      font-size: 13px; font-weight: 700; color: var(--text-sub); letter-spacing: .3px;
+    }
+
+    /* Pull-to-refresh arc */
+    #ptr-arc {
+      position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+      z-index: 7999; display: flex; align-items: center; justify-content: center;
+      width: 44px; height: 44px; border-radius: 50%; background: #fff;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.14);
+      opacity: 0; transition: opacity .2s;
+      pointer-events: none;
+    }
+    #ptr-arc.pulling { opacity: 1; }
+    #ptr-arc.releasing { opacity: 1; animation: spin .75s linear infinite; }
     .splash-church-name {
       font-size: 11px; font-weight: 400; color: #AAA;
       text-transform: uppercase; letter-spacing: 1px;
@@ -854,6 +895,22 @@
   <div class="splash-spinner"></div>
 </div>
 
+<!-- ============ LOADER CENTRÉ ============ -->
+<div id="page-loader">
+  <div class="loader-bubble">
+    <div class="loader-spinner"></div>
+    <div class="loader-text">Actualisation…</div>
+  </div>
+</div>
+
+<!-- ============ PULL-TO-REFRESH ARC ============ -->
+<div id="ptr-arc">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C0001A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="1 4 1 10 7 10"/>
+    <path d="M3.51 15a9 9 0 1 0 .49-3.5"/>
+  </svg>
+</div>
+
 
 <!-- ============ OVERLAY LIVE (plein écran) ============ -->
 <div id="live-overlay">
@@ -1569,9 +1626,10 @@
       body: JSON.stringify({ nom: 'Fidèle', telephone: tel, role: 'fidele', fcmToken: window.flutterFcmToken || '' }),
     }).catch(() => {});
 
-    chargerSermons();
+    afficherLoader('Chargement…');
+    Promise.all([chargerSermons(), chargerEtudeJour()])
+      .finally(() => cacherLoader());
     chargerYoutube();
-    chargerEtudeJour();
     connecterSSE();
   }
 
@@ -1756,6 +1814,58 @@
 
   function fermerBookPicker()  { document.getElementById('book-picker').classList.remove('visible'); }
   function fermerChapPicker()  { document.getElementById('chap-picker').classList.remove('visible'); }
+
+  // ============ LOADER CENTRÉ ============
+  let loaderTimer = null;
+  function afficherLoader(txt) {
+    const el = document.getElementById('page-loader');
+    el.querySelector('.loader-text').textContent = txt || 'Actualisation…';
+    el.classList.add('visible');
+    clearTimeout(loaderTimer);
+    loaderTimer = setTimeout(() => el.classList.remove('visible'), 8000);
+  }
+  function cacherLoader() {
+    clearTimeout(loaderTimer);
+    document.getElementById('page-loader').classList.remove('visible');
+  }
+
+  // ============ PULL-TO-REFRESH ============
+  (function initPTR() {
+    let startY = 0, pulling = false;
+    const THRESHOLD = 72;
+    const arc = document.getElementById('ptr-arc');
+    const scrollEl = document.getElementById('tab-home');
+
+    document.addEventListener('touchstart', e => {
+      const atTop = window.scrollY <= 2;
+      if (atTop) { startY = e.touches[0].clientY; pulling = true; }
+    }, { passive: true });
+
+    document.addEventListener('touchmove', e => {
+      if (!pulling) return;
+      const dy = e.touches[0].clientY - startY;
+      if (dy > 20) {
+        arc.style.transform = `translateX(-50%) translateY(${Math.min(dy - 20, 40)}px)`;
+        arc.classList.add('pulling');
+        arc.classList.remove('releasing');
+      }
+    }, { passive: true });
+
+    document.addEventListener('touchend', async e => {
+      if (!pulling) return;
+      pulling = false;
+      const dy = e.changedTouches[0].clientY - startY;
+      if (dy >= THRESHOLD) {
+        arc.classList.add('releasing');
+        afficherLoader('Actualisation…');
+        await chargerSermons();
+        await chargerEtudeJour();
+        cacherLoader();
+      }
+      arc.classList.remove('pulling', 'releasing');
+      arc.style.transform = 'translateX(-50%) translateY(0)';
+    }, { passive: true });
+  })();
 
   // ============ CHARGEMENT ============
   async function chargerSermons() {
