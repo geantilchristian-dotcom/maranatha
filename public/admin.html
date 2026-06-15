@@ -501,25 +501,18 @@
     <!-- ===== VIDÉO YOUTUBE ===== -->
     <div class="section-title" style="margin-top:40px">
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
-      Vidéo en vedette (Accueil)
+      Vidéos en vedette (Accueil — carousel)
     </div>
     <div class="card">
-      <div class="form-grid">
-        <div class="form-group full">
-          <label>Lien YouTube (ex : https://www.youtube.com/watch?v=...)</label>
-          <input type="text" id="yt-url" placeholder="https://www.youtube.com/watch?v=xxxxx" />
-        </div>
-        <div class="form-group">
-          <label>Texte du bouton</label>
-          <input type="text" id="yt-label" placeholder="Regarder sur YouTube" />
-        </div>
-        <div class="form-group" style="justify-content:flex-end">
-          <label>&nbsp;</label>
-          <button class="btn-submit" onclick="sauvegarderHome()" id="btn-home">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:5px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-            Enregistrer la vidéo
-          </button>
-        </div>
+      <div id="yt-links-list"></div>
+      <button type="button" onclick="ajouterLienYT()" style="background:none;border:1.5px dashed rgba(192,0,26,0.35);color:#C0001A;border-radius:10px;padding:8px 18px;font-size:13px;font-weight:700;cursor:pointer;width:100%;margin:8px 0 16px">
+        + Ajouter un lien YouTube
+      </button>
+      <div style="text-align:right">
+        <button class="btn-submit" onclick="sauvegarderHome()" id="btn-home">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:5px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Enregistrer
+        </button>
       </div>
     </div>
 
@@ -733,23 +726,75 @@
     } catch(e) {}
   }
 
+  // ===== YOUTUBE LINKS =====
+  function renderYTLinks(links) {
+    const list = document.getElementById('yt-links-list');
+    if (!links || !links.length) { list.innerHTML = ''; return; }
+    list.innerHTML = links.map((l, i) => `
+      <div class="form-grid" id="yt-row-${i}" style="margin-bottom:8px;align-items:flex-end">
+        <div class="form-group full" style="flex:2">
+          <label>Lien YouTube n°${i+1}</label>
+          <input type="text" id="yt-url-${i}" value="${(l.url||'').replace(/"/g,'&quot;')}" placeholder="https://www.youtube.com/watch?v=xxxxx" />
+        </div>
+        <div class="form-group" style="flex:1">
+          <label>Texte du bouton</label>
+          <input type="text" id="yt-lbl-${i}" value="${(l.label||'').replace(/"/g,'&quot;')}" placeholder="Regarder sur YouTube" />
+        </div>
+        <div class="form-group" style="flex:0 0 auto">
+          <label>&nbsp;</label>
+          <button type="button" onclick="supprimerLienYT(${i})" style="background:rgba(192,0,26,0.1);border:1px solid rgba(192,0,26,0.3);color:#C0001A;border-radius:8px;padding:8px 12px;cursor:pointer">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+          </button>
+        </div>
+      </div>`).join('');
+  }
+
+  let _ytLinks = [];
+  function ajouterLienYT() {
+    _ytLinks.push({ url: '', label: '' });
+    renderYTLinks(_ytLinks);
+  }
+  function supprimerLienYT(i) {
+    _ytLinks.splice(i, 1);
+    renderYTLinks(_ytLinks);
+  }
+  function collecterYTLinks() {
+    return _ytLinks.map((_, i) => ({
+      url:   (document.getElementById('yt-url-'+i)||{}).value || '',
+      label: (document.getElementById('yt-lbl-'+i)||{}).value || '',
+    })).filter(l => l.url.trim());
+  }
+
+  async function chargerHome() {
+    try {
+      const res = await fetch(API + '/settings/home');
+      if (!res.ok) return;
+      const cfg = await res.json();
+      if (Array.isArray(cfg.youtubeLinks) && cfg.youtubeLinks.length) {
+        _ytLinks = cfg.youtubeLinks.map(l => ({ url: l.url||'', label: l.label||'' }));
+      } else if (cfg.youtubeUrl) {
+        _ytLinks = [{ url: cfg.youtubeUrl, label: cfg.ytLabel||'' }];
+      } else {
+        _ytLinks = [];
+      }
+      renderYTLinks(_ytLinks);
+    } catch(e) {}
+  }
+
   async function sauvegarderHome() {
     const btn = document.getElementById('btn-home');
     btn.disabled = true; btn.innerHTML = 'Enregistrement…';
     try {
-      const body = {
-        youtubeUrl: document.getElementById('yt-url').value.trim() || undefined,
-        ytLabel:    document.getElementById('yt-label').value.trim() || undefined,
-      };
+      const youtubeLinks = collecterYTLinks();
       const res = await fetch(API + '/settings/home', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', ...authHeaders() },
-        body: JSON.stringify(body),
+        body: JSON.stringify({ youtubeLinks }),
       });
-      if (res.ok) toast('Vidéo YouTube enregistrée !', 'success');
+      if (res.ok) toast('Liens YouTube enregistrés !', 'success');
       else toast('Erreur lors de la sauvegarde', 'error');
     } catch(e) { toast('Erreur réseau', 'error'); }
-    finally { btn.disabled = false; btn.innerHTML = 'Enregistrer la vidéo'; }
+    finally { btn.disabled = false; btn.innerHTML = 'Enregistrer'; }
   }
 
   async function sauvegarderSplash() {
@@ -814,7 +859,7 @@
 
   // ===== STATS & CHARGEMENT =====
   async function chargerTout() {
-    await Promise.all([chargerSermons(), chargerStats(), chargerSplash(), chargerDonAdmin(), chargerMembres(), chargerCommentairesAdmin()]);
+    await Promise.all([chargerSermons(), chargerStats(), chargerSplash(), chargerHome(), chargerDonAdmin(), chargerMembres(), chargerCommentairesAdmin()]);
   }
 
   async function chargerStats() {
