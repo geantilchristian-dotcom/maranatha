@@ -63,36 +63,32 @@ async function envoyerNotificationMasse(tokens, sermon) {
   const app = getFirebaseApp();
   const messaging = admin.messaging(app);
 
+  // MESSAGE DATA-ONLY (pas de champ "notification") :
+  // → quand l'app est FERMÉE, Firebase réveille le background handler Flutter
+  //   qui affiche lui-même la notification plein-écran (comme WhatsApp).
+  // → si on mettait un champ "notification", Android l'afficherait directement
+  //   SANS passer par le code Flutter = pas de fullScreenIntent, pas d'alarme.
   const message = {
     tokens,
-    notification: {
-      title: "⛪ Maranatha — Prédication en direct !",
-      body: sermon.titre,
-    },
     data: {
-      sermon_id: sermon._id.toString(),
+      sermon_id:    sermon._id.toString(),
       sermon_titre: sermon.titre,
-      audio_url: sermon.audioUrl,
-      type: "PREDICATION_DIRECTE",
+      audio_url:    sermon.audioUrl || '',
+      type:         'PREDICATION_DIRECTE',
     },
     android: {
-      priority: "high",
-      notification: {
-        channelId: "maranatha_alarme",
-        priority: "max",
-        defaultSound: true,
-      },
+      priority: 'high',
+      ttl:      '60s',   // expire après 1 min si non livré (la prédication est en cours)
     },
     apns: {
       payload: {
         aps: {
-          alert: { title: "⛪ Maranatha — Prédication en direct !", body: sermon.titre },
-          sound: "default",
+          'content-available': 1,  // réveille l'app iOS en background
+          sound: 'default',
           badge: 1,
-          contentAvailable: true,
         },
       },
-      headers: { "apns-priority": "10" },
+      headers: { 'apns-priority': '10', 'apns-push-type': 'background' },
     },
   };
 
