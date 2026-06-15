@@ -662,16 +662,52 @@
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
         Coordonnées pour les dons
       </div>
-      <div class="card">
+
+      <!-- AIRTEL -->
+      <div class="card" style="margin-bottom:12px">
+        <div style="font-size:13px;font-weight:700;color:#E53935;margin-bottom:10px;display:flex;align-items:center;gap:8px">
+          <span style="font-size:20px">📱</span> AIRTEL Money
+        </div>
         <div class="form-grid">
-          <div class="form-group">
-            <label>Téléphone 1 (Mobile Money)</label>
-            <input type="text" id="don-tel1" placeholder="Ex : +243 81 000 00 00" />
+          <div class="form-group full">
+            <label>Numéro AIRTEL Money</label>
+            <input type="text" id="don-airtel" placeholder="Ex : +243 97 000 00 00" />
           </div>
-          <div class="form-group">
-            <label>Téléphone 2 (optionnel)</label>
-            <input type="text" id="don-tel2" placeholder="Ex : +243 99 000 00 00" />
+        </div>
+      </div>
+
+      <!-- ORANGE -->
+      <div class="card" style="margin-bottom:12px">
+        <div style="font-size:13px;font-weight:700;color:#F57C00;margin-bottom:10px;display:flex;align-items:center;gap:8px">
+          <span style="font-size:20px">📱</span> ORANGE Money
+        </div>
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>Numéro ORANGE Money</label>
+            <input type="text" id="don-orange" placeholder="Ex : +243 84 000 00 00" />
           </div>
+        </div>
+      </div>
+
+      <!-- VODACOM -->
+      <div class="card" style="margin-bottom:12px">
+        <div style="font-size:13px;font-weight:700;color:#E53935;margin-bottom:10px;display:flex;align-items:center;gap:8px">
+          <span style="font-size:20px">📱</span> VODACOM M-Pesa
+        </div>
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>Numéro M-Pesa (VODACOM)</label>
+            <input type="text" id="don-vodacom" placeholder="Ex : +243 81 000 00 00" />
+          </div>
+        </div>
+      </div>
+
+      <!-- BANQUE -->
+      <div class="card" style="margin-bottom:12px">
+        <div style="font-size:13px;font-weight:700;color:#1565C0;margin-bottom:10px;display:flex;align-items:center;gap:8px">
+          <span style="font-size:20px">🏦</span> Virement bancaire
+        </div>
+        <div class="form-grid">
           <div class="form-group">
             <label>Nom du titulaire</label>
             <input type="text" id="don-titulaire" placeholder="Ex : Église Maranatha" />
@@ -692,9 +728,15 @@
             <label>BIC / SWIFT (optionnel)</label>
             <input type="text" id="don-bic" placeholder="Ex : RAWBCDKI" />
           </div>
-          <div class="form-group">
-            <label>Instructions (optionnel)</label>
-            <input type="text" id="don-instructions" placeholder="Ex : Mentionnez votre nom" />
+        </div>
+      </div>
+
+      <!-- Instructions + Sauvegarder -->
+      <div class="card">
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>Instructions générales (optionnel)</label>
+            <input type="text" id="don-instructions" placeholder="Ex : Mentionnez votre nom et prénom" />
           </div>
           <div class="form-group full" style="justify-content:flex-end">
             <label>&nbsp;</label>
@@ -1261,8 +1303,9 @@
       const res = await fetch(API + '/settings/don');
       if (!res.ok) return;
       const d = await res.json();
-      document.getElementById('don-tel1').value         = d.telephone1    || '';
-      document.getElementById('don-tel2').value         = d.telephone2    || '';
+      document.getElementById('don-airtel').value       = d.airtel        || '';
+      document.getElementById('don-orange').value       = d.orange        || '';
+      document.getElementById('don-vodacom').value      = d.vodacom       || '';
       document.getElementById('don-titulaire').value    = d.nomTitulaire  || '';
       document.getElementById('don-banque').value       = d.nomBanque     || '';
       document.getElementById('don-compte').value       = d.numeroCompte  || '';
@@ -1277,14 +1320,15 @@
     btn.disabled = true; btn.innerHTML = 'Enregistrement…';
     try {
       const body = {
-        telephone1:   document.getElementById('don-tel1').value.trim()         || undefined,
-        telephone2:   document.getElementById('don-tel2').value.trim()         || undefined,
-        nomTitulaire: document.getElementById('don-titulaire').value.trim()    || undefined,
-        nomBanque:    document.getElementById('don-banque').value.trim()       || undefined,
-        numeroCompte: document.getElementById('don-compte').value.trim()       || undefined,
-        iban:         document.getElementById('don-iban').value.trim()         || undefined,
-        bic:          document.getElementById('don-bic').value.trim()          || undefined,
-        instructions: document.getElementById('don-instructions').value.trim() || undefined,
+        airtel:       document.getElementById('don-airtel').value.trim()       || '',
+        orange:       document.getElementById('don-orange').value.trim()       || '',
+        vodacom:      document.getElementById('don-vodacom').value.trim()      || '',
+        nomTitulaire: document.getElementById('don-titulaire').value.trim()    || '',
+        nomBanque:    document.getElementById('don-banque').value.trim()       || '',
+        numeroCompte: document.getElementById('don-compte').value.trim()       || '',
+        iban:         document.getElementById('don-iban').value.trim()         || '',
+        bic:          document.getElementById('don-bic').value.trim()          || '',
+        instructions: document.getElementById('don-instructions').value.trim() || '',
       };
       const res = await fetch(API + '/settings/don', {
         method: 'PUT', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body),
