@@ -66,6 +66,9 @@ router.put('/home', adminOnly, async (req, res) => {
     // Rétrocompatibilité : ancien format champ unique
     if (req.body.youtubeUrl !== undefined) update.youtubeUrl = req.body.youtubeUrl;
     if (req.body.ytLabel   !== undefined) update.ytLabel    = req.body.ytLabel;
+    if (req.body.facebookUrl       !== undefined) update.facebookUrl       = req.body.facebookUrl;
+    if (req.body.youtubeChannelUrl !== undefined) update.youtubeChannelUrl = req.body.youtubeChannelUrl;
+    if (req.body.tiktokUrl         !== undefined) update.tiktokUrl         = req.body.tiktokUrl;
 
     const s = await Settings.findOneAndUpdate(
       { key: 'home' },
