@@ -884,6 +884,39 @@
       margin-top: 4px;
     }
     .mf-btn:active { opacity: 0.85; }
+    .mf-row { display: flex; gap: 10px; }
+    .mf-col { flex: 1; min-width: 0; }
+    .mf-pays-wrap { position: relative; margin-bottom: 12px; }
+    .mf-pays-wrap .mf-input { margin-bottom: 0; }
+    .mf-pays-dropdown {
+      position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 600;
+      background: #fff; border: 1.5px solid #C0001A; border-radius: 12px;
+      max-height: 190px; overflow-y: auto;
+      box-shadow: 0 6px 28px rgba(0,0,0,0.16);
+    }
+    .mf-pays-option {
+      padding: 11px 14px; cursor: pointer; font-size: 14px; color: var(--text);
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+    .mf-pays-option:last-child { border-bottom: none; }
+    .mf-pays-option:active { background: #FFF0F0; }
+    .mf-pays-code { font-size: 12px; font-weight: 700; color: #C0001A; }
+    .mf-tel-wrap { display: flex; align-items: stretch; gap: 8px; margin-bottom: 12px; }
+    .mf-tel-code {
+      background: var(--bg); border: 1.5px solid var(--border); border-radius: 12px;
+      padding: 0 12px; font-size: 14px; font-weight: 800; color: #C0001A;
+      min-width: 64px; text-align: center; display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .mf-tel-input { flex: 1; margin-bottom: 0 !important; }
+    .mf-sexe-row { display: flex; gap: 10px; margin-bottom: 12px; }
+    .mf-sexe-btn {
+      flex: 1; padding: 12px; border: 1.5px solid var(--border); border-radius: 12px;
+      background: var(--bg); font-size: 14px; font-weight: 700; color: var(--text-sub);
+      cursor: pointer; transition: all .15s;
+    }
+    .mf-sexe-btn.active { border-color: #C0001A; background: #FFF0F0; color: #C0001A; }
   </style>
 </head>
 <body>
@@ -1406,12 +1439,52 @@
     <div class="modal-handle"></div>
     <div class="modal-title">Devenir membre</div>
     <div class="modal-sub">Remplissez ce formulaire pour rejoindre l'église Maranatha</div>
-    <label class="mf-label">Nom complet *</label>
-    <input type="text" class="mf-input" id="mf-nom" placeholder="Ex : Jean Dupont" />
-    <label class="mf-label">Numéro de téléphone *</label>
-    <input type="tel" class="mf-input" id="mf-tel" placeholder="Ex : 06 00 00 00 00" />
-    <label class="mf-label">Adresse *</label>
-    <input type="text" class="mf-input" id="mf-adresse" placeholder="Ex : 12 Rue des Fleurs, Quartier Nord" />
+
+    <div class="mf-row">
+      <div class="mf-col">
+        <label class="mf-label">Nom *</label>
+        <input type="text" class="mf-input" id="mf-nom" placeholder="Nom" />
+      </div>
+      <div class="mf-col">
+        <label class="mf-label">Post-nom</label>
+        <input type="text" class="mf-input" id="mf-postnom" placeholder="Post-nom" />
+      </div>
+    </div>
+
+    <div class="mf-row">
+      <div class="mf-col">
+        <label class="mf-label">Prénom *</label>
+        <input type="text" class="mf-input" id="mf-prenom" placeholder="Prénom" />
+      </div>
+      <div class="mf-col">
+        <label class="mf-label">Âge *</label>
+        <input type="number" class="mf-input" id="mf-age" placeholder="Âge" min="5" max="120" />
+      </div>
+    </div>
+
+    <label class="mf-label">Sexe *</label>
+    <div class="mf-sexe-row">
+      <button type="button" class="mf-sexe-btn" id="mf-sexe-h" onclick="choisirSexe('Homme')">♂ Homme</button>
+      <button type="button" class="mf-sexe-btn" id="mf-sexe-f" onclick="choisirSexe('Femme')">♀ Femme</button>
+    </div>
+    <input type="hidden" id="mf-sexe" />
+
+    <label class="mf-label">Pays *</label>
+    <div class="mf-pays-wrap" id="mf-pays-wrap">
+      <input type="text" class="mf-input" id="mf-pays-search"
+        placeholder="🔍 Rechercher un pays…" autocomplete="off"
+        oninput="filtrerPays()" onfocus="ouvrirDropdownPays()" />
+      <input type="hidden" id="mf-pays" />
+      <input type="hidden" id="mf-indicatif" />
+      <div id="mf-pays-dropdown" class="mf-pays-dropdown" style="display:none"></div>
+    </div>
+
+    <label class="mf-label">Téléphone *</label>
+    <div class="mf-tel-wrap">
+      <div class="mf-tel-code" id="mf-tel-code">+--</div>
+      <input type="tel" class="mf-input mf-tel-input" id="mf-tel" placeholder="Numéro de téléphone" />
+    </div>
+
     <button class="mf-btn" id="mf-submit" onclick="soumettreMembre()">Envoyer ma demande</button>
   </div>
 </div>
@@ -2622,25 +2695,113 @@
   }
 
   // ============ DEVENIR MEMBRE ============
+  // ══════════════════════════════════════════════════════════
+  //  PAYS — données + recherche + code tel
+  // ══════════════════════════════════════════════════════════
+  const PAYS_DATA = [
+    {n:'Afghanistan',t:'+93'},{n:'Afrique du Sud',t:'+27'},{n:'Albanie',t:'+355'},
+    {n:'Algérie',t:'+213'},{n:'Allemagne',t:'+49'},{n:'Angola',t:'+244'},
+    {n:'Arabie Saoudite',t:'+966'},{n:'Argentine',t:'+54'},{n:'Australie',t:'+61'},
+    {n:'Autriche',t:'+43'},{n:'Belgique',t:'+32'},{n:'Bénin',t:'+229'},
+    {n:'Brésil',t:'+55'},{n:'Burkina Faso',t:'+226'},{n:'Burundi',t:'+257'},
+    {n:'Cameroun',t:'+237'},{n:'Canada',t:'+1'},{n:'Centrafrique',t:'+236'},
+    {n:'Comores',t:'+269'},{n:'Congo (Brazzaville)',t:'+242'},{n:'Congo (RDC)',t:'+243'},
+    {n:'Côte d\'Ivoire',t:'+225'},{n:'Danemark',t:'+45'},{n:'Djibouti',t:'+253'},
+    {n:'Égypte',t:'+20'},{n:'Émirats Arabes Unis',t:'+971'},{n:'Espagne',t:'+34'},
+    {n:'Éthiopie',t:'+251'},{n:'États-Unis',t:'+1'},{n:'Finlande',t:'+358'},
+    {n:'France',t:'+33'},{n:'Gabon',t:'+241'},{n:'Ghana',t:'+233'},
+    {n:'Grèce',t:'+30'},{n:'Guinée',t:'+224'},{n:'Guinée-Bissau',t:'+245'},
+    {n:'Guinée équatoriale',t:'+240'},{n:'Haïti',t:'+509'},{n:'Inde',t:'+91'},
+    {n:'Irlande',t:'+353'},{n:'Italie',t:'+39'},{n:'Kenya',t:'+254'},
+    {n:'Liban',t:'+961'},{n:'Liberia',t:'+231'},{n:'Luxembourg',t:'+352'},
+    {n:'Madagascar',t:'+261'},{n:'Malawi',t:'+265'},{n:'Mali',t:'+223'},
+    {n:'Maroc',t:'+212'},{n:'Maurice',t:'+230'},{n:'Mauritanie',t:'+222'},
+    {n:'Mexique',t:'+52'},{n:'Mozambique',t:'+258'},{n:'Namibie',t:'+264'},
+    {n:'Niger',t:'+227'},{n:'Nigeria',t:'+234'},{n:'Norvège',t:'+47'},
+    {n:'Ouganda',t:'+256'},{n:'Pays-Bas',t:'+31'},{n:'Portugal',t:'+351'},
+    {n:'République Centrafricaine',t:'+236'},{n:'Royaume-Uni',t:'+44'},
+    {n:'Rwanda',t:'+250'},{n:'Sénégal',t:'+221'},{n:'Sierra Leone',t:'+232'},
+    {n:'Somalie',t:'+252'},{n:'Soudan',t:'+249'},{n:'Suède',t:'+46'},
+    {n:'Suisse',t:'+41'},{n:'Tanzanie',t:'+255'},{n:'Tchad',t:'+235'},
+    {n:'Togo',t:'+228'},{n:'Tunisie',t:'+216'},{n:'Turquie',t:'+90'},
+    {n:'Zambie',t:'+260'},{n:'Zimbabwe',t:'+263'},
+  ];
+
+  function ouvrirDropdownPays() {
+    filtrerPays();
+    document.getElementById('mf-pays-dropdown').style.display = 'block';
+  }
+
+  function filtrerPays() {
+    const q = document.getElementById('mf-pays-search').value.toLowerCase();
+    const dd = document.getElementById('mf-pays-dropdown');
+    const filtered = q
+      ? PAYS_DATA.filter(p => p.n.toLowerCase().includes(q))
+      : PAYS_DATA;
+    if (!filtered.length) { dd.innerHTML = '<div class="mf-pays-option" style="color:#999">Aucun résultat</div>'; dd.style.display='block'; return; }
+    dd.innerHTML = filtered.map(p =>
+      `<div class="mf-pays-option" onmousedown="selectionnerPays('${p.n.replace(/'/g,"\\'")}','${p.t}')">
+        <span>${p.n}</span><span class="mf-pays-code">${p.t}</span>
+      </div>`
+    ).join('');
+    dd.style.display = 'block';
+  }
+
+  function selectionnerPays(nom, tel) {
+    document.getElementById('mf-pays-search').value = nom;
+    document.getElementById('mf-pays').value = nom;
+    document.getElementById('mf-indicatif').value = tel;
+    document.getElementById('mf-tel-code').textContent = tel;
+    document.getElementById('mf-pays-dropdown').style.display = 'none';
+  }
+
+  function choisirSexe(val) {
+    document.getElementById('mf-sexe').value = val;
+    document.getElementById('mf-sexe-h').classList.toggle('active', val === 'Homme');
+    document.getElementById('mf-sexe-f').classList.toggle('active', val === 'Femme');
+  }
+
   function ouvrirModalMembre() {
-    document.getElementById('mf-nom').value = '';
-    document.getElementById('mf-tel').value = '';
-    document.getElementById('mf-adresse').value = '';
+    ['mf-nom','mf-postnom','mf-prenom','mf-age','mf-tel','mf-pays-search'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.value = '';
+    });
+    document.getElementById('mf-sexe').value = '';
+    document.getElementById('mf-pays').value = '';
+    document.getElementById('mf-indicatif').value = '';
+    document.getElementById('mf-tel-code').textContent = '+--';
+    document.getElementById('mf-pays-dropdown').style.display = 'none';
+    document.getElementById('mf-sexe-h').classList.remove('active');
+    document.getElementById('mf-sexe-f').classList.remove('active');
     ouvrirModal('membre');
   }
 
+  document.addEventListener('click', e => {
+    if (!document.getElementById('mf-pays-wrap')?.contains(e.target))
+      document.getElementById('mf-pays-dropdown') && (document.getElementById('mf-pays-dropdown').style.display = 'none');
+  });
+
   async function soumettreMembre() {
-    const nom     = document.getElementById('mf-nom').value.trim();
-    const tel     = document.getElementById('mf-tel').value.trim();
-    const adresse = document.getElementById('mf-adresse').value.trim();
-    if (!nom || !tel || !adresse) { showToast('Veuillez remplir tous les champs'); return; }
+    const nom      = document.getElementById('mf-nom').value.trim();
+    const postNom  = document.getElementById('mf-postnom').value.trim();
+    const prenom   = document.getElementById('mf-prenom').value.trim();
+    const age      = document.getElementById('mf-age').value.trim();
+    const sexe     = document.getElementById('mf-sexe').value;
+    const pays     = document.getElementById('mf-pays').value.trim();
+    const indicatif= document.getElementById('mf-indicatif').value.trim();
+    const tel      = document.getElementById('mf-tel').value.trim();
+    if (!nom)    { showToast('Veuillez entrer votre nom'); return; }
+    if (!prenom) { showToast('Veuillez entrer votre prénom'); return; }
+    if (!age)    { showToast('Veuillez entrer votre âge'); return; }
+    if (!sexe)   { showToast('Veuillez choisir votre sexe'); return; }
+    if (!pays)   { showToast('Veuillez choisir un pays'); return; }
+    if (!tel)    { showToast('Veuillez entrer votre téléphone'); return; }
     const btn = document.getElementById('mf-submit');
     btn.disabled = true; btn.textContent = 'Envoi…';
     try {
       const res = await fetch(API + '/membres', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nom, telephone: tel, adresse }),
+        body: JSON.stringify({ nom, postNom, prenom, age: Number(age), sexe, telephone: indicatif + tel, indicatif, pays }),
       });
       if (res.ok) {
         showToast('✅ Demande envoyée ! Le pasteur vous contactera.');
