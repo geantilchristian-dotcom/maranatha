@@ -90,7 +90,7 @@ router.get('/don', async (req, res) => {
 // PUT /api/settings/don — admin only
 router.put('/don', adminOnly, async (req, res) => {
   try {
-    const allowed = ['telephone1','telephone2','nomTitulaire','nomBanque','numeroCompte','iban','bic','instructions'];
+    const allowed = ['airtel','orange','vodacom','nomTitulaire','nomBanque','numeroCompte','iban','bic','instructions','telephone1','telephone2'];
     const update = {};
     for (const k of allowed) { if (req.body[k] !== undefined) update[k] = req.body[k]; }
     const s = await Settings.findOneAndUpdate({ key: 'don' }, { $set: update }, { new: true, upsert: true });
