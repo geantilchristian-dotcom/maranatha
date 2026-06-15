@@ -233,6 +233,45 @@
     .mp-progress { width: 100%; height: 3px; background: rgba(255,255,255,0.2); border-radius: 2px; cursor: pointer; }
     .mp-fill { height: 100%; background: #fff; border-radius: 2px; transition: width .3s linear; }
     .mp-times { display: flex; justify-content: space-between; color: rgba(255,255,255,0.4); font-size: 11px; margin-top: 4px; }
+
+    /* ======= OVERLAY LIVE (plein écran, 1 seul tap suffit) ======= */
+    #live-overlay {
+      display: none; position: fixed; inset: 0; z-index: 9999;
+      background: rgba(160,0,26,0.96); backdrop-filter: blur(6px);
+      flex-direction: column; align-items: center; justify-content: center;
+      padding: 32px; animation: fadeIn .4s ease;
+    }
+    #live-overlay.visible { display: flex; }
+    .lov-badge {
+      display: flex; align-items: center; gap: 8px;
+      background: rgba(255,255,255,0.15); border-radius: 20px;
+      padding: 6px 16px; font-size: 13px; font-weight: 700; color: #fff;
+      letter-spacing: 1px; margin-bottom: 28px;
+    }
+    .lov-dot {
+      width: 10px; height: 10px; border-radius: 50%; background: #fff;
+      animation: blink 1s infinite;
+    }
+    .lov-title {
+      font-size: 28px; font-weight: 900; color: #fff;
+      text-align: center; line-height: 1.25; margin-bottom: 12px;
+    }
+    .lov-sub {
+      font-size: 15px; color: rgba(255,255,255,0.75);
+      text-align: center; line-height: 1.5; margin-bottom: 48px;
+    }
+    .lov-btn {
+      width: 100%; max-width: 340px;
+      background: #fff; color: #A0001A;
+      border: none; border-radius: 18px;
+      padding: 20px; font-size: 20px; font-weight: 900;
+      cursor: pointer; letter-spacing: 0.5px;
+      animation: pulse-tap 1.2s infinite;
+    }
+    .lov-skip {
+      margin-top: 20px; background: none; border: none;
+      color: rgba(255,255,255,0.5); font-size: 14px; cursor: pointer;
+    }
     .mp-controls { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
     .mp-ctrl { background: none; border: none; color: rgba(255,255,255,0.5); cursor: pointer; display: flex; align-items: center; gap: 3px; font-size: 11px; font-weight: 600; }
     .tap-play {
@@ -477,6 +516,15 @@
     <button class="btn-primary" onclick="entrer()">Se connecter</button>
     <div class="skip-link" onclick="entrerSansNom()">Continuer en visiteur</div>
   </div>
+</div>
+
+<!-- ============ OVERLAY LIVE (plein écran) ============ -->
+<div id="live-overlay">
+  <div class="lov-badge"><div class="lov-dot"></div> EN DIRECT</div>
+  <div class="lov-title" id="lov-titre">Culte en direct</div>
+  <div class="lov-sub">La prédication vient de commencer.<br>Appuyez pour écouter.</div>
+  <button class="lov-btn" onclick="ecouterLive()">▶ ÉCOUTER MAINTENANT</button>
+  <button class="lov-skip" onclick="fermerOverlay()">Pas maintenant</button>
 </div>
 
 <!-- ============ APP ============ -->
@@ -873,6 +921,9 @@
   }
 
   // ============ SSE ============
+  // ─── URL du sermon actuellement dans l'overlay ───
+  let liveOverlayUrl = null;
+
   function connecterSSE() {
     if (sseSource) sseSource.close();
     sseSource = new EventSource(API + '/sermons/events');
@@ -881,10 +932,35 @@
       const idx = sermons.findIndex(s => String(s._id) === String(sermon._id));
       if (idx >= 0) sermons[idx] = sermon; else sermons.unshift(sermon);
       afficherAccueil();
-      showToast('La prédication commence !');
+      // ── Afficher l'overlay plein écran au lieu d'un simple toast ──
+      afficherOverlayLive(sermon);
     });
     sseSource.addEventListener('sermon_update', () => chargerSermons());
     sseSource.onerror = () => { sseSource.close(); setTimeout(connecterSSE, 5000); };
+  }
+
+  function afficherOverlayLive(sermon) {
+    liveOverlayUrl = sermon.audioUrl || null;
+    document.getElementById('lov-titre').textContent = sermon.titre || 'Culte en direct';
+    document.getElementById('live-overlay').classList.add('visible');
+    // Vibration courte si supportée (mobile)
+    if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+  }
+
+  function fermerOverlay() {
+    document.getElementById('live-overlay').classList.remove('visible');
+  }
+
+  function ecouterLive() {
+    fermerOverlay();
+    // L'overlay est un geste utilisateur → l'audio peut démarrer
+    switchTab('home');
+    if (liveOverlayUrl) {
+      ouvrirAudio(liveOverlayUrl);
+    } else {
+      // Pas d'URL audio : scroller vers le mini-player (diffusion en salle)
+      scrollToPlayer();
+    }
   }
 
   // ============ NAVIGATION ============
