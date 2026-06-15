@@ -73,7 +73,20 @@ class _WebScreenState extends State<WebScreen> {
           onProgress: (p) => setState(() => _progress = p),
           onPageFinished: (_) async {
             setState(() => _loading = false);
-            // Injecter le token FCM pour les notifications push
+
+            // ── AUTOPLAY via runJavaScript ──────────────────────────────────────
+            // Android WebView bloque audio.play() sans user gesture.
+            // MAIS : un appel runJavaScript() depuis Flutter est reconnu comme
+            // "user gesture" par le WebView → on peut déclencher l'audio ici.
+            // On attend 1 500 ms pour que chargerSermons() ait fini son fetch API.
+            await Future.delayed(const Duration(milliseconds: 1500));
+            await _controller.runJavaScript(
+              'if (typeof window._pendingAutoplay === "function") {'
+              '  window._pendingAutoplay();'
+              '}'
+            );
+
+            // ── Token FCM ──────────────────────────────────────────────────────
             final token = await NotificationService.instance.obtenirTokenFCM();
             if (token != null && token.isNotEmpty) {
               await _controller.runJavaScript(
