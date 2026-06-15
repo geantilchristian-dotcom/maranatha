@@ -36,55 +36,6 @@
       margin: 0 auto;
     }
 
-    /* ============================
-       INSCRIPTION / LOGIN
-    ============================ */
-    #register-page {
-      min-height: 100vh;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      padding: 48px 28px 40px;
-      background: #fff;
-    }
-    .reg-logo-img {
-      width: 100px; height: 100px;
-      object-fit: contain; margin-bottom: 12px;
-    }
-    .reg-church-name {
-      font-size: 11px; font-weight: 500; color: var(--text-sub);
-      text-align: center; letter-spacing: 0.6px; line-height: 1.6;
-      max-width: 240px; text-transform: uppercase; margin-bottom: 32px;
-    }
-    .reg-welcome {
-      font-size: 28px; font-weight: 800; color: var(--text);
-      text-align: center; letter-spacing: -0.5px; margin-bottom: 28px;
-    }
-    .reg-form { width: 100%; max-width: 340px; }
-    .reg-label {
-      display: block; font-size: 11px; font-weight: 700;
-      color: var(--text-sub); text-transform: uppercase;
-      letter-spacing: 0.6px; margin-bottom: 7px;
-    }
-    .reg-input {
-      width: 100%; padding: 15px 16px;
-      background: var(--bg); border: 1.5px solid transparent;
-      border-radius: var(--radius); color: var(--text);
-      font-size: 16px; outline: none; margin-bottom: 14px;
-      transition: border-color .2s; -webkit-appearance: none;
-    }
-    .reg-input:focus { border-color: var(--primary); background: #fff; }
-    .btn-primary {
-      width: 100%; padding: 16px;
-      background: var(--primary); color: #fff;
-      border: none; border-radius: var(--radius);
-      font-size: 16px; font-weight: 700; cursor: pointer;
-      transition: opacity .2s;
-    }
-    .btn-primary:active { opacity: 0.85; }
-    .skip-link {
-      color: var(--text-muted); font-size: 14px;
-      margin-top: 16px; cursor: pointer; text-align: center;
-    }
 
     /* ============================
        SPLASH
@@ -112,23 +63,9 @@
     @keyframes spin { to { transform: rotate(360deg); } }
 
     /* ============================
-       BIENVENUE
-    ============================ */
-    #bienvenue-screen {
-      position: fixed; inset: 0; z-index: 9998;
-      display: none; flex-direction: column;
-      align-items: center; justify-content: center;
-      background: #fff; transition: opacity .5s;
-    }
-    #bienvenue-screen.visible { display: flex; }
-    #bienvenue-screen.fade-out { opacity: 0; pointer-events: none; }
-    .bvn-text { font-size: 40px; font-weight: 800; color: var(--text); letter-spacing: -1px; }
-    .bvn-sub { font-size: 15px; color: var(--text-sub); margin-top: 8px; }
-
-    /* ============================
        APP
     ============================ */
-    #app { display: none; padding-bottom: var(--nav-h); min-height: 100vh; }
+    #app { display: block; padding-bottom: var(--nav-h); min-height: 100vh; }
     audio { display: none; }
 
     /* ======= HEADER — ligne unique ======= */
@@ -527,12 +464,6 @@
     }
     .settings-row-label { flex: 1; font-size: 15px; font-weight: 600; color: var(--text); }
     .settings-row-arrow { color: var(--text-muted); font-size: 18px; }
-    .btn-signout {
-      width: 100%; margin-top: 16px; padding: 14px;
-      background: #FDEAEA; color: var(--red);
-      border: none; border-radius: var(--radius);
-      font-size: 15px; font-weight: 700; cursor: pointer;
-    }
 
     /* ======= BOTTOM NAV — rouge Maranatha ======= */
     .bottom-nav {
@@ -600,28 +531,6 @@
   <div class="splash-spinner"></div>
 </div>
 
-<!-- ============ BIENVENUE ============ -->
-<div id="bienvenue-screen">
-  <div class="bvn-text">Bienvenue !</div>
-  <div class="bvn-sub">Que la grâce soit avec vous 🙏</div>
-</div>
-
-<!-- ============ LOGIN ============ -->
-<div id="register-page">
-  <img class="reg-logo-img" src="/logo.jpg" alt="Maranatha" />
-  <div class="reg-church-name">Communauté des Églises<br>Missionnaire Maranatha</div>
-  <div class="reg-welcome">Connexion</div>
-  <div class="reg-form">
-    <label class="reg-label">Votre prénom</label>
-    <input class="reg-input" type="text" id="reg-nom" placeholder="Ex : Marie, Jean, Pierre"
-           onkeydown="if(event.key==='Enter')entrer()" />
-    <label class="reg-label">Téléphone (facultatif)</label>
-    <input class="reg-input" type="tel" id="reg-tel" placeholder="+243"
-           onkeydown="if(event.key==='Enter')entrer()" />
-    <button class="btn-primary" onclick="entrer()">Se connecter</button>
-    <div class="skip-link" onclick="entrerSansNom()">Continuer en visiteur</div>
-  </div>
-</div>
 
 <!-- ============ OVERLAY LIVE (plein écran) ============ -->
 <div id="live-overlay">
@@ -896,7 +805,6 @@
         <div class="settings-row-arrow">›</div>
       </div>
 
-      <button class="btn-signout" onclick="logout()">Se déconnecter</button>
     </div>
   </div>
 
@@ -989,9 +897,7 @@
   // ============ SPLASH ============
   async function lancerSplash() {
     const splash = document.getElementById('splash-screen');
-    const bvn    = document.getElementById('bienvenue-screen');
-    const saved  = localStorage.getItem('maranatha_user');
-    let duree = 2500;
+    let duree = 2000;
     try {
       const res = await fetch(API + '/settings/splash');
       if (res.ok) {
@@ -1003,67 +909,37 @@
 
     setTimeout(() => {
       splash.classList.add('fade-out');
-      setTimeout(() => {
-        splash.remove();
-        if (saved) {
-          userName = saved;
-          lancerApp();
-        } else {
-          bvn.classList.add('visible');
-          setTimeout(() => {
-            bvn.classList.add('fade-out');
-            setTimeout(() => {
-              bvn.remove();
-              document.getElementById('register-page').style.display = 'flex';
-            }, 500);
-          }, 1800);
-        }
-      }, 600);
+      setTimeout(() => { splash.remove(); }, 500);
     }, duree);
+
+    lancerApp();
   }
 
-  window.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('register-page').style.display = 'none';
-    lancerSplash();
-  });
+  window.addEventListener('DOMContentLoaded', () => { lancerSplash(); });
 
-  // ============ AUTH ============
-  function entrer() {
-    const nom = document.getElementById('reg-nom').value.trim();
-    if (!nom) { showToast('Entrez votre prénom pour continuer'); return; }
-    userName = nom;
-    // Utiliser le numéro saisi, ou en générer un stable basé sur le nom
-    const telSaisi = document.getElementById('reg-tel').value.trim();
-    const tel = telSaisi || ('fidele-' + nom.toLowerCase().replace(/\s+/g, '') + '-' + (Date.now() % 100000));
-    // Sauvegarder en local pour pouvoir mettre à jour le token FCM plus tard
-    localStorage.setItem('maranatha_tel', tel);
-    fetch(`${API}/users/register`, {
+  // ============ DÉMARRAGE AUTOMATIQUE (sans connexion) ============
+  function lancerApp() {
+    // Générer un identifiant anonyme stable pour ce navigateur/appareil
+    // (utilisé uniquement pour lier le token FCM côté serveur)
+    let tel = localStorage.getItem('maranatha_tel');
+    if (!tel) {
+      tel = 'anon-' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+      localStorage.setItem('maranatha_tel', tel);
+    }
+    // Inscription silencieuse (enregistre le token FCM si déjà disponible)
+    fetch(API + '/users/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nom: userName, telephone: tel, role: 'fidele', fcmToken: window.flutterFcmToken || '' })
-    }).catch(() => {}).finally(lancerApp);
-  }
+      body: JSON.stringify({ nom: 'Fidèle', telephone: tel, role: 'fidele', fcmToken: window.flutterFcmToken || '' }),
+    }).catch(() => {});
 
-  function entrerSansNom() { userName = 'Fidèle'; lancerApp(); }
-
-  function lancerApp() {
-    localStorage.setItem('maranatha_user', userName);
-    document.getElementById('register-page').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
-    document.getElementById('more-username').textContent = userName;
     chargerSermons();
     chargerYoutube();
     connecterSSE();
   }
 
+  // SUPPRIMÉ — plus de déconnexion manuelle
   function logout() {
-    localStorage.removeItem('maranatha_user');
-    userName = '';
-    if (sseSource) { sseSource.close(); sseSource = null; }
-    document.getElementById('app').style.display = 'none';
-    document.getElementById('register-page').style.display = 'flex';
-    document.getElementById('reg-nom').value = '';
-    document.getElementById('reg-tel').value = '';
     switchTab('home');
   }
 
