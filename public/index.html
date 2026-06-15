@@ -935,6 +935,7 @@
   let userName = '';
   let sermons = [];
   let activeAudioUrl = '';
+  let userPaused = false;
   let sseSource = null;
   let youtubeUrl = '';
   let ytLabel = 'Regarder sur YouTube';
@@ -1257,11 +1258,16 @@
     if (!url) return;
     const audio = document.getElementById('main-audio');
     if (activeAudioUrl !== url) {
+      // Nouvelle URL : on charge et on joue (reset userPaused)
       activeAudioUrl = url;
+      userPaused = false;
       audio.src = url;
       audio.load();
       audio.ontimeupdate = updatePlayer;
-      audio.onended = () => setPlayIcon(false);
+      audio.onended = () => { setPlayIcon(false); userPaused = false; };
+    } else if (userPaused) {
+      // Même URL mais l'utilisateur a pausé volontairement → on ne relance PAS
+      return;
     }
     audio.play()
       .then(() => { setPlayIcon(true); hideTapPlay(); })
@@ -1285,10 +1291,12 @@
     const a = document.getElementById('main-audio');
     if (!a.src) return;
     if (a.paused) {
+      userPaused = false;
       a.play()
         .then(() => { setPlayIcon(true); hideTapPlay(); })
         .catch(() => showToast('Lecture impossible'));
     } else {
+      userPaused = true;   // l'utilisateur a pausé volontairement
       a.pause(); setPlayIcon(false);
     }
   }
