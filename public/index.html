@@ -134,29 +134,25 @@
     /* ======= HEADER ======= */
     .app-header {
       background: #fff;
-      padding: calc(var(--safe-top) + 48px) 18px 14px;
-      display: flex; align-items: center; gap: 12px;
-    }
-    .hdr-logo-wrap {
+      padding: calc(var(--safe-top) + 44px) 18px 16px;
       display: flex; flex-direction: column; align-items: center;
-      gap: 3px; flex-shrink: 0;
+      position: relative;
+    }
+    .hdr-top-row {
+      width: 100%; display: flex; justify-content: flex-end; margin-bottom: 10px;
     }
     .hdr-logo {
-      width: 40px; height: 40px; border-radius: 10px;
-      overflow: hidden;
+      width: 80px; height: 80px; border-radius: 16px;
+      overflow: hidden; margin-bottom: 12px;
     }
     .hdr-logo img { width: 100%; height: 100%; object-fit: contain; }
-    .hdr-logo-name {
-      font-size: 8px; font-weight: 800; color: var(--primary);
-      letter-spacing: 1.2px; text-transform: uppercase;
+    .hdr-church-name {
+      font-size: 15px; font-weight: 900;
+      color: var(--text); text-align: center;
+      letter-spacing: 0.5px; line-height: 1.35;
+      text-transform: uppercase; max-width: 300px;
     }
-    .hdr-greeting { flex: 1; min-width: 0; }
-    .hdr-title {
-      font-size: 20px; font-weight: 800; color: var(--text);
-      letter-spacing: -0.3px; line-height: 1.2;
-    }
-    .hdr-sub { font-size: 13px; color: var(--text-sub); margin-top: 2px; }
-    .hdr-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    .hdr-actions { display: flex; align-items: center; gap: 8px; }
     .icon-btn {
       width: 40px; height: 40px; border-radius: 50%;
       background: var(--bg); border: none; cursor: pointer;
@@ -175,12 +171,12 @@
     .tab-content { display: none; }
     .tab-content.active { display: block; }
 
-    /* ======= HERO CARD (live ou YouTube) ======= */
+    /* ======= HERO CARD (live = ROUGE / YouTube = sombre) ======= */
     .hero-card {
       margin: 0 16px 20px;
       border-radius: 20px; overflow: hidden;
       position: relative; cursor: pointer;
-      background: #1a1040;
+      background: #C0001A;
       display: none; min-height: 200px;
     }
     .hero-card.visible { display: block; }
@@ -212,17 +208,17 @@
     }
     .hero-btn:active { opacity: 0.85; }
 
-    /* ======= AUDIO MINI-PLAYER ======= */
+    /* ======= AUDIO MINI-PLAYER (rouge) ======= */
     .mini-player {
       margin: 0 16px 16px;
-      background: #1C1C2E; border-radius: 16px;
+      background: #A0001A; border-radius: 16px;
       padding: 14px; display: none;
     }
     .mini-player.visible { display: block; }
     .mp-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
     .mp-thumb {
       width: 44px; height: 44px; border-radius: 10px;
-      background: var(--primary);
+      background: rgba(255,255,255,0.2);
       display: flex; align-items: center; justify-content: center; flex-shrink: 0;
     }
     .mp-info { flex: 1; min-width: 0; }
@@ -230,18 +226,18 @@
     .mp-status { font-size: 11px; color: rgba(255,255,255,0.45); margin-top: 2px; }
     .mp-play-btn {
       width: 40px; height: 40px; border-radius: 50%;
-      background: var(--primary); border: none;
+      background: rgba(255,255,255,0.25); border: none;
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; flex-shrink: 0;
     }
-    .mp-progress { width: 100%; height: 3px; background: rgba(255,255,255,0.12); border-radius: 2px; cursor: pointer; }
-    .mp-fill { height: 100%; background: var(--primary); border-radius: 2px; transition: width .3s linear; }
+    .mp-progress { width: 100%; height: 3px; background: rgba(255,255,255,0.2); border-radius: 2px; cursor: pointer; }
+    .mp-fill { height: 100%; background: #fff; border-radius: 2px; transition: width .3s linear; }
     .mp-times { display: flex; justify-content: space-between; color: rgba(255,255,255,0.4); font-size: 11px; margin-top: 4px; }
     .mp-controls { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
     .mp-ctrl { background: none; border: none; color: rgba(255,255,255,0.5); cursor: pointer; display: flex; align-items: center; gap: 3px; font-size: 11px; font-weight: 600; }
     .tap-play {
       display: none; width: 100%;
-      background: linear-gradient(135deg, var(--primary), #4040CC);
+      background: linear-gradient(135deg, #E00020, #A0001A);
       color: #fff; border: none; border-radius: 12px;
       padding: 12px; font-size: 14px; font-weight: 700;
       cursor: pointer; align-items: center; justify-content: center; gap: 8px;
@@ -488,29 +484,28 @@
 
   <!-- Header -->
   <header class="app-header">
-    <div class="hdr-logo-wrap">
-      <div class="hdr-logo"><img src="/logo.jpg" alt="Maranatha" /></div>
-      <span class="hdr-logo-name">Maranatha</span>
+    <!-- Icônes en haut à droite -->
+    <div class="hdr-top-row">
+      <div class="hdr-actions">
+        <button class="icon-btn" onclick="showToast('Aucune nouvelle notification')">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B6B8A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+          <div class="notif-dot" id="notif-dot" style="display:none"></div>
+        </button>
+        <button class="icon-btn" onclick="switchTab('settings')">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B6B8A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+        </button>
+      </div>
     </div>
-    <div class="hdr-greeting">
-      <div class="hdr-title" id="greeting-name">Bonjour, Fidèle ! 👋</div>
-      <div class="hdr-sub">Que Dieu vous bénisse aujourd'hui 🙏</div>
-    </div>
-    <div class="hdr-actions">
-      <button class="icon-btn" onclick="showToast('Aucune nouvelle notification')">
-        <svg width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-          <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-        </svg>
-        <div class="notif-dot" id="notif-dot" style="display:none"></div>
-      </button>
-      <button class="icon-btn" onclick="switchTab('settings')">
-        <svg width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-          <circle cx="12" cy="7" r="4"/>
-        </svg>
-      </button>
-    </div>
+    <!-- Logo centré -->
+    <div class="hdr-logo"><img src="/logo.jpg" alt="Maranatha" /></div>
+    <!-- Nom de l'église en grand -->
+    <div class="hdr-church-name">Communauté des Églises<br>Missionnaires Maranatha</div>
   </header>
 
   <!-- ==== TAB : ACCUEIL ==== -->
@@ -839,8 +834,6 @@
     localStorage.setItem('maranatha_user', userName);
     document.getElementById('register-page').style.display = 'none';
     document.getElementById('app').style.display = 'block';
-    // Greeting : "Bonjour, [Prénom] ! 👋"
-    document.getElementById('greeting-name').textContent = 'Bonjour, ' + userName + ' ! 👋';
     document.getElementById('more-username').textContent = userName;
     chargerSermons();
     chargerYoutube();
@@ -926,11 +919,12 @@
     const mini = document.getElementById('mini-player');
 
     if (live) {
-      // ── Culte en direct ──
+      // ── Culte en direct (ROUGE) ──
+      hero.style.background = '#C0001A';
       document.getElementById('hero-title').textContent = live.titre || 'Culte en direct';
       document.getElementById('hero-sub').textContent = 'Rejoignez-nous maintenant\net adorons ensemble !';
       document.getElementById('hero-badge').style.display = 'inline-flex';
-      document.getElementById('hero-btn').textContent = '▶  Regarder maintenant';
+      document.getElementById('hero-btn').textContent = '▶  Écouter maintenant';
       if (live.coverUrl) document.getElementById('hero-img').src = live.coverUrl;
       hero.onclick = scrollToPlayer;
       hero.classList.add('visible');
