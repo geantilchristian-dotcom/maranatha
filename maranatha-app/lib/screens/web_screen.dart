@@ -19,9 +19,37 @@ class _WebScreenState extends State<WebScreen> {
   bool _loading  = true;
   bool _erreur   = false;
   int  _progress = 0;
-  Timer? _autoplayTimer;   // vérifie périodiquement si un audio attend d'être joué
+  Timer? _autoplayTimer;
 
   static const _sysChannel = MethodChannel('maranatha/system');
+
+  // Script injecté par le timer toutes les 2 secondes.
+  // Il tente de jouer l'audio si celui-ci est en pause et a une source.
+  // Stratégie en 3 étapes :
+  //   1. Appeler _pendingAutoplay si défini (stocké par ouvrirAudio)
+  //   2. Sinon : mute trick (muted=true → play → muted=false)
+  //   3. Les deux utilisent le mute trick qui bypass la politique autoplay Android
+  static const _autoplayScript = r"""
+(function() {
+  var a = document.getElementById('main-audio');
+  if (!a || !a.paused || !a.src || a.src.length < 10) return;
+
+  function jouerAvecMute() {
+    a.muted = true;
+    a.play().then(function() {
+      a.muted = false;
+      if (typeof setPlayIcon === 'function') setPlayIcon(true);
+      window._pendingAutoplay = null;
+    }).catch(function() { a.muted = false; });
+  }
+
+  if (typeof window._pendingAutoplay === 'function') {
+    window._pendingAutoplay();
+  } else {
+    jouerAvecMute();
+  }
+})();
+""";
 
   @override
   void initState() {
@@ -57,8 +85,7 @@ class _WebScreenState extends State<WebScreen> {
         },
       );
 
-    // ── CRITIQUE : autoriser l'autoplay AVANT loadRequest ────────────────
-    // Doit être appelé avant que la page commence à se charger.
+    // Désactiver le blocage autoplay AVANT le chargement de la page
     if (_controller.platform is AndroidWebViewController) {
       (_controller.platform as AndroidWebViewController)
           .setMediaPlaybackRequiresUserGesture(false);
@@ -68,8 +95,8 @@ class _WebScreenState extends State<WebScreen> {
       ..setNavigationDelegate(
         NavigationDelegate(
           onPageStarted: (_) {
+            _autoplayTimer?.cancel();
             setState(() { _loading = true; _erreur = false; });
-            _autoplayTimer?.cancel(); // annuler l'ancien timer si rechargement
           },
           onProgress: (p) => setState(() => _progress = p),
           onPageFinished: (_) async {
@@ -84,20 +111,15 @@ class _WebScreenState extends State<WebScreen> {
               );
             }
 
-            // ── Timer autoplay ──────────────────────────────────────────────
-            // La prédication peut démarrer à tout moment via SSE.
-            // On vérifie toutes les 2s si window._pendingAutoplay est défini.
-            // runJavaScript() est reconnu comme "user gesture" par Android WebView
-            // → audio.play() passe même sans que l'utilisateur touche l'écran.
+            // Démarrer le timer autoplay :
+            // Vérifie toutes les 2s si un audio est en pause + a une source.
+            // Si oui → le joue via mute trick (bypass autoplay Android).
+            // Couvre : chargement initial ET prédications démarrées via SSE.
             _autoplayTimer?.cancel();
             _autoplayTimer = Timer.periodic(const Duration(seconds: 2), (_) async {
               if (!mounted) return;
               try {
-                await _controller.runJavaScript(
-                  'if (typeof window._pendingAutoplay === "function") {'
-                  '  window._pendingAutoplay();'
-                  '}'
-                );
+                await _controller.runJavaScript(_autoplayScript);
               } catch (_) {}
             });
           },
