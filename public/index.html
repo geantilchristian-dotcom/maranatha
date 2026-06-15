@@ -1037,7 +1037,48 @@
     }
     .pick-item.active { background: #C0001A; color: #fff; }
 
-    /* ── Prières ── */
+    /* ── Parole du jour ── */
+    .pdj-card {
+      background: linear-gradient(135deg,rgba(5,150,105,.06),rgba(16,185,129,.02));
+      border: 1px solid rgba(5,150,105,.2); border-radius: 18px; padding: 20px; margin-bottom: 16px;
+    }
+    .pdj-ref { font-size: 13px; font-weight: 800; color: #10B981; letter-spacing: .5px; margin-bottom: 10px; }
+    .pdj-texte { font-size: 15px; color: var(--text); line-height: 1.85; white-space: pre-wrap; font-style: italic; }
+    .pdj-section-title { font-size: 11px; font-weight: 800; color: var(--text-muted);
+      letter-spacing: 1px; text-transform: uppercase; margin: 20px 0 10px; }
+    .pdj-comment-item { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.07);
+      border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; }
+    .pdj-comment-auteur { font-size: 12px; font-weight: 800; color: var(--primary); margin-bottom: 4px; }
+    .pdj-comment-texte { font-size: 14px; color: var(--text); line-height: 1.6; }
+    .pdj-comment-date { font-size: 11px; color: var(--text-muted); margin-top: 6px; }
+    .pdj-badge-suggest { display: inline-block; background: rgba(212,175,55,.12);
+      border: 1px solid rgba(212,175,55,.3); color: #D4AF37; font-size: 10px; font-weight: 800;
+      border-radius: 6px; padding: 2px 8px; letter-spacing: .5px; text-transform: uppercase;
+      margin-bottom: 6px; }
+    .pdj-reply { background: rgba(212,175,55,.07); border-left: 3px solid #D4AF37;
+      border-radius: 8px; padding: 10px 12px; margin-top: 10px; }
+    .pdj-reply-label { font-size: 10px; font-weight: 800; color: #D4AF37;
+      letter-spacing: .5px; margin-bottom: 4px; }
+    .pdj-reply-texte { font-size: 13px; color: var(--text); line-height: 1.6; }
+    .pdj-actions { display: flex; gap: 10px; margin: 20px 0 12px; }
+    .pdj-action-btn { flex:1; padding: 13px 10px; border-radius: 14px;
+      background: rgba(5,150,105,.12); border: 1.5px solid rgba(5,150,105,.3);
+      color: #10B981; font-size: 13px; font-weight: 800; font-family: inherit;
+      cursor: pointer; transition: background .15s; }
+    .pdj-action-btn:active { background: rgba(5,150,105,.22); }
+    .pdj-action-suggest { background: rgba(212,175,55,.1);
+      border-color: rgba(212,175,55,.3); color: #D4AF37; }
+    .pdj-action-suggest:active { background: rgba(212,175,55,.2); }
+    .pdj-textarea { width: 100%; box-sizing: border-box;
+      background: rgba(255,255,255,.05); border: 1.5px solid rgba(255,255,255,.12);
+      color: var(--text); border-radius: 12px; padding: 13px 14px;
+      font-size: 14px; font-family: inherit; resize: none; outline: none;
+      transition: border-color .2s; min-height: 90px; }
+    .pdj-textarea:focus { border-color: rgba(212,175,55,.5); }
+    .pdj-submit-btn { width: 100%; padding: 13px; margin-top: 10px; margin-bottom: 20px;
+      background: linear-gradient(135deg,#D4AF37,#B8942A); border: none; border-radius: 12px;
+      color: #070F1C; font-size: 14px; font-weight: 900; font-family: inherit; cursor: pointer; }
+    /* ── Prières (conservé pour rétrocompat.) ── */
     .priere-card {
       background: #fff; border-radius: 14px; padding: 16px; margin-bottom: 10px;
       box-shadow: 0 1px 6px rgba(0,0,0,0.05);
@@ -1429,8 +1470,8 @@
             <path d="M12 14v7" stroke-dasharray="2 2"/>
           </svg>
         </div>
-        <div class="quick-label">Prières</div>
-        <div class="quick-sub">Se recueillir</div>
+        <div class="quick-label">Parole du jour</div>
+        <div class="quick-sub">Méditation du jour</div>
       </div>
 
       <!-- Don → ouvre modal don -->
@@ -1945,7 +1986,7 @@
     <button class="ov-back" onclick="fermerOverlay('priere')">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
     </button>
-    <div class="ov-title">Prières</div>
+    <div class="ov-title">Parole du jour</div>
   </div>
   <div class="ov-body" id="prieres-body">
     <div class="empty-state"><p>Chargement…</p></div>
@@ -2998,22 +3039,105 @@
   // ══════════════════════════════════════════════════════════
   async function ouvrirPrieres() {
     document.getElementById('overlay-priere').classList.add('visible');
-    document.getElementById('prieres-body').innerHTML = '<div class="empty-state"><p>Chargement…</p></div>';
+    const body = document.getElementById('prieres-body');
+    body.innerHTML = '<div class="empty-state"><p>Chargement…</p></div>';
     try {
-      const r = await fetch(`${API}/prieres`);
-      const list = await r.json();
-      if (!list.length) {
-        document.getElementById('prieres-body').innerHTML = '<div class="empty-state"><p>Aucune prière publiée pour l\'instant.</p></div>';
-        return;
+      const [rP, rC] = await Promise.all([
+        fetch(`${API}/prieres`),
+        fetch(`${API}/comments`),
+      ]);
+      const paroles  = rP.ok ? await rP.json() : [];
+      const comments = rC.ok ? await rC.json() : [];
+
+      const commentaires = comments.filter(c => (c.type || 'commentaire') === 'commentaire');
+      const suggestions  = comments.filter(c => c.type === 'suggestion');
+
+      let html = '';
+      if (!paroles.length) {
+        html += '<div class="empty-state" style="padding:32px 16px">Aucune parole du jour publiée pour l\'instant.</div>';
+      } else {
+        html += paroles.map(p => `
+          <div class="pdj-card">
+            <div class="pdj-ref">${escHtml(p.titre)}</div>
+            <div class="pdj-texte">${escHtml(p.texte)}</div>
+          </div>`).join('');
       }
-      document.getElementById('prieres-body').innerHTML = list.map(p => `
-        <div class="priere-card">
-          <div class="priere-titre">${escHtml(p.titre)}</div>
-          <div class="priere-texte">${escHtml(p.texte)}</div>
-        </div>`).join('');
+
+      const renderPDJ = c => {
+        const date = new Date(c.dateEnvoi).toLocaleDateString('fr-FR', { day:'2-digit', month:'long' });
+        return `<div class="pdj-comment-item">
+          ${c.type === 'suggestion' ? '<span class="pdj-badge-suggest">Suggestion</span>' : ''}
+          <div class="pdj-comment-auteur">${escHtml(c.auteur || 'Fidèle anonyme')}</div>
+          <div class="pdj-comment-texte">${escHtml(c.texte)}</div>
+          <div class="pdj-comment-date">${date}</div>
+          ${c.adminReponse ? `<div class="pdj-reply"><div class="pdj-reply-label">RÉPONSE DU PASTEUR</div><div class="pdj-reply-texte">${escHtml(c.adminReponse)}</div></div>` : ''}
+        </div>`;
+      };
+
+      if (commentaires.length) {
+        html += '<div class="pdj-section-title">Commentaires</div>';
+        html += commentaires.map(renderPDJ).join('');
+      }
+      if (suggestions.length) {
+        html += '<div class="pdj-section-title">Sujets suggérés</div>';
+        html += suggestions.map(renderPDJ).join('');
+      }
+
+      html += `
+        <div class="pdj-actions">
+          <button class="pdj-action-btn" onclick="pdjToggle('comment')">💬 Commenter</button>
+          <button class="pdj-action-btn pdj-action-suggest" onclick="pdjToggle('suggest')">✏️ Suggérer un sujet</button>
+        </div>
+        <div id="pdj-form-comment" style="display:none">
+          <textarea id="pdj-txt-comment" class="pdj-textarea" rows="4" placeholder="Partagez votre réflexion sur cette parole…"></textarea>
+          <button class="pdj-submit-btn" onclick="pdjEnvoyer('commentaire')">Envoyer le commentaire</button>
+        </div>
+        <div id="pdj-form-suggest" style="display:none">
+          <textarea id="pdj-txt-suggest" class="pdj-textarea" rows="4" placeholder="Proposez un sujet pour la prochaine parole du jour…"></textarea>
+          <button class="pdj-submit-btn" onclick="pdjEnvoyer('suggestion')">Envoyer la suggestion</button>
+        </div>`;
+
+      body.innerHTML = html;
     } catch(e) {
-      document.getElementById('prieres-body').innerHTML = '<div class="empty-state"><p>Erreur de connexion</p></div>';
+      body.innerHTML = '<div class="empty-state"><p>Erreur de connexion</p></div>';
     }
+  }
+
+  function pdjToggle(type) {
+    const fc = document.getElementById('pdj-form-comment');
+    const fs = document.getElementById('pdj-form-suggest');
+    if (!fc || !fs) return;
+    if (type === 'comment') {
+      const open = fc.style.display === 'none';
+      fc.style.display = open ? 'block' : 'none';
+      fs.style.display = 'none';
+      if (open) setTimeout(() => document.getElementById('pdj-txt-comment')?.focus(), 80);
+    } else {
+      const open = fs.style.display === 'none';
+      fs.style.display = open ? 'block' : 'none';
+      fc.style.display = 'none';
+      if (open) setTimeout(() => document.getElementById('pdj-txt-suggest')?.focus(), 80);
+    }
+  }
+
+  async function pdjEnvoyer(type) {
+    const txtId = type === 'commentaire' ? 'pdj-txt-comment' : 'pdj-txt-suggest';
+    const texte = (document.getElementById(txtId)?.value || '').trim();
+    if (!texte) { showToast('Écrivez quelque chose avant d\'envoyer'); return; }
+    const auteur = localStorage.getItem('maranatha_prenom') || localStorage.getItem('maranatha_user') || '';
+    try {
+      const res = await fetch(`${API}/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ texte, type, auteur }),
+      });
+      if (res.ok) {
+        showToast(type === 'commentaire' ? '✅ Commentaire envoyé !' : '✅ Suggestion envoyée !');
+        ouvrirPrieres();
+      } else {
+        showToast('Erreur lors de l\'envoi');
+      }
+    } catch(e) { showToast('Erreur réseau'); }
   }
 
   // ══════════════════════════════════════════════════════════
