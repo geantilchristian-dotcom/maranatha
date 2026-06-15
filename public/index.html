@@ -1522,95 +1522,113 @@
 
 <!-- ============ MODAL : DON ============ -->
 <div class="modal-overlay" id="modal-don" onclick="fermerModal('don')">
-  <div class="modal-sheet" onclick="event.stopPropagation()">
+  <div class="modal-sheet" onclick="event.stopPropagation()" style="text-align:center">
     <div class="modal-handle"></div>
-    <div class="modal-title">💝 Faire un don</div>
+    <div class="modal-title">Faire un don</div>
     <div class="modal-sub">Soutenez le ministère Maranatha</div>
     <div class="don-tabs">
-      <button class="don-tab active" id="tab-mensuel-btn" onclick="switchDon('mensuel')">Don mensuel</button>
-      <button class="don-tab"        id="tab-unique-btn"  onclick="switchDon('unique')">Don unique</button>
+      <button class="don-tab active" id="tab-airtel-btn"  onclick="switchDon('airtel')">AIRTEL</button>
+      <button class="don-tab"        id="tab-orange-btn"  onclick="switchDon('orange')">ORANGE</button>
+      <button class="don-tab"        id="tab-vodacom-btn" onclick="switchDon('vodacom')">VODACOM</button>
+      <button class="don-tab"        id="tab-banque-btn"  onclick="switchDon('banque')">BANQUE</button>
     </div>
 
-    <!-- DON MENSUEL -->
-    <div class="don-panel active" id="don-mensuel-panel">
-      <div id="don-mensuel-content">
-        <div class="don-row">
-          <div class="don-row-icon" style="background:#E8F5E9">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="2" stroke-linecap="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg>
-          </div>
-          <div class="flex-1">
-            <div class="don-row-label">Mobile Money</div>
-            <div class="don-row-value" id="don-tel1-m">—</div>
-          </div>
-          <button class="don-copy-btn" onclick="copier('don-tel1-m','Numéro copié')">Copier</button>
+    <!-- AIRTEL -->
+    <div class="don-panel active" id="don-airtel-panel">
+      <div class="don-row" id="don-airtel-row">
+        <div class="don-row-icon" style="background:#FFEBEE">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#E53935" stroke-width="2" stroke-linecap="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="9" y1="18" x2="15" y2="18"/></svg>
         </div>
-        <div class="don-row" id="don-tel2-m-row" style="display:none">
-          <div class="don-row-icon" style="background:#E3F2FD">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2" stroke-linecap="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg>
-          </div>
-          <div class="flex-1">
-            <div class="don-row-label">Autre numéro</div>
-            <div class="don-row-value" id="don-tel2-m">—</div>
-          </div>
-          <button class="don-copy-btn" onclick="copier('don-tel2-m','Numéro copié')">Copier</button>
+        <div class="flex-1" style="text-align:left">
+          <div class="don-row-label">AIRTEL Money</div>
+          <div class="don-row-value" id="don-num-airtel">—</div>
         </div>
+        <button class="don-copy-btn" onclick="copier('don-num-airtel','Numéro copié')">Copier</button>
       </div>
-      <div id="don-mensuel-instructions"></div>
+      <div id="don-airtel-instructions"></div>
     </div>
 
-    <!-- DON UNIQUE -->
-    <div class="don-panel" id="don-unique-panel">
-      <div id="don-unique-content">
-        <div class="don-row">
-          <div class="don-row-icon" style="background:#F3E5F5">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7B1FA2" stroke-width="2" stroke-linecap="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
-          </div>
-          <div class="flex-1">
-            <div class="don-row-label">Titulaire</div>
-            <div class="don-row-value" id="don-titulaire">—</div>
-          </div>
+    <!-- ORANGE -->
+    <div class="don-panel" id="don-orange-panel">
+      <div class="don-row" id="don-orange-row">
+        <div class="don-row-icon" style="background:#FFF3E0">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F57C00" stroke-width="2" stroke-linecap="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="9" y1="18" x2="15" y2="18"/></svg>
         </div>
-        <div class="don-row">
-          <div class="don-row-icon" style="background:#FFF8E1">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F57F17" stroke-width="2" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-          </div>
-          <div class="flex-1">
-            <div class="don-row-label">Banque</div>
-            <div class="don-row-value" id="don-banque">—</div>
-          </div>
+        <div class="flex-1" style="text-align:left">
+          <div class="don-row-label">ORANGE Money</div>
+          <div class="don-row-value" id="don-num-orange">—</div>
         </div>
-        <div class="don-row" id="don-compte-row">
-          <div class="don-row-icon" style="background:#E8F5E9">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="2" stroke-linecap="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
-          </div>
-          <div class="flex-1">
-            <div class="don-row-label">N° de compte</div>
-            <div class="don-row-value" id="don-compte">—</div>
-          </div>
-          <button class="don-copy-btn" onclick="copier('don-compte','Copié')">Copier</button>
-        </div>
-        <div class="don-row" id="don-iban-row">
-          <div class="don-row-icon" style="background:#E3F2FD">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2" stroke-linecap="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-          </div>
-          <div class="flex-1">
-            <div class="don-row-label">IBAN</div>
-            <div class="don-row-value" id="don-iban">—</div>
-          </div>
-          <button class="don-copy-btn" onclick="copier('don-iban','IBAN copié')">Copier</button>
-        </div>
-        <div class="don-row" id="don-bic-row">
-          <div class="don-row-icon" style="background:#FCE4EC">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C62828" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-          </div>
-          <div class="flex-1">
-            <div class="don-row-label">BIC / SWIFT</div>
-            <div class="don-row-value" id="don-bic">—</div>
-          </div>
-          <button class="don-copy-btn" onclick="copier('don-bic','BIC copié')">Copier</button>
-        </div>
-        <div id="don-unique-instructions"></div>
+        <button class="don-copy-btn" onclick="copier('don-num-orange','Numéro copié')">Copier</button>
       </div>
+      <div id="don-orange-instructions"></div>
+    </div>
+
+    <!-- VODACOM -->
+    <div class="don-panel" id="don-vodacom-panel">
+      <div class="don-row" id="don-vodacom-row">
+        <div class="don-row-icon" style="background:#FFEBEE">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#E53935" stroke-width="2" stroke-linecap="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="9" y1="18" x2="15" y2="18"/></svg>
+        </div>
+        <div class="flex-1" style="text-align:left">
+          <div class="don-row-label">M-Pesa (VODACOM)</div>
+          <div class="don-row-value" id="don-num-vodacom">—</div>
+        </div>
+        <button class="don-copy-btn" onclick="copier('don-num-vodacom','Numéro copié')">Copier</button>
+      </div>
+      <div id="don-vodacom-instructions"></div>
+    </div>
+
+    <!-- BANQUE -->
+    <div class="don-panel" id="don-banque-panel">
+      <div class="don-row">
+        <div class="don-row-icon" style="background:#F3E5F5">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7B1FA2" stroke-width="2" stroke-linecap="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+        </div>
+        <div class="flex-1" style="text-align:left">
+          <div class="don-row-label">Titulaire</div>
+          <div class="don-row-value" id="don-titulaire">—</div>
+        </div>
+      </div>
+      <div class="don-row">
+        <div class="don-row-icon" style="background:#E3F2FD">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+        </div>
+        <div class="flex-1" style="text-align:left">
+          <div class="don-row-label">Banque</div>
+          <div class="don-row-value" id="don-banque">—</div>
+        </div>
+      </div>
+      <div class="don-row" id="don-compte-row" style="display:none">
+        <div class="don-row-icon" style="background:#E8F5E9">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="2" stroke-linecap="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+        </div>
+        <div class="flex-1" style="text-align:left">
+          <div class="don-row-label">N° de compte</div>
+          <div class="don-row-value" id="don-compte">—</div>
+        </div>
+        <button class="don-copy-btn" onclick="copier('don-compte','Copié')">Copier</button>
+      </div>
+      <div class="don-row" id="don-iban-row" style="display:none">
+        <div class="don-row-icon" style="background:#E3F2FD">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2" stroke-linecap="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        </div>
+        <div class="flex-1" style="text-align:left">
+          <div class="don-row-label">IBAN</div>
+          <div class="don-row-value" id="don-iban">—</div>
+        </div>
+        <button class="don-copy-btn" onclick="copier('don-iban','IBAN copié')">Copier</button>
+      </div>
+      <div class="don-row" id="don-bic-row" style="display:none">
+        <div class="don-row-icon" style="background:#FCE4EC">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C62828" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        </div>
+        <div class="flex-1" style="text-align:left">
+          <div class="don-row-label">BIC / SWIFT</div>
+          <div class="don-row-value" id="don-bic">—</div>
+        </div>
+        <button class="don-copy-btn" onclick="copier('don-bic','BIC copié')">Copier</button>
+      </div>
+      <div id="don-banque-instructions"></div>
     </div>
   </div>
 </div>
@@ -3034,18 +3052,21 @@
       if (!res.ok) return;
       donData = await res.json();
       const d = donData;
-      // Mensuel — téléphones
-      if (d.telephone1) { document.getElementById('don-tel1-m').textContent = d.telephone1; }
-      if (d.telephone2) {
-        document.getElementById('don-tel2-m').textContent = d.telephone2;
-        document.getElementById('don-tel2-m-row').style.display = 'flex';
-      }
-      if (d.instructions) {
-        const html = `<div class="don-instructions">ℹ️ ${d.instructions}</div>`;
-        document.getElementById('don-mensuel-instructions').innerHTML = html;
-        document.getElementById('don-unique-instructions').innerHTML = html;
-      }
-      // Unique — coordonnées bancaires
+      const instrHtml = d.instructions ? `<div class="don-instructions">ℹ️ ${d.instructions}</div>` : '';
+
+      // AIRTEL
+      document.getElementById('don-num-airtel').textContent = d.airtel || '—';
+      document.getElementById('don-airtel-instructions').innerHTML = instrHtml;
+
+      // ORANGE
+      document.getElementById('don-num-orange').textContent = d.orange || '—';
+      document.getElementById('don-orange-instructions').innerHTML = instrHtml;
+
+      // VODACOM
+      document.getElementById('don-num-vodacom').textContent = d.vodacom || '—';
+      document.getElementById('don-vodacom-instructions').innerHTML = instrHtml;
+
+      // BANQUE
       if (d.nomTitulaire) document.getElementById('don-titulaire').textContent = d.nomTitulaire;
       if (d.nomBanque)    document.getElementById('don-banque').textContent    = d.nomBanque;
       if (d.numeroCompte) {
@@ -3060,6 +3081,7 @@
         document.getElementById('don-bic').textContent = d.bic;
         document.getElementById('don-bic-row').style.display = 'flex';
       }
+      document.getElementById('don-banque-instructions').innerHTML = instrHtml;
     } catch(e) {}
   }
   chargerDon();
@@ -3067,11 +3089,10 @@
   function ouvrirModalDon() { ouvrirModal('don'); }
 
   function switchDon(type) {
-    const isM = (type === 'mensuel');
-    document.getElementById('don-mensuel-panel').classList.toggle('active', isM);
-    document.getElementById('don-unique-panel').classList.toggle('active', !isM);
-    document.getElementById('tab-mensuel-btn').classList.toggle('active', isM);
-    document.getElementById('tab-unique-btn').classList.toggle('active', !isM);
+    ['airtel','orange','vodacom','banque'].forEach(t => {
+      document.getElementById('don-' + t + '-panel').classList.toggle('active', t === type);
+      document.getElementById('tab-' + t + '-btn').classList.toggle('active', t === type);
+    });
   }
 
   function copier(elId, label) {
@@ -3090,32 +3111,32 @@
   //  PAYS — données + recherche + code tel
   // ══════════════════════════════════════════════════════════
   const PAYS_DATA = [
-    {n:'Afghanistan',t:'+93'},{n:'Afrique du Sud',t:'+27'},{n:'Albanie',t:'+355'},
-    {n:'Algérie',t:'+213'},{n:'Allemagne',t:'+49'},{n:'Angola',t:'+244'},
-    {n:'Arabie Saoudite',t:'+966'},{n:'Argentine',t:'+54'},{n:'Australie',t:'+61'},
-    {n:'Autriche',t:'+43'},{n:'Belgique',t:'+32'},{n:'Bénin',t:'+229'},
-    {n:'Brésil',t:'+55'},{n:'Burkina Faso',t:'+226'},{n:'Burundi',t:'+257'},
-    {n:'Cameroun',t:'+237'},{n:'Canada',t:'+1'},{n:'Centrafrique',t:'+236'},
-    {n:'Comores',t:'+269'},{n:'Congo (Brazzaville)',t:'+242'},{n:'Congo (RDC)',t:'+243'},
-    {n:'Côte d\'Ivoire',t:'+225'},{n:'Danemark',t:'+45'},{n:'Djibouti',t:'+253'},
-    {n:'Égypte',t:'+20'},{n:'Émirats Arabes Unis',t:'+971'},{n:'Espagne',t:'+34'},
-    {n:'Éthiopie',t:'+251'},{n:'États-Unis',t:'+1'},{n:'Finlande',t:'+358'},
-    {n:'France',t:'+33'},{n:'Gabon',t:'+241'},{n:'Ghana',t:'+233'},
-    {n:'Grèce',t:'+30'},{n:'Guinée',t:'+224'},{n:'Guinée-Bissau',t:'+245'},
-    {n:'Guinée équatoriale',t:'+240'},{n:'Haïti',t:'+509'},{n:'Inde',t:'+91'},
-    {n:'Irlande',t:'+353'},{n:'Italie',t:'+39'},{n:'Kenya',t:'+254'},
-    {n:'Liban',t:'+961'},{n:'Liberia',t:'+231'},{n:'Luxembourg',t:'+352'},
-    {n:'Madagascar',t:'+261'},{n:'Malawi',t:'+265'},{n:'Mali',t:'+223'},
-    {n:'Maroc',t:'+212'},{n:'Maurice',t:'+230'},{n:'Mauritanie',t:'+222'},
-    {n:'Mexique',t:'+52'},{n:'Mozambique',t:'+258'},{n:'Namibie',t:'+264'},
-    {n:'Niger',t:'+227'},{n:'Nigeria',t:'+234'},{n:'Norvège',t:'+47'},
-    {n:'Ouganda',t:'+256'},{n:'Pays-Bas',t:'+31'},{n:'Portugal',t:'+351'},
-    {n:'République Centrafricaine',t:'+236'},{n:'Royaume-Uni',t:'+44'},
-    {n:'Rwanda',t:'+250'},{n:'Sénégal',t:'+221'},{n:'Sierra Leone',t:'+232'},
-    {n:'Somalie',t:'+252'},{n:'Soudan',t:'+249'},{n:'Suède',t:'+46'},
-    {n:'Suisse',t:'+41'},{n:'Tanzanie',t:'+255'},{n:'Tchad',t:'+235'},
-    {n:'Togo',t:'+228'},{n:'Tunisie',t:'+216'},{n:'Turquie',t:'+90'},
-    {n:'Zambie',t:'+260'},{n:'Zimbabwe',t:'+263'},
+    {f:'🇦🇫',n:'Afghanistan',t:'+93'},{f:'🇿🇦',n:'Afrique du Sud',t:'+27'},{f:'🇦🇱',n:'Albanie',t:'+355'},
+    {f:'🇩🇿',n:'Algérie',t:'+213'},{f:'🇩🇪',n:'Allemagne',t:'+49'},{f:'🇦🇴',n:'Angola',t:'+244'},
+    {f:'🇸🇦',n:'Arabie Saoudite',t:'+966'},{f:'🇦🇷',n:'Argentine',t:'+54'},{f:'🇦🇺',n:'Australie',t:'+61'},
+    {f:'🇦🇹',n:'Autriche',t:'+43'},{f:'🇧🇪',n:'Belgique',t:'+32'},{f:'🇧🇯',n:'Bénin',t:'+229'},
+    {f:'🇧🇷',n:'Brésil',t:'+55'},{f:'🇧🇫',n:'Burkina Faso',t:'+226'},{f:'🇧🇮',n:'Burundi',t:'+257'},
+    {f:'🇨🇲',n:'Cameroun',t:'+237'},{f:'🇨🇦',n:'Canada',t:'+1'},{f:'🇨🇫',n:'Centrafrique',t:'+236'},
+    {f:'🇰🇲',n:'Comores',t:'+269'},{f:'🇨🇬',n:'Congo (Brazzaville)',t:'+242'},{f:'🇨🇩',n:'Congo (RDC)',t:'+243'},
+    {f:'🇨🇮',n:'Côte d\'Ivoire',t:'+225'},{f:'🇩🇰',n:'Danemark',t:'+45'},{f:'🇩🇯',n:'Djibouti',t:'+253'},
+    {f:'🇪🇬',n:'Égypte',t:'+20'},{f:'🇦🇪',n:'Émirats Arabes Unis',t:'+971'},{f:'🇪🇸',n:'Espagne',t:'+34'},
+    {f:'🇪🇹',n:'Éthiopie',t:'+251'},{f:'🇺🇸',n:'États-Unis',t:'+1'},{f:'🇫🇮',n:'Finlande',t:'+358'},
+    {f:'🇫🇷',n:'France',t:'+33'},{f:'🇬🇦',n:'Gabon',t:'+241'},{f:'🇬🇭',n:'Ghana',t:'+233'},
+    {f:'🇬🇷',n:'Grèce',t:'+30'},{f:'🇬🇳',n:'Guinée',t:'+224'},{f:'🇬🇼',n:'Guinée-Bissau',t:'+245'},
+    {f:'🇬🇶',n:'Guinée équatoriale',t:'+240'},{f:'🇭🇹',n:'Haïti',t:'+509'},{f:'🇮🇳',n:'Inde',t:'+91'},
+    {f:'🇮🇪',n:'Irlande',t:'+353'},{f:'🇮🇹',n:'Italie',t:'+39'},{f:'🇰🇪',n:'Kenya',t:'+254'},
+    {f:'🇱🇧',n:'Liban',t:'+961'},{f:'🇱🇷',n:'Liberia',t:'+231'},{f:'🇱🇺',n:'Luxembourg',t:'+352'},
+    {f:'🇲🇬',n:'Madagascar',t:'+261'},{f:'🇲🇼',n:'Malawi',t:'+265'},{f:'🇲🇱',n:'Mali',t:'+223'},
+    {f:'🇲🇦',n:'Maroc',t:'+212'},{f:'🇲🇺',n:'Maurice',t:'+230'},{f:'🇲🇷',n:'Mauritanie',t:'+222'},
+    {f:'🇲🇽',n:'Mexique',t:'+52'},{f:'🇲🇿',n:'Mozambique',t:'+258'},{f:'🇳🇦',n:'Namibie',t:'+264'},
+    {f:'🇳🇪',n:'Niger',t:'+227'},{f:'🇳🇬',n:'Nigeria',t:'+234'},{f:'🇳🇴',n:'Norvège',t:'+47'},
+    {f:'🇺🇬',n:'Ouganda',t:'+256'},{f:'🇳🇱',n:'Pays-Bas',t:'+31'},{f:'🇵🇹',n:'Portugal',t:'+351'},
+    {f:'🇨🇫',n:'République Centrafricaine',t:'+236'},{f:'🇬🇧',n:'Royaume-Uni',t:'+44'},
+    {f:'🇷🇼',n:'Rwanda',t:'+250'},{f:'🇸🇳',n:'Sénégal',t:'+221'},{f:'🇸🇱',n:'Sierra Leone',t:'+232'},
+    {f:'🇸🇴',n:'Somalie',t:'+252'},{f:'🇸🇩',n:'Soudan',t:'+249'},{f:'🇸🇪',n:'Suède',t:'+46'},
+    {f:'🇨🇭',n:'Suisse',t:'+41'},{f:'🇹🇿',n:'Tanzanie',t:'+255'},{f:'🇹🇩',n:'Tchad',t:'+235'},
+    {f:'🇹🇬',n:'Togo',t:'+228'},{f:'🇹🇳',n:'Tunisie',t:'+216'},{f:'🇹🇷',n:'Turquie',t:'+90'},
+    {f:'🇿🇲',n:'Zambie',t:'+260'},{f:'🇿🇼',n:'Zimbabwe',t:'+263'},
   ];
 
   function ouvrirDropdownPays() {
@@ -3131,15 +3152,16 @@
       : PAYS_DATA;
     if (!filtered.length) { dd.innerHTML = '<div class="mf-pays-option" style="color:#999">Aucun résultat</div>'; dd.style.display='block'; return; }
     dd.innerHTML = filtered.map(p =>
-      `<div class="mf-pays-option" onmousedown="selectionnerPays('${p.n.replace(/'/g,"\\'")}','${p.t}')">
-        <span>${p.n}</span><span class="mf-pays-code">${p.t}</span>
+      `<div class="mf-pays-option" onmousedown="selectionnerPays('${p.n.replace(/'/g,"\\'")}','${p.t}','${p.f||''}')">
+        <span style="display:flex;align-items:center;gap:8px"><span style="font-size:18px;line-height:1">${p.f||''}</span><span>${p.n}</span></span>
+        <span class="mf-pays-code">${p.t}</span>
       </div>`
     ).join('');
     dd.style.display = 'block';
   }
 
-  function selectionnerPays(nom, tel) {
-    document.getElementById('mf-pays-search').value = nom;
+  function selectionnerPays(nom, tel, flag) {
+    document.getElementById('mf-pays-search').value = (flag ? flag + ' ' : '') + nom;
     document.getElementById('mf-pays').value = nom;
     document.getElementById('mf-indicatif').value = tel;
     document.getElementById('mf-tel-code').textContent = tel;
