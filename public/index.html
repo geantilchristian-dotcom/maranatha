@@ -305,13 +305,6 @@
       box-shadow: 0 1px 6px rgba(0,0,0,0.5); cursor: pointer;
     }
 
-    /* ── Hint autoplay (remplace le bouton moche) ── */
-    .mp-hint {
-      display: none; text-align: center;
-      font-size: 12px; color: rgba(255,200,200,0.7);
-      font-weight: 600; margin-top: 8px; letter-spacing: 0.3px;
-    }
-    .mp-hint.visible { display: block; }
 
     /* ======= OVERLAY LIVE (plein écran, 1 seul tap suffit) ======= */
     #live-overlay {
@@ -717,9 +710,6 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.49-3.5"/></svg>
         </button>
       </div>
-
-      <!-- Hint (quand autoplay bloqué, pas de bouton moche) -->
-      <div class="mp-hint" id="mp-hint">▲ Appuyez sur ▶ pour lancer</div>
 
       <!-- Ligne 4 : volume -->
       <div class="mp-vol-row">
@@ -1260,33 +1250,21 @@
       return;
     }
     audio.play()
-      .then(() => { setPlayIcon(true); hideTapPlay(); })
-      .catch(err => {
-        if (err.name === 'NotAllowedError' || err.name === 'AbortError') showTapPlay();
-      });
+      .then(() => { setPlayIcon(true); })
+      .catch(() => { /* autoplay bloqué — l'utilisateur peut appuyer sur ▶ */ });
   }
 
-  function showTapPlay() {
-    document.getElementById('mp-hint').classList.add('visible');
-    document.getElementById('mp-play-btn').classList.add('need-tap');
-    setPlayIcon(false);
-  }
-  function hideTapPlay() {
-    document.getElementById('mp-hint').classList.remove('visible');
-    document.getElementById('mp-play-btn').classList.remove('need-tap');
-  }
-
-  // Appelé par le bouton ▶ : démarre si bloqué, toggle sinon
+  // Appelé par le bouton ▶ : toggle play/pause
   function demarrerOuToggle() {
     const a = document.getElementById('main-audio');
     if (!a.src) return;
     if (a.paused) {
       userPaused = false;
       a.play()
-        .then(() => { setPlayIcon(true); hideTapPlay(); })
+        .then(() => { setPlayIcon(true); })
         .catch(() => showToast('Lecture impossible'));
     } else {
-      userPaused = true;   // l'utilisateur a pausé volontairement
+      userPaused = true;
       a.pause(); setPlayIcon(false);
     }
   }
