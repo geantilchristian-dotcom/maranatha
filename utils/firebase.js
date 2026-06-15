@@ -1,8 +1,14 @@
-const admin = require('firebase-admin');
+let admin = null;
+try {
+  admin = require('firebase-admin');
+} catch (e) {
+  console.warn('[Firebase] firebase-admin non disponible, notifications desactivees :', e.message);
+}
 
 let firebaseApp;
 
 function getFirebaseApp() {
+  if (!admin) throw new Error('firebase-admin non charge');
   if (firebaseApp) return firebaseApp;
 
   if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
@@ -76,8 +82,8 @@ async function envoyerNotificationMasse(tokens, sermon) {
   //      verrouillé (comportement WhatsApp).
   //
   // Résultat : dans TOUS les cas l'utilisateur reçoit l'alerte.
-  const titreNotif = `🔔 ${sermon.titre}`;
-  const corpsNotif = '⛪ La prédication vient de commencer. Appuyez pour écouter.';
+  const titreNotif = sermon.titre;
+  const corpsNotif = 'La predication vient de commencer. Appuyez pour ecouter.';
 
   const message = {
     tokens,
