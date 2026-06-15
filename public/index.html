@@ -8,19 +8,23 @@
     * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
     :root {
-      --primary:     #6B4EFF;
-      --primary-bg:  #EEEAFF;
-      --orange-bg:   #FFF3E0;
-      --teal-bg:     #E0F7F4;
-      --pink-bg:     #FFE8EC;
-      --bg:          #F2F1F6;
-      --card:        #FFFFFF;
-      --text:        #1C1C1E;
-      --text-sub:    #6E6E73;
-      --text-muted:  #AEAEB2;
-      --border:      #E5E5EA;
-      --nav-h:       74px;
-      --radius:      14px;
+      --primary:    #5C5CFF;
+      --primary-lt: #EEEEFF;
+      --green:      #22A87A;
+      --green-lt:   #E5F6EF;
+      --red:        #E84040;
+      --red-lt:     #FDEAEA;
+      --orange:     #F5A623;
+      --orange-lt:  #FEF5E6;
+      --bg:         #F4F4FB;
+      --card:       #FFFFFF;
+      --text:       #1A1A2E;
+      --text-sub:   #6B6B8A;
+      --text-muted: #AEAEC2;
+      --border:     #EBEBF5;
+      --nav-h:      76px;
+      --radius:     16px;
+      --safe-top:   env(safe-area-inset-top, 0px);
     }
 
     body {
@@ -33,360 +37,359 @@
     }
 
     /* ============================
-       INSCRIPTION
+       INSCRIPTION / LOGIN
     ============================ */
     #register-page {
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
       padding: 48px 28px 40px;
       background: #fff;
     }
-
     .reg-logo-img {
-      width: 110px; height: 110px;
-      object-fit: contain;
-      margin-bottom: 18px;
+      width: 100px; height: 100px;
+      object-fit: contain; margin-bottom: 12px;
     }
-
     .reg-church-name {
-      font-size: 13px;
-      font-weight: 300;
-      color: var(--text-sub);
-      text-align: center;
-      letter-spacing: 0.3px;
-      line-height: 1.5;
-      max-width: 260px;
-      text-transform: uppercase;
-      margin-bottom: 22px;
+      font-size: 11px; font-weight: 500; color: var(--text-sub);
+      text-align: center; letter-spacing: 0.6px; line-height: 1.6;
+      max-width: 240px; text-transform: uppercase; margin-bottom: 32px;
     }
-
     .reg-welcome {
-      font-size: 30px;
-      font-weight: 800;
-      color: var(--text);
-      text-align: center;
-      letter-spacing: -0.5px;
-      margin-bottom: 32px;
-      line-height: 1.2;
+      font-size: 28px; font-weight: 800; color: var(--text);
+      text-align: center; letter-spacing: -0.5px; margin-bottom: 28px;
     }
-
-    .reg-divider {
-      width: 40px; height: 3px;
-      background: var(--primary);
-      border-radius: 2px;
-      margin-bottom: 32px;
-    }
-
     .reg-form { width: 100%; max-width: 340px; }
-    .reg-label { display: block; font-size: 12px; font-weight: 600; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 7px; }
-
+    .reg-label {
+      display: block; font-size: 11px; font-weight: 700;
+      color: var(--text-sub); text-transform: uppercase;
+      letter-spacing: 0.6px; margin-bottom: 7px;
+    }
     .reg-input {
       width: 100%; padding: 15px 16px;
-      background: var(--bg);
-      border: 1.5px solid transparent;
-      border-radius: var(--radius);
-      color: var(--text); font-size: 16px;
-      outline: none; margin-bottom: 14px;
+      background: var(--bg); border: 1.5px solid transparent;
+      border-radius: var(--radius); color: var(--text);
+      font-size: 16px; outline: none; margin-bottom: 14px;
       transition: border-color .2s; -webkit-appearance: none;
     }
     .reg-input:focus { border-color: var(--primary); background: #fff; }
-
     .btn-primary {
       width: 100%; padding: 16px;
       background: var(--primary); color: #fff;
       border: none; border-radius: var(--radius);
       font-size: 16px; font-weight: 700; cursor: pointer;
-      letter-spacing: -0.2px; transition: opacity .2s;
+      transition: opacity .2s;
     }
     .btn-primary:active { opacity: 0.85; }
-
     .skip-link {
       color: var(--text-muted); font-size: 14px;
       margin-top: 16px; cursor: pointer; text-align: center;
-      font-weight: 400;
     }
-    .skip-link:active { color: var(--primary); }
+
+    /* ============================
+       SPLASH
+    ============================ */
+    #splash-screen {
+      position: fixed; inset: 0; z-index: 9999;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      background: #fff; transition: opacity .5s;
+    }
+    #splash-screen.fade-out { opacity: 0; pointer-events: none; }
+    .splash-logo { width: 140px; height: 140px; object-fit: contain; margin-bottom: 16px; }
+    .splash-church-name {
+      font-size: 11px; font-weight: 400; color: #AAA;
+      text-transform: uppercase; letter-spacing: 1px;
+      text-align: center; line-height: 1.7; max-width: 210px; margin-bottom: 48px;
+    }
+    .splash-spinner {
+      width: 26px; height: 26px;
+      border: 3px solid rgba(0,0,0,0.08);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ============================
+       BIENVENUE
+    ============================ */
+    #bienvenue-screen {
+      position: fixed; inset: 0; z-index: 9998;
+      display: none; flex-direction: column;
+      align-items: center; justify-content: center;
+      background: #fff; transition: opacity .5s;
+    }
+    #bienvenue-screen.visible { display: flex; }
+    #bienvenue-screen.fade-out { opacity: 0; pointer-events: none; }
+    .bvn-text { font-size: 40px; font-weight: 800; color: var(--text); letter-spacing: -1px; }
+    .bvn-sub { font-size: 15px; color: var(--text-sub); margin-top: 8px; }
 
     /* ============================
        APP
     ============================ */
-    body { background: #fff; }
-    #app { display: none; padding-bottom: var(--nav-h); background: #fff; }
+    #app { display: none; padding-bottom: var(--nav-h); min-height: 100vh; }
+    audio { display: none; }
 
     /* ======= HEADER ======= */
     .app-header {
       background: #fff;
-      padding: 52px 16px 10px;
-      display: flex; align-items: center; gap: 10px;
-      border-bottom: 1px solid var(--border);
+      padding: calc(var(--safe-top) + 48px) 18px 14px;
+      display: flex; align-items: center; gap: 12px;
     }
-
-    .logo-circle {
-      width: 36px; height: 36px; border-radius: 9px;
-      overflow: hidden; flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center;
+    .hdr-logo-wrap {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 3px; flex-shrink: 0;
     }
-    .logo-circle img { width: 100%; height: 100%; object-fit: contain; }
-
-    /* Quick icon bar in header */
-    .header-quick {
-      display: flex; align-items: center; gap: 2px;
-      flex: 1; justify-content: center;
+    .hdr-logo {
+      width: 40px; height: 40px; border-radius: 10px;
+      overflow: hidden;
     }
-    .hq-btn {
-      display: flex; flex-direction: column; align-items: center; gap: 2px;
-      background: none; border: none; cursor: pointer;
-      padding: 5px 9px; border-radius: 12px;
-      transition: background .15s;
+    .hdr-logo img { width: 100%; height: 100%; object-fit: contain; }
+    .hdr-logo-name {
+      font-size: 8px; font-weight: 800; color: var(--primary);
+      letter-spacing: 1.2px; text-transform: uppercase;
     }
-    .hq-btn:active { background: var(--bg); }
-    .hq-label { font-size: 9px; font-weight: 600; color: var(--text-sub); }
-
-    .header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-
+    .hdr-greeting { flex: 1; min-width: 0; }
+    .hdr-title {
+      font-size: 20px; font-weight: 800; color: var(--text);
+      letter-spacing: -0.3px; line-height: 1.2;
+    }
+    .hdr-sub { font-size: 13px; color: var(--text-sub); margin-top: 2px; }
+    .hdr-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
     .icon-btn {
-      width: 36px; height: 36px; border-radius: 50%;
+      width: 40px; height: 40px; border-radius: 50%;
       background: var(--bg); border: none; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
       position: relative;
     }
     .icon-btn:active { opacity: 0.7; }
-
     .notif-dot {
-      position: absolute; top: 7px; right: 7px;
-      width: 7px; height: 7px;
+      position: absolute; top: 8px; right: 8px;
+      width: 8px; height: 8px;
       background: var(--primary); border-radius: 50%;
       border: 2px solid #fff;
     }
 
-    /* Greeting */
-    .greeting { padding: 18px 20px 10px; }
-    .greeting-name { font-size: 24px; font-weight: 800; color: var(--text); margin-bottom: 2px; letter-spacing: -0.5px; }
-    .greeting-verse { font-size: 13px; color: var(--text-sub); }
+    /* ======= SCROLLABLE CONTENT ======= */
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
 
-    /* Live banner */
-    .live-banner {
-      margin: 0 16px 16px;
-      background: var(--primary);
-      border-radius: 16px;
-      padding: 16px 18px;
-      display: none; cursor: pointer;
+    /* ======= HERO CARD (live) ======= */
+    .hero-card {
+      margin: 0 16px 20px;
+      border-radius: 20px; overflow: hidden;
+      position: relative; cursor: pointer;
+      background: #1a1040;
+      display: none; min-height: 200px;
     }
-    .live-banner.visible { display: block; }
-
-    .live-chip {
+    .hero-card.visible { display: block; }
+    .hero-img {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      object-fit: cover; opacity: 0.55;
+    }
+    .hero-content {
+      position: relative; z-index: 1;
+      padding: 22px 20px 22px;
+    }
+    .hero-badge {
       display: inline-flex; align-items: center; gap: 6px;
-      background: rgba(255,255,255,0.2);
-      color: #fff; font-size: 10px; font-weight: 700;
-      padding: 3px 9px; border-radius: 20px;
-      margin-bottom: 8px; letter-spacing: 0.5px;
+      background: var(--primary); color: #fff;
+      font-size: 10px; font-weight: 800; letter-spacing: 0.8px;
+      padding: 5px 12px; border-radius: 20px; margin-bottom: 14px;
     }
-    .live-dot { width: 6px; height: 6px; background: #fff; border-radius: 50%; animation: blink 1s infinite; }
+    .hero-badge-dot { width: 6px; height: 6px; background: #fff; border-radius: 50%; animation: blink 1s infinite; }
     @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
-    .live-title { color: #fff; font-size: 15px; font-weight: 700; margin-bottom: 2px; }
-    .live-sub { color: rgba(255,255,255,0.65); font-size: 12px; }
+    .hero-title { font-size: 26px; font-weight: 900; color: #fff; letter-spacing: -0.5px; margin-bottom: 8px; line-height: 1.1; }
+    .hero-sub { font-size: 13px; color: rgba(255,255,255,0.75); margin-bottom: 20px; line-height: 1.4; }
+    .hero-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--primary); color: #fff;
+      border: none; border-radius: 30px;
+      padding: 13px 22px; font-size: 15px; font-weight: 700;
+      cursor: pointer; transition: opacity .2s;
+    }
+    .hero-btn:active { opacity: 0.85; }
 
-    /* Audio player card */
-    .player-card {
+    /* ======= AUDIO MINI-PLAYER ======= */
+    .mini-player {
       margin: 0 16px 16px;
-      background: #1C1C2E;
-      border-radius: 16px;
-      overflow: hidden; display: none;
+      background: #1C1C2E; border-radius: 16px;
+      padding: 14px; display: none;
     }
-    .player-card.visible { display: block; }
-    audio { display: none; }
-
-    .tap-to-play {
-      display: none; align-items: center; justify-content: center; gap: 10px;
-      background: linear-gradient(135deg, #6B4EFF, #4B2FD4);
-      color: #fff; font-size: 15px; font-weight: 700;
-      padding: 12px 20px; border-radius: 12px; margin: 10px 0 4px;
-      cursor: pointer; animation: pulse-tap 1.5s infinite;
-      border: none; width: 100%;
-    }
-    .tap-to-play.visible { display: flex; }
-    @keyframes pulse-tap { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.85;transform:scale(.98)} }
-
-    .player-body { padding: 14px; }
-    .player-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
-    .player-thumb {
-      width: 48px; height: 48px; border-radius: 10px;
+    .mini-player.visible { display: block; }
+    .mp-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+    .mp-thumb {
+      width: 44px; height: 44px; border-radius: 10px;
       background: var(--primary);
       display: flex; align-items: center; justify-content: center; flex-shrink: 0;
     }
-    .player-info { flex: 1; min-width: 0; }
-    .player-title { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .player-status { font-size: 11px; color: rgba(255,255,255,0.45); }
-    .btn-play-circle {
-      width: 42px; height: 42px; border-radius: 50%;
+    .mp-info { flex: 1; min-width: 0; }
+    .mp-title { font-size: 13px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .mp-status { font-size: 11px; color: rgba(255,255,255,0.45); margin-top: 2px; }
+    .mp-play-btn {
+      width: 40px; height: 40px; border-radius: 50%;
       background: var(--primary); border: none;
       display: flex; align-items: center; justify-content: center;
-      cursor: pointer; flex-shrink: 0; transition: opacity .2s;
+      cursor: pointer; flex-shrink: 0;
     }
-    .btn-play-circle:active { opacity: 0.8; }
-    .progress-track { width: 100%; height: 4px; background: rgba(255,255,255,0.12); border-radius: 2px; cursor: pointer; margin-bottom: 5px; }
-    .progress-fill { height: 100%; background: var(--primary); border-radius: 2px; transition: width .3s linear; }
-    .time-row { display: flex; justify-content: space-between; color: rgba(255,255,255,0.4); font-size: 11px; }
-    .player-controls-row { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
-    .ctrl-btn { background: none; border: none; color: rgba(255,255,255,0.5); cursor: pointer; display: flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; }
-    .volume-row { display: flex; align-items: center; gap: 6px; }
-    input[type="range"] { width: 68px; accent-color: var(--primary); }
+    .mp-progress { width: 100%; height: 3px; background: rgba(255,255,255,0.12); border-radius: 2px; cursor: pointer; }
+    .mp-fill { height: 100%; background: var(--primary); border-radius: 2px; transition: width .3s linear; }
+    .mp-times { display: flex; justify-content: space-between; color: rgba(255,255,255,0.4); font-size: 11px; margin-top: 4px; }
+    .mp-controls { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
+    .mp-ctrl { background: none; border: none; color: rgba(255,255,255,0.5); cursor: pointer; display: flex; align-items: center; gap: 3px; font-size: 11px; font-weight: 600; }
+    .tap-play {
+      display: none; width: 100%;
+      background: linear-gradient(135deg, var(--primary), #4040CC);
+      color: #fff; border: none; border-radius: 12px;
+      padding: 12px; font-size: 14px; font-weight: 700;
+      cursor: pointer; align-items: center; justify-content: center; gap: 8px;
+      margin-bottom: 8px; animation: pulse-tap 1.5s infinite;
+    }
+    .tap-play.visible { display: flex; }
+    @keyframes pulse-tap { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.85;transform:scale(.98)} }
 
-    /* ======= YOUTUBE CARD ======= */
-    .yt-card {
-      margin: 0 16px 20px;
-      border-radius: 16px;
-      overflow: hidden;
-      cursor: pointer;
-      position: relative;
-      background: #000;
-      display: none;
-    }
-    .yt-card.visible { display: block; }
-    .yt-thumb {
-      width: 100%; aspect-ratio: 16/9;
-      object-fit: cover; display: block;
-    }
-    .yt-overlay {
-      position: absolute; inset: 0;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      background: rgba(0,0,0,0.3);
-    }
-    .yt-play-btn {
-      width: 54px; height: 54px; border-radius: 50%;
-      background: rgba(255,0,0,0.9);
-      display: flex; align-items: center; justify-content: center;
-      margin-bottom: 10px;
-    }
-    .yt-label {
-      color: #fff; font-size: 13px; font-weight: 700;
-      background: rgba(0,0,0,0.4);
-      padding: 5px 14px; border-radius: 20px;
-    }
-
-    /* ======= SECTION ROW ======= */
-    .section-row {
+    /* ======= SECTION HEADER ======= */
+    .sec-row {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 0 16px; margin-bottom: 12px;
+      padding: 0 18px; margin-bottom: 14px;
     }
-    .section-title { font-size: 19px; font-weight: 800; color: var(--text); letter-spacing: -0.3px; }
-    .voir-tout { font-size: 13px; color: var(--primary); font-weight: 500; cursor: pointer; }
+    .sec-title { font-size: 18px; font-weight: 800; color: var(--text); letter-spacing: -0.3px; }
+    .sec-voir {
+      display: flex; align-items: center; gap: 3px;
+      font-size: 13px; color: var(--primary); font-weight: 600; cursor: pointer;
+    }
 
-    /* ======= SERMON GRID (2 colonnes) ======= */
-    .sermon-grid {
-      display: grid; grid-template-columns: 1fr 1fr;
-      gap: 12px; padding: 0 16px;
+    /* ======= QUICK ACTIONS ======= */
+    .quick-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 10px; padding: 0 16px; margin-bottom: 24px;
     }
-    .sg-card {
-      background: var(--card); border-radius: 14px;
-      overflow: hidden; cursor: pointer;
-      box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+    .quick-card {
+      background: var(--card); border-radius: 16px;
+      padding: 14px 8px 12px;
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+      cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.05);
       transition: transform .1s;
     }
-    .sg-card:active { transform: scale(0.97); }
-    .sg-thumb {
-      width: 100%; aspect-ratio: 1;
-      background: var(--primary-bg);
+    .quick-card:active { transform: scale(0.95); }
+    .quick-icon {
+      width: 46px; height: 46px; border-radius: 14px;
       display: flex; align-items: center; justify-content: center;
-      position: relative; overflow: hidden;
     }
-    .sg-thumb img { width: 100%; height: 100%; object-fit: cover; }
-    .sg-play-over {
+    .quick-label { font-size: 12px; font-weight: 700; color: var(--text); text-align: center; }
+    .quick-sub { font-size: 10px; color: var(--text-muted); text-align: center; margin-top: -5px; }
+
+    /* ======= SERMON LIST ======= */
+    .sermon-list { padding: 0 16px; display: flex; flex-direction: column; gap: 12px; }
+    .sl-card {
+      background: var(--card); border-radius: 16px;
+      display: flex; gap: 12px; padding: 12px;
+      cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      transition: transform .1s; position: relative;
+    }
+    .sl-card:active { transform: scale(0.99); }
+    .sl-thumb {
+      width: 100px; height: 90px; border-radius: 12px;
+      background: var(--primary-lt, #EEEEFF); flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden; position: relative;
+    }
+    .sl-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .sl-play-over {
       position: absolute; inset: 0;
       display: flex; align-items: center; justify-content: center;
-      background: rgba(107,78,255,0.15);
+      background: rgba(0,0,0,0.18);
     }
-    .sg-info { padding: 10px 10px 12px; }
-    .sg-title { font-size: 13px; font-weight: 700; color: var(--text); line-height: 1.3; margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-    .sg-meta { font-size: 11px; color: var(--text-muted); }
+    .sl-play-circle {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--primary);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .sl-info { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: space-between; }
+    .sl-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 6px; }
+    .sl-title { font-size: 14px; font-weight: 800; color: var(--text); line-height: 1.3; flex: 1; }
+    .sl-bookmark { color: var(--text-muted); cursor: pointer; flex-shrink: 0; margin-top: 1px; }
+    .sl-author { font-size: 12px; color: var(--text-sub); margin-top: 3px; }
+    .sl-meta { font-size: 11px; color: var(--text-muted); margin-top: 4px; display: flex; gap: 8px; align-items: center; }
+    .sl-action {
+      font-size: 12px; color: var(--primary); font-weight: 600;
+      margin-top: 6px; display: flex; align-items: center; gap: 2px;
+    }
 
-    /* Bibliothèque list */
-    .rec-item {
-      margin: 0 16px 10px;
-      background: var(--card); border-radius: var(--radius);
-      padding: 13px 14px;
-      display: flex; align-items: center; gap: 12px;
+    /* ======= EVENTS ======= */
+    .event-list { padding: 0 16px; display: flex; flex-direction: column; gap: 10px; margin-bottom: 8px; }
+    .ev-card {
+      background: var(--card); border-radius: 16px;
+      display: flex; align-items: center; gap: 14px;
+      padding: 14px 14px 14px 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .ev-icon {
+      width: 52px; height: 52px; border-radius: 14px;
+      background: var(--primary-lt, #EEEEFF);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .ev-info { flex: 1; min-width: 0; }
+    .ev-title { font-size: 14px; font-weight: 800; color: var(--text); }
+    .ev-meta { font-size: 11px; color: var(--text-sub); margin-top: 3px; line-height: 1.5; }
+    .ev-btn {
+      background: var(--primary-lt, #EEEEFF); color: var(--primary);
+      border: none; border-radius: 12px;
+      padding: 10px 14px; font-size: 12px; font-weight: 700;
+      cursor: pointer; flex-shrink: 0; white-space: nowrap;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .ev-btn:active { opacity: 0.8; }
+
+    /* ======= BIBLIOTHÈQUE ======= */
+    .lib-list { padding: 0 16px; display: flex; flex-direction: column; gap: 10px; }
+    .lib-item {
+      background: var(--card); border-radius: 14px;
+      padding: 13px 14px; display: flex; align-items: center; gap: 12px;
       cursor: pointer; box-shadow: 0 1px 6px rgba(0,0,0,0.05);
       transition: transform .1s;
     }
-    .rec-item:active { transform: scale(0.99); }
-    .rec-icon {
+    .lib-item:active { transform: scale(0.99); }
+    .lib-icon {
       width: 48px; height: 48px; border-radius: 12px;
-      background: var(--primary-bg);
+      background: var(--primary-lt,#EEEEFF);
       display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      overflow: hidden;
     }
-    .rec-icon img { width: 100%; height: 100%; object-fit: cover; border-radius: 12px; }
-    .rec-info { flex: 1; min-width: 0; }
-    .rec-title { font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .rec-meta  { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
-    .rec-play {
+    .lib-icon img { width: 100%; height: 100%; object-fit: cover; }
+    .lib-info { flex: 1; min-width: 0; }
+    .lib-title { font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .lib-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .lib-play {
       width: 36px; height: 36px; border-radius: 50%;
-      background: var(--primary); color: #fff; border: none;
+      background: var(--primary); border: none;
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; flex-shrink: 0;
     }
 
-    /* Empty state */
-    .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
-    .empty-state p { font-size: 14px; margin-top: 12px; }
-
-    /* ======= BOTTOM NAV (3 items) ======= */
-    .bottom-nav {
-      position: fixed; bottom: 0;
-      left: 50%; transform: translateX(-50%);
-      width: 100%; max-width: 430px;
-      height: var(--nav-h);
-      background: #fff;
-      border-top: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: space-around;
-      padding: 0 0 8px; z-index: 100;
+    /* ======= DIRECT TAB ======= */
+    .direct-wrap { padding: 24px 16px; }
+    .direct-empty { text-align: center; padding: 60px 20px; }
+    .direct-empty-icon {
+      width: 80px; height: 80px; border-radius: 50%;
+      background: var(--primary-lt,#EEEEFF);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 16px;
     }
-    .nav-item {
-      display: flex; flex-direction: column; align-items: center;
-      gap: 4px; cursor: pointer; padding: 8px 24px;
-      border-radius: var(--radius); flex: 1;
-      transition: background .15s; position: relative;
-    }
-    .nav-label { font-size: 10px; font-weight: 600; color: var(--text-muted); }
-    .nav-item.active .nav-label { color: var(--primary); }
-    .nav-item.active svg { stroke: var(--primary); }
-    .nav-item svg { stroke: var(--text-muted); fill: none; }
-    .nav-item.active::after {
-      content: ''; position: absolute; bottom: -8px; left: 50%;
-      transform: translateX(-50%);
-      width: 20px; height: 3px;
-      background: var(--primary); border-radius: 2px;
-    }
+    .direct-empty-title { font-size: 18px; font-weight: 800; color: var(--text); margin-bottom: 6px; }
+    .direct-empty-sub { font-size: 14px; color: var(--text-sub); line-height: 1.5; }
 
-    /* Toast */
-    .toast {
-      position: fixed;
-      bottom: calc(var(--nav-h) + 14px); left: 50%;
-      transform: translateX(-50%) translateY(8px);
-      background: var(--text); color: #fff;
-      padding: 10px 20px; border-radius: 12px;
-      font-size: 13px; font-weight: 500; z-index: 200;
-      opacity: 0; white-space: nowrap; transition: all .3s;
-    }
-    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-    /* Tab content */
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
-
-    /* Settings tab */
-    .settings-section { padding: 24px 16px; }
+    /* ======= PARAMÈTRES ======= */
+    .settings-wrap { padding: 24px 16px; }
     .settings-avatar {
       width: 72px; height: 72px; border-radius: 50%;
-      background: var(--primary-bg);
+      background: var(--primary-lt,#EEEEFF);
       display: flex; align-items: center; justify-content: center;
-      margin: 0 auto 12px;
+      margin: 0 auto 10px;
     }
-    .settings-name { font-size: 20px; font-weight: 800; color: var(--text); text-align: center; margin-bottom: 4px; }
+    .settings-name { font-size: 20px; font-weight: 800; text-align: center; margin-bottom: 4px; }
     .settings-sub { font-size: 13px; color: var(--text-sub); text-align: center; margin-bottom: 28px; }
     .settings-row {
       display: flex; align-items: center; gap: 14px;
@@ -402,98 +405,72 @@
     .settings-row-arrow { color: var(--text-muted); font-size: 18px; }
     .btn-signout {
       width: 100%; margin-top: 16px; padding: 14px;
-      background: #FFE8EC; color: #D0021B;
+      background: #FDEAEA; color: var(--red);
       border: none; border-radius: var(--radius);
       font-size: 15px; font-weight: 700; cursor: pointer;
     }
 
-    /* ============================
-       SPLASH SCREEN
-    ============================ */
-    #splash-screen {
-      position: fixed; inset: 0; z-index: 9999;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      background: #ffffff;
-      transition: opacity .5s ease;
+    /* ======= BOTTOM NAV (4 items) ======= */
+    .bottom-nav {
+      position: fixed; bottom: 0;
+      left: 50%; transform: translateX(-50%);
+      width: 100%; max-width: 430px;
+      height: var(--nav-h);
+      background: #fff; border-top: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-around;
+      padding: 0 0 8px; z-index: 100;
     }
-    #splash-screen.fade-out { opacity: 0; pointer-events: none; }
+    .nav-item {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 4px; cursor: pointer; flex: 1;
+      padding: 8px 4px;
+    }
+    .nav-label { font-size: 10px; font-weight: 600; color: var(--text-muted); }
+    .nav-item.active .nav-label { color: var(--primary); }
+    .nav-item svg { stroke: var(--text-muted); fill: none; }
+    .nav-item.active svg { stroke: var(--primary); }
 
-    .splash-logo {
-      width: 150px; height: 150px;
-      object-fit: contain;
-      margin-bottom: 20px;
-    }
+    /* ======= EMPTY STATE ======= */
+    .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
+    .empty-state p { font-size: 14px; margin-top: 12px; }
 
-    .splash-church-name {
-      font-size: 12px;
-      font-weight: 300;
-      color: #888;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      text-align: center;
-      line-height: 1.6;
-      max-width: 220px;
-      margin-bottom: 48px;
+    /* ======= TOAST ======= */
+    .toast {
+      position: fixed;
+      bottom: calc(var(--nav-h) + 14px); left: 50%;
+      transform: translateX(-50%) translateY(8px);
+      background: var(--text); color: #fff;
+      padding: 10px 20px; border-radius: 12px;
+      font-size: 13px; font-weight: 500; z-index: 300;
+      opacity: 0; white-space: nowrap; transition: all .3s;
+      pointer-events: none;
     }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-    .splash-spinner {
-      width: 28px; height: 28px;
-      border: 3px solid rgba(0,0,0,0.08);
-      border-top-color: #6B4EFF;
-      border-radius: 50%;
-      animation: spin .8s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* ============================
-       BIENVENUE SCREEN
-    ============================ */
-    #bienvenue-screen {
-      position: fixed; inset: 0; z-index: 9998;
-      display: none;
-      flex-direction: column;
-      align-items: center; justify-content: center;
-      background: #ffffff;
-      transition: opacity .5s ease;
-    }
-    #bienvenue-screen.visible { display: flex; }
-    #bienvenue-screen.fade-out { opacity: 0; pointer-events: none; }
-
-    .bvn-text {
-      font-size: 42px;
-      font-weight: 800;
-      color: var(--text);
-      letter-spacing: -1px;
-    }
-    .bvn-sub {
-      font-size: 15px;
-      color: var(--text-sub);
-      margin-top: 10px;
-      font-weight: 400;
-    }
+    /* spacers */
+    .ph { height: 24px; }
   </style>
 </head>
 <body>
 
-<!-- ===================== SPLASH SCREEN ===================== -->
+<!-- ============ SPLASH ============ -->
 <div id="splash-screen">
-  <img id="splash-logo" class="splash-logo" src="/logo.jpg" alt="Logo Maranatha" />
+  <img id="splash-logo" class="splash-logo" src="/logo.jpg" alt="Maranatha" />
   <div class="splash-church-name">Communauté des Églises<br>Missionnaire Maranatha</div>
   <div class="splash-spinner"></div>
 </div>
 
-<!-- ===================== BIENVENUE ===================== -->
+<!-- ============ BIENVENUE ============ -->
 <div id="bienvenue-screen">
   <div class="bvn-text">Bienvenue !</div>
   <div class="bvn-sub">Que la grâce soit avec vous 🙏</div>
 </div>
 
-<!-- ===================== INSCRIPTION ===================== -->
+<!-- ============ LOGIN ============ -->
 <div id="register-page">
-
-  <img class="reg-logo-img" src="/logo.jpg" alt="Logo Maranatha" />
-
+  <img class="reg-logo-img" src="/logo.jpg" alt="Maranatha" />
+  <div class="reg-church-name">Communauté des Églises<br>Missionnaire Maranatha</div>
+  <div class="reg-welcome">Connexion</div>
   <div class="reg-form">
     <label class="reg-label">Votre prénom</label>
     <input class="reg-input" type="text" id="reg-nom" placeholder="Ex : Marie, Jean, Pierre"
@@ -504,61 +481,31 @@
     <button class="btn-primary" onclick="entrer()">Se connecter</button>
     <div class="skip-link" onclick="entrerSansNom()">Continuer en visiteur</div>
   </div>
-
 </div>
 
-<!-- ===================== APP ===================== -->
+<!-- ============ APP ============ -->
 <div id="app">
 
   <!-- Header -->
   <header class="app-header">
-    <div class="logo-circle">
-      <img src="/logo.jpg" alt="Maranatha" />
+    <div class="hdr-logo-wrap">
+      <div class="hdr-logo"><img src="/logo.jpg" alt="Maranatha" /></div>
+      <span class="hdr-logo-name">Maranatha</span>
     </div>
-
-    <!-- Quick actions in header -->
-    <div class="header-quick">
-      <button class="hq-btn" onclick="showToast('Bible — Bientôt disponible')">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6B4EFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
-          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
-        </svg>
-        <span class="hq-label">Bible</span>
-      </button>
-      <button class="hq-btn" onclick="showToast('Notes — Bientôt disponible')">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#E07A00" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-          <polyline points="14 2 14 8 20 8"/>
-          <line x1="16" y1="13" x2="8" y2="13"/>
-          <line x1="16" y1="17" x2="8" y2="17"/>
-        </svg>
-        <span class="hq-label">Notes</span>
-      </button>
-      <button class="hq-btn" onclick="showToast('Prière — Bientôt disponible')">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#00897B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 2v6M8.5 4.5C6.5 6.5 5 9.5 5 12c0 3.9 3.1 7 7 7s7-3.1 7-7c0-2.5-1.5-5.5-3.5-7.5"/>
-          <path d="M9 12c0 1.7 1.3 3 3 3s3-1.3 3-3"/>
-        </svg>
-        <span class="hq-label">Prière</span>
-      </button>
-      <button class="hq-btn" onclick="showToast('Offrande — Bientôt disponible')">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#D0021B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-        </svg>
-        <span class="hq-label">Offrande</span>
-      </button>
+    <div class="hdr-greeting">
+      <div class="hdr-title" id="greeting-name">Bonjour, Fidèle ! 👋</div>
+      <div class="hdr-sub">Que Dieu vous bénisse aujourd'hui 🙏</div>
     </div>
-
-    <div class="header-right">
-      <button class="icon-btn" id="notif-btn" onclick="showToast('Aucune nouvelle notification')">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6E6E73" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <div class="hdr-actions">
+      <button class="icon-btn" onclick="showToast('Aucune nouvelle notification')">
+        <svg width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
           <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
         </svg>
         <div class="notif-dot" id="notif-dot" style="display:none"></div>
       </button>
       <button class="icon-btn" onclick="switchTab('settings')">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6E6E73" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
           <circle cx="12" cy="7" r="4"/>
         </svg>
@@ -566,105 +513,192 @@
     </div>
   </header>
 
-  <!-- Greeting -->
-  <div class="greeting">
-    <div class="greeting-name" id="greeting-name">Bonjour !</div>
-    <div class="greeting-verse">Que Dieu vous bénisse aujourd'hui 🙏</div>
-  </div>
-
-  <!-- ===== TAB : ACCUEIL ===== -->
+  <!-- ==== TAB : ACCUEIL ==== -->
   <div id="tab-home" class="tab-content active">
 
-    <!-- Live banner -->
-    <div class="live-banner" id="live-banner" onclick="scrollToPlayer()">
-      <div class="live-chip"><div class="live-dot"></div>LIVE</div>
-      <div class="live-title" id="live-title-txt">Culte en direct</div>
-      <div class="live-sub">Suivez la predication en temps reel</div>
+    <!-- Hero live card -->
+    <div class="hero-card" id="hero-card" onclick="scrollToPlayer()">
+      <img class="hero-img" id="hero-img" src="" alt="" />
+      <div class="hero-content">
+        <div class="hero-badge">
+          <div class="hero-badge-dot"></div>
+          EN DIRECT
+        </div>
+        <div class="hero-title" id="hero-title">Culte en direct</div>
+        <div class="hero-sub">Rejoignez-nous maintenant<br>et adorons ensemble !</div>
+        <button class="hero-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Regarder maintenant
+        </button>
+      </div>
     </div>
 
-    <!-- Audio player -->
-    <div class="player-card" id="player-card">
+    <!-- Mini audio player (hidden until needed) -->
+    <div class="mini-player" id="mini-player">
       <audio id="main-audio" preload="none"></audio>
-      <button class="tap-to-play" id="tap-to-play" onclick="demarrerLecture()">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      <button class="tap-play" id="tap-to-play" onclick="demarrerLecture()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
         Appuyez pour écouter
       </button>
-      <div class="player-body">
-        <div class="player-row">
-          <div class="player-thumb">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
-              <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
-              <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
-            </svg>
-          </div>
-          <div class="player-info">
-            <div class="player-title" id="player-title">—</div>
-            <div class="player-status" id="player-status">En lecture</div>
-          </div>
-          <button class="btn-play-circle" id="btn-play" onclick="togglePlay()">
-            <svg id="play-icon" width="18" height="18" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-          </button>
+      <div class="mp-row">
+        <div class="mp-thumb">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+          </svg>
         </div>
-        <div class="progress-track" id="progress-track" onclick="seekAudio(event)">
-          <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+        <div class="mp-info">
+          <div class="mp-title" id="mp-title">—</div>
+          <div class="mp-status" id="mp-status">En lecture</div>
         </div>
-        <div class="time-row">
-          <span id="time-current">0:00</span>
-          <span id="time-total">0:00</span>
+        <button class="mp-play-btn" onclick="togglePlay()">
+          <svg id="play-icon" width="16" height="16" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        </button>
+      </div>
+      <div class="mp-progress" id="mp-progress" onclick="seekAudio(event)">
+        <div class="mp-fill" id="mp-fill" style="width:0%"></div>
+      </div>
+      <div class="mp-times">
+        <span id="time-current">0:00</span>
+        <span id="time-total">0:00</span>
+      </div>
+      <div class="mp-controls">
+        <button class="mp-ctrl" onclick="skipBack()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
+          <span>10</span>
+        </button>
+        <div style="display:flex;align-items:center;gap:6px">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2" stroke-linecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+          <input type="range" min="0" max="1" step="0.05" value="1" oninput="setVolume(this.value)" style="width:60px;accent-color:var(--primary)" />
         </div>
-        <div class="player-controls-row">
-          <button class="ctrl-btn" onclick="skipBack()">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
-            <span style="color:rgba(255,255,255,0.5)">10</span>
-          </button>
-          <div class="volume-row">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2" stroke-linecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
-            <input type="range" min="0" max="1" step="0.05" value="1" oninput="setVolume(this.value)" />
-          </div>
-          <button class="ctrl-btn" onclick="skipForward()">
-            <span style="color:rgba(255,255,255,0.5)">10</span>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.49-3.5"/></svg>
-          </button>
-        </div>
+        <button class="mp-ctrl" onclick="skipForward()">
+          <span>10</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.49-3.5"/></svg>
+        </button>
       </div>
     </div>
 
-    <!-- YouTube featured card -->
-    <div class="yt-card" id="yt-card" onclick="ouvrirYoutube()">
-      <img class="yt-thumb" id="yt-thumb" src="" alt="Vidéo en vedette" />
-      <div class="yt-overlay">
-        <div class="yt-play-btn">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+    <!-- Actions rapides -->
+    <div class="sec-row" style="margin-top:4px">
+      <div class="sec-title">Actions rapides</div>
+    </div>
+    <div class="quick-grid">
+      <div class="quick-card" onclick="showToast('Bible — Bientôt disponible')">
+        <div class="quick-icon" style="background:var(--primary-lt,#EEEEFF)">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+          </svg>
         </div>
-        <div class="yt-label" id="yt-label">Regarder sur YouTube</div>
+        <div class="quick-label">Bible</div>
+        <div class="quick-sub">Lire la Parole</div>
+      </div>
+      <div class="quick-card" onclick="showToast('Prières — Bientôt disponible')">
+        <div class="quick-icon" style="background:var(--green-lt,#E5F6EF)">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 11l3 3L22 4"/>
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+          </svg>
+        </div>
+        <div class="quick-label">Prières</div>
+        <div class="quick-sub">Demander</div>
+      </div>
+      <div class="quick-card" onclick="showToast('Offrande — Bientôt disponible')">
+        <div class="quick-icon" style="background:var(--red-lt,#FDEAEA)">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
+        </div>
+        <div class="quick-label">Offrande</div>
+        <div class="quick-sub">Donner</div>
+      </div>
+      <div class="quick-card" onclick="showToast('Notes — Bientôt disponible')">
+        <div class="quick-icon" style="background:var(--orange-lt,#FEF5E6)">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+          </svg>
+        </div>
+        <div class="quick-label">Notes</div>
+        <div class="quick-sub">Mes notes</div>
       </div>
     </div>
 
-    <!-- Prédications -->
-    <div class="section-row">
-      <div class="section-title">Prédications</div>
-      <div class="voir-tout" onclick="switchTab('library')">Voir tout ›</div>
+    <!-- Prédications récentes -->
+    <div class="sec-row">
+      <div class="sec-title">Prédications récentes</div>
+      <div class="sec-voir" onclick="switchTab('library')">Voir tout <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
     </div>
-    <div class="sermon-grid" id="home-sermons"></div>
+    <div class="sermon-list" id="home-sermons"></div>
 
-    <div style="height:24px"></div>
+    <!-- Évènements à venir -->
+    <div class="sec-row" style="margin-top:24px">
+      <div class="sec-title">Évènements à venir</div>
+      <div class="sec-voir" onclick="showToast('Agenda — Bientôt disponible')">Voir tout <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+    </div>
+    <div class="event-list" id="events-list">
+      <div class="ev-card">
+        <div class="ev-icon">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+        </div>
+        <div class="ev-info">
+          <div class="ev-title">Veillée de prière</div>
+          <div class="ev-meta">📅 Vendredi 27 Juin 2026 · 🕗 20h00<br>📍 Église Maranatha — Salle principale</div>
+        </div>
+        <button class="ev-btn" onclick="showToast('Inscription bientôt disponible')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Participer
+        </button>
+      </div>
+    </div>
+
+    <div class="ph"></div>
   </div>
 
-  <!-- ===== TAB : BIBLIOTHÈQUE ===== -->
+  <!-- ==== TAB : BIBLIOTHÈQUE ==== -->
   <div id="tab-library" class="tab-content">
-    <div class="section-row" style="margin-top:24px; margin-bottom:14px">
-      <div class="section-title">Toutes les prédications</div>
+    <div class="sec-row" style="margin-top:24px;margin-bottom:16px">
+      <div class="sec-title">Toutes les prédications</div>
     </div>
-    <div id="recordings-section"></div>
-    <div style="height:20px"></div>
+    <div class="lib-list" id="lib-list"></div>
+    <div class="ph"></div>
   </div>
 
-  <!-- ===== TAB : PARAMÈTRES ===== -->
+  <!-- ==== TAB : DIRECT ==== -->
+  <div id="tab-direct" class="tab-content">
+    <div class="direct-wrap">
+      <div class="direct-empty" id="direct-empty">
+        <div class="direct-empty-icon">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M1 6l10.5 6L1 18V6z" fill="none"/>
+            <path d="M1 6l10.5 6L1 18V6z"/>
+            <line x1="12" y1="6" x2="23" y2="6"/>
+            <line x1="12" y1="12" x2="23" y2="12"/>
+            <line x1="12" y1="18" x2="23" y2="18"/>
+          </svg>
+        </div>
+        <div class="direct-empty-title">Aucun direct en ce moment</div>
+        <div class="direct-empty-sub">Les cultes en direct<br>apparaîtront ici quand ils commencent.</div>
+      </div>
+      <div id="direct-player" style="display:none">
+        <!-- Le player s'affiche ici lors d'un direct -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ==== TAB : PARAMÈTRES ==== -->
   <div id="tab-settings" class="tab-content">
-    <div class="settings-section">
+    <div class="settings-wrap">
       <div class="settings-avatar">
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#6B4EFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
           <circle cx="12" cy="7" r="4"/>
         </svg>
@@ -673,24 +707,22 @@
       <div class="settings-sub">Communauté Maranatha</div>
 
       <div class="settings-row" onclick="showToast('Bientôt disponible')">
-        <div class="settings-row-icon" style="background:var(--primary-bg)">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B4EFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <div class="settings-row-icon" style="background:var(--primary-lt,#EEEEFF)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         </div>
         <div class="settings-row-label">Mon profil</div>
         <div class="settings-row-arrow">›</div>
       </div>
-
       <div class="settings-row" onclick="showToast('Bientôt disponible')">
-        <div class="settings-row-icon" style="background:var(--orange-bg)">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E07A00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <div class="settings-row-icon" style="background:var(--orange-lt,#FEF5E6)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         </div>
         <div class="settings-row-label">Notifications</div>
         <div class="settings-row-arrow">›</div>
       </div>
-
       <div class="settings-row" onclick="showToast('Bientôt disponible')">
-        <div class="settings-row-icon" style="background:var(--teal-bg)">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00897B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <div class="settings-row-icon" style="background:var(--green-lt,#E5F6EF)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         </div>
         <div class="settings-row-label">Paramètres</div>
         <div class="settings-row-arrow">›</div>
@@ -700,7 +732,7 @@
     </div>
   </div>
 
-  <!-- Bottom nav — 3 items -->
+  <!-- Bottom nav — 4 items -->
   <nav class="bottom-nav">
     <div class="nav-item active" id="nav-home" onclick="switchTab('home')">
       <svg width="22" height="22" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -709,7 +741,6 @@
       </svg>
       <span class="nav-label">Accueil</span>
     </div>
-
     <div class="nav-item" id="nav-library" onclick="switchTab('library')">
       <svg width="22" height="22" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
@@ -717,7 +748,16 @@
       </svg>
       <span class="nav-label">Bibliothèque</span>
     </div>
-
+    <div class="nav-item" id="nav-direct" onclick="switchTab('direct')">
+      <svg width="22" height="22" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="2"/>
+        <path d="M16.24 7.76a6 6 0 0 1 0 8.49"/>
+        <path d="M7.76 7.76a6 6 0 0 0 0 8.49"/>
+        <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+        <path d="M4.93 4.93a10 10 0 0 0 0 14.14"/>
+      </svg>
+      <span class="nav-label">Direct</span>
+    </div>
     <div class="nav-item" id="nav-settings" onclick="switchTab('settings')">
       <svg width="22" height="22" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="12" cy="12" r="3"/>
@@ -737,7 +777,7 @@
   let activeAudioUrl = '';
   let sseSource = null;
 
-  // ============ SPLASH → BIENVENUE → LOGIN ============
+  // ============ SPLASH ============
   async function lancerSplash() {
     const splash = document.getElementById('splash-screen');
     const bvn    = document.getElementById('bienvenue-screen');
@@ -753,17 +793,13 @@
     } catch(e) {}
 
     setTimeout(() => {
-      // Fade out splash
       splash.classList.add('fade-out');
       setTimeout(() => {
         splash.remove();
-
         if (saved) {
-          // Utilisateur déjà connecté → app directement
           userName = saved;
           lancerApp();
         } else {
-          // Nouvel utilisateur → écran Bienvenue puis login
           bvn.classList.add('visible');
           setTimeout(() => {
             bvn.classList.add('fade-out');
@@ -777,24 +813,16 @@
     }, duree);
   }
 
-  // ============ SESSION PERSISTANTE ============
   window.addEventListener('DOMContentLoaded', () => {
-    // Cacher la page de login jusqu'à la fin de la séquence splash
     document.getElementById('register-page').style.display = 'none';
     lancerSplash();
   });
 
-  // ============ INSCRIPTION ============
+  // ============ AUTH ============
   function entrer() {
     const nom = document.getElementById('reg-nom').value.trim();
-    if (!nom) { showToast('Entrez votre prenom pour continuer'); return; }
+    if (!nom) { showToast('Entrez votre prénom pour continuer'); return; }
     userName = nom;
-    enregistrer();
-  }
-
-  function entrerSansNom() { userName = 'Fidele'; lancerApp(); }
-
-  function enregistrer() {
     const tel = document.getElementById('reg-tel').value.trim();
     fetch(`${API}/users/register`, {
       method: 'POST',
@@ -803,14 +831,16 @@
     }).catch(() => {}).finally(lancerApp);
   }
 
+  function entrerSansNom() { userName = 'Fidèle'; lancerApp(); }
+
   function lancerApp() {
     localStorage.setItem('maranatha_user', userName);
     document.getElementById('register-page').style.display = 'none';
     document.getElementById('app').style.display = 'block';
-    document.getElementById('greeting-name').textContent = 'Bonjour, ' + userName + ' !';
+    // Greeting : "Bonjour, [Prénom] ! 👋"
+    document.getElementById('greeting-name').textContent = 'Bonjour, ' + userName + ' ! 👋';
     document.getElementById('more-username').textContent = userName;
     chargerSermons();
-    chargerYoutube();
     connecterSSE();
   }
 
@@ -825,36 +855,23 @@
     switchTab('home');
   }
 
-  // ============ SSE — MISES A JOUR EN TEMPS REEL ============
+  // ============ SSE ============
   function connecterSSE() {
     if (sseSource) sseSource.close();
     sseSource = new EventSource(API + '/sermons/events');
-
-    // Sermon passe en direct : afficher et lancer immediatement
     sseSource.addEventListener('sermon_live', e => {
       const sermon = JSON.parse(e.data);
-      // Mettre a jour la liste locale
       const idx = sermons.findIndex(s => String(s._id) === String(sermon._id));
       if (idx >= 0) sermons[idx] = sermon; else sermons.unshift(sermon);
       afficherAccueil();
-      showToast('La predication commence !');
+      showToast('La prédication commence !');
     });
-
-    // Mise a jour generale (nouveau sermon, suppression, nettoyage)
-    sseSource.addEventListener('sermon_update', () => {
-      chargerSermons();
-    });
-
-    // Reconnexion automatique si la connexion est perdue
-    sseSource.onerror = () => {
-      sseSource.close();
-      setTimeout(connecterSSE, 5000);
-    };
+    sseSource.addEventListener('sermon_update', () => chargerSermons());
+    sseSource.onerror = () => { sseSource.close(); setTimeout(connecterSSE, 5000); };
   }
 
   // ============ NAVIGATION ============
-  const TABS = ['home', 'library', 'settings'];
-  let youtubeUrl = '';
+  const TABS = ['home', 'library', 'direct', 'settings'];
 
   function switchTab(tab) {
     TABS.forEach(t => {
@@ -863,34 +880,7 @@
       if (nav) nav.classList.toggle('active', t === tab);
     });
     if (tab === 'library') afficherBibliotheque();
-  }
-
-  // ============ YOUTUBE ============
-  function ytVideoId(url) {
-    if (!url) return null;
-    const m = url.match(/(?:v=|youtu\.be\/)([^&?/]+)/);
-    return m ? m[1] : null;
-  }
-
-  function ouvrirYoutube() {
-    if (youtubeUrl) window.open(youtubeUrl, '_blank');
-  }
-
-  async function chargerYoutube() {
-    try {
-      const res = await fetch(API + '/settings/home');
-      if (!res.ok) return;
-      const cfg = await res.json();
-      if (cfg.youtubeUrl) {
-        youtubeUrl = cfg.youtubeUrl;
-        const vid = ytVideoId(youtubeUrl);
-        if (vid) {
-          document.getElementById('yt-thumb').src = `https://img.youtube.com/vi/${vid}/hqdefault.jpg`;
-          document.getElementById('yt-label').textContent = cfg.ytLabel || 'Regarder sur YouTube';
-          document.getElementById('yt-card').classList.add('visible');
-        }
-      }
-    } catch(e) {}
+    if (tab === 'direct')  afficherDirect();
   }
 
   // ============ CHARGEMENT ============
@@ -899,64 +889,36 @@
       const res = await fetch(`${API}/sermons`);
       sermons = await res.json();
       afficherAccueil();
-    } catch (e) {
-      afficherErreurConnexion();
+    } catch(e) {
+      document.getElementById('home-sermons').innerHTML =
+        `<div class="empty-state"><p>Vérifiez votre connexion</p></div>`;
     }
   }
 
+  // ============ ACCUEIL ============
   function afficherAccueil() {
     const live = sermons.find(s => s.statut === 'en_cours');
 
-    // Live banner + player audio
+    // Hero card live
+    const hero = document.getElementById('hero-card');
+    const mini = document.getElementById('mini-player');
     if (live) {
-      document.getElementById('live-banner').classList.add('visible');
-      document.getElementById('live-title-txt').textContent = live.titre;
-      document.getElementById('player-card').classList.add('visible');
-      document.getElementById('player-title').textContent = live.titre;
-      document.getElementById('player-status').textContent = 'En direct';
+      document.getElementById('hero-title').textContent = live.titre || 'Culte en direct';
+      hero.classList.add('visible');
+      // Utiliser la photo de couverture comme fond si disponible
+      if (live.coverUrl) document.getElementById('hero-img').src = live.coverUrl;
+      mini.classList.add('visible');
+      document.getElementById('mp-title').textContent = live.titre;
+      document.getElementById('mp-status').textContent = 'En direct';
       ouvrirAudio(live.audioUrl);
     } else {
-      document.getElementById('live-banner').classList.remove('visible');
-      document.getElementById('player-card').classList.remove('visible');
+      hero.classList.remove('visible');
+      mini.classList.remove('visible');
     }
 
-    // Grille 2 colonnes — 4 dernières prédications terminées
+    // Prédications récentes (liste)
     const termines = sermons.filter(s => s.statut === 'termine' || s.statut === 'en_cours').slice(0, 4);
-    const gridEl = document.getElementById('home-sermons');
-    if (!termines.length) {
-      gridEl.innerHTML = `<div class="empty-state" style="grid-column:span 2"><p>Les prédications apparaîtront ici</p></div>`;
-    } else {
-      gridEl.innerHTML = termines.map(s => {
-        const d = new Date(s.dateDiffusion);
-        const dateStr = d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
-        const thumb = s.coverUrl
-          ? `<img src="${s.coverUrl}" alt="" />`
-          : `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#6B4EFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>`;
-        return `
-          <div class="sg-card" onclick="jouerSermon('${s._id}')">
-            <div class="sg-thumb">
-              ${thumb}
-              <div class="sg-play-over">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="rgba(107,78,255,0.9)"><circle cx="12" cy="12" r="12" fill="rgba(107,78,255,0.85)"/><polygon points="10 8 16 12 10 16 10 8" fill="white"/></svg>
-              </div>
-            </div>
-            <div class="sg-info">
-              <div class="sg-title">${s.titre}</div>
-              <div class="sg-meta">${dateStr}</div>
-            </div>
-          </div>`;
-      }).join('');
-    }
-  }
-
-  function afficherErreurConnexion() {
-    const gridEl = document.getElementById('home-sermons');
-    if (gridEl) gridEl.innerHTML = `<div class="empty-state" style="grid-column:span 2"><p>Vérifiez votre connexion</p></div>`;
-  }
-
-  function afficherBibliotheque() {
-    const termines = sermons.filter(s => s.statut === 'termine' || s.statut === 'en_cours');
-    const el = document.getElementById('recordings-section');
+    const el = document.getElementById('home-sermons');
     if (!termines.length) {
       el.innerHTML = `<div class="empty-state"><p>Les prédications apparaîtront ici</p></div>`;
       return;
@@ -964,21 +926,85 @@
     el.innerHTML = termines.map(s => {
       const d = new Date(s.dateDiffusion);
       const dateStr = d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
-      const iconContent = s.coverUrl
+      const thumb = s.coverUrl
         ? `<img src="${s.coverUrl}" alt="" />`
-        : `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B4EFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>`;
+        : `<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>`;
+      const auteur = s.auteur || s.pasteur || 'Église Maranatha';
+      const dureeMin = s.duree ? Math.round(s.duree / 60) + ' min' : '';
       return `
-        <div class="rec-item" onclick="jouerSermon('${s._id}')">
-          <div class="rec-icon">${iconContent}</div>
-          <div class="rec-info">
-            <div class="rec-title">${s.titre}</div>
-            <div class="rec-meta">${dateStr}${s.description ? ' · ' + s.description.substring(0, 28) : ''}</div>
+        <div class="sl-card" onclick="jouerSermon('${s._id}')">
+          <div class="sl-thumb">
+            ${thumb}
+            <div class="sl-play-over">
+              <div class="sl-play-circle">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              </div>
+            </div>
           </div>
-          <button class="rec-play" onclick="event.stopPropagation();jouerSermon('${s._id}')">
+          <div class="sl-info">
+            <div class="sl-top">
+              <div class="sl-title">${s.titre}</div>
+              <div class="sl-bookmark" onclick="event.stopPropagation();showToast('Sauvegardé')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+              </div>
+            </div>
+            <div class="sl-author">${auteur}</div>
+            <div class="sl-meta">
+              <span>📅 ${dateStr}</span>
+              ${dureeMin ? `<span>🕐 ${dureeMin}</span>` : ''}
+            </div>
+            <div class="sl-action">Lire la prédication <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  // ============ BIBLIOTHÈQUE ============
+  function afficherBibliotheque() {
+    const termines = sermons.filter(s => s.statut === 'termine' || s.statut === 'en_cours');
+    const el = document.getElementById('lib-list');
+    if (!termines.length) {
+      el.innerHTML = `<div class="empty-state"><p>Les prédications apparaîtront ici</p></div>`;
+      return;
+    }
+    el.innerHTML = termines.map(s => {
+      const d = new Date(s.dateDiffusion);
+      const dateStr = d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
+      const icon = s.coverUrl
+        ? `<img src="${s.coverUrl}" alt="" />`
+        : `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>`;
+      return `
+        <div class="lib-item" onclick="jouerSermon('${s._id}')">
+          <div class="lib-icon">${icon}</div>
+          <div class="lib-info">
+            <div class="lib-title">${s.titre}</div>
+            <div class="lib-meta">${dateStr}${s.description ? ' · ' + s.description.substring(0, 30) : ''}</div>
+          </div>
+          <button class="lib-play" onclick="event.stopPropagation();jouerSermon('${s._id}')">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
           </button>
         </div>`;
     }).join('');
+  }
+
+  // ============ DIRECT TAB ============
+  function afficherDirect() {
+    const live = sermons.find(s => s.statut === 'en_cours');
+    document.getElementById('direct-empty').style.display = live ? 'none' : 'block';
+    const dp = document.getElementById('direct-player');
+    if (live) {
+      dp.style.display = 'block';
+      dp.innerHTML = `
+        <div style="text-align:center;padding:20px 0 12px">
+          <div style="display:inline-flex;align-items:center;gap:6px;background:var(--primary);color:#fff;font-size:11px;font-weight:800;padding:5px 14px;border-radius:20px;margin-bottom:12px">
+            <div style="width:6px;height:6px;background:#fff;border-radius:50%;animation:blink 1s infinite"></div>
+            EN DIRECT
+          </div>
+          <div style="font-size:18px;font-weight:800;color:var(--text);margin-bottom:4px">${live.titre}</div>
+        </div>`;
+    } else {
+      dp.style.display = 'none';
+    }
   }
 
   // ============ PLAYER AUDIO ============
@@ -987,11 +1013,11 @@
     if (!s) return;
     if (!s.audioUrl) { showToast('Audio non disponible'); return; }
     switchTab('home');
-    document.getElementById('player-card').classList.add('visible');
-    document.getElementById('player-title').textContent = s.titre;
-    document.getElementById('player-status').textContent = 'En lecture';
+    document.getElementById('mini-player').classList.add('visible');
+    document.getElementById('mp-title').textContent = s.titre;
+    document.getElementById('mp-status').textContent = 'En lecture';
     ouvrirAudio(s.audioUrl);
-    document.getElementById('player-card').scrollIntoView({ behavior: 'smooth' });
+    document.getElementById('mini-player').scrollIntoView({ behavior: 'smooth' });
   }
 
   function ouvrirAudio(url) {
@@ -1005,58 +1031,43 @@
       audio.onended = () => setPlayIcon(false);
     }
     audio.play()
-      .then(() => {
-        setPlayIcon(true);
-        cacherTapToPlay();
-      })
+      .then(() => { setPlayIcon(true); hideTapPlay(); })
       .catch(err => {
-        // Autoplay bloque par le navigateur — montrer le bouton "Appuyez pour ecouter"
-        if (err.name === 'NotAllowedError' || err.name === 'AbortError') {
-          afficherTapToPlay();
-        }
+        if (err.name === 'NotAllowedError' || err.name === 'AbortError') showTapPlay();
       });
   }
 
-  function afficherTapToPlay() {
+  function showTapPlay() {
     document.getElementById('tap-to-play').classList.add('visible');
-    document.getElementById('player-status').textContent = 'Appuyez pour ecouter';
+    document.getElementById('mp-status').textContent = 'Appuyez pour écouter';
     setPlayIcon(false);
   }
+  function hideTapPlay() { document.getElementById('tap-to-play').classList.remove('visible'); }
 
-  function cacherTapToPlay() {
-    document.getElementById('tap-to-play').classList.remove('visible');
-  }
-
-  // Appele quand l'utilisateur appuie sur le bouton "Appuyez pour ecouter"
   function demarrerLecture() {
-    const audio = document.getElementById('main-audio');
-    if (!audio.src) return;
-    audio.play()
-      .then(() => {
-        setPlayIcon(true);
-        cacherTapToPlay();
-      })
-      .catch(() => showToast('Lecture impossible — verifiez votre connexion'));
+    document.getElementById('main-audio').play()
+      .then(() => { setPlayIcon(true); hideTapPlay(); })
+      .catch(() => showToast('Lecture impossible'));
   }
 
   function togglePlay() {
-    const audio = document.getElementById('main-audio');
-    if (!audio.src) return;
-    if (audio.paused) { audio.play().then(() => setPlayIcon(true)); }
-    else { audio.pause(); setPlayIcon(false); }
+    const a = document.getElementById('main-audio');
+    if (!a.src) return;
+    if (a.paused) a.play().then(() => setPlayIcon(true));
+    else { a.pause(); setPlayIcon(false); }
   }
 
   function setPlayIcon(playing) {
     document.getElementById('play-icon').outerHTML = playing
-      ? `<svg id="play-icon" width="18" height="18" viewBox="0 0 24 24" fill="white"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`
-      : `<svg id="play-icon" width="18" height="18" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>`;
+      ? `<svg id="play-icon" width="16" height="16" viewBox="0 0 24 24" fill="white"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`
+      : `<svg id="play-icon" width="16" height="16" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>`;
   }
 
   function updatePlayer() {
     const a = document.getElementById('main-audio');
     if (!a.duration) return;
     const pct = (a.currentTime / a.duration) * 100;
-    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('mp-fill').style.width = pct + '%';
     document.getElementById('time-current').textContent = fmt(a.currentTime);
     document.getElementById('time-total').textContent = fmt(a.duration);
   }
@@ -1064,30 +1075,27 @@
   function seekAudio(e) {
     const a = document.getElementById('main-audio');
     if (!a.duration) return;
-    const track = document.getElementById('progress-track');
+    const track = document.getElementById('mp-progress');
     a.currentTime = (e.offsetX / track.offsetWidth) * a.duration;
   }
 
   function setVolume(v) { document.getElementById('main-audio').volume = v; }
   function skipBack()    { const a = document.getElementById('main-audio'); a.currentTime = Math.max(0, a.currentTime - 10); }
   function skipForward() { const a = document.getElementById('main-audio'); a.currentTime = Math.min(a.duration || 0, a.currentTime + 10); }
-  function scrollToPlayer() { document.getElementById('player-card').scrollIntoView({ behavior: 'smooth' }); }
-
-  function fmt(s) {
-    if (!s || isNaN(s)) return '0:00';
-    return Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
-  }
+  function scrollToPlayer() { document.getElementById('mini-player').scrollIntoView({ behavior: 'smooth' }); }
+  function fmt(s) { if (!s || isNaN(s)) return '0:00'; return Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0'); }
 
   // ============ TOAST ============
+  let toastTimer;
   function showToast(msg) {
     const el = document.getElementById('toast');
     el.textContent = msg;
     el.classList.add('show');
-    setTimeout(() => el.classList.remove('show'), 2800);
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
   }
 
-  // Rafraichissement automatique
-  // Poll toutes les 10 secondes pour detecter le passage "en_cours" rapidement
+  // Poll auto toutes les 10s
   setInterval(chargerSermons, 10000);
 </script>
 </body>
