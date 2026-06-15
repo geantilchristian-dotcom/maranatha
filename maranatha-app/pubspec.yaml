@@ -19,6 +19,7 @@ dependencies:
 
   # WebView — affiche le site web dans l'app
   webview_flutter: ^4.7.0
+  webview_flutter_android: ^3.16.1
 
   # Stockage local (token FCM)
   shared_preferences: ^2.3.2
