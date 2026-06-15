@@ -1800,6 +1800,7 @@
   let youtubeLinks = [];    // tableau [{url, label}] — carousel
   let ytCarouselIdx = 0;
   let ytCarouselTimer = null;
+  let programmeItems = [];  // affiches de la semaine depuis /settings/programme
 
   // ── FCM TOKEN INJECTION depuis Flutter ─────────────────────────────────────
   // Flutter appelle window.__onFcmToken("TOKEN") après chaque chargement de page.
@@ -1896,6 +1897,7 @@
     Promise.all([chargerSermons(), chargerEtudeJour()])
       .finally(() => cacherLoader());
     chargerYoutube();
+    chargerProgramme();
     connecterSSE();
   }
 
@@ -1928,6 +1930,41 @@
       if (sermons !== null) afficherAccueil();
       demarrerCarouselYT();
     } catch(e) {}
+  }
+
+  // ============ PROGRAMME — AFFICHES ============
+  async function chargerProgramme() {
+    try {
+      const res = await fetch(API + '/settings/programme');
+      if (!res.ok) return;
+      const data = await res.json();
+      programmeItems = Array.isArray(data.items) ? data.items : [];
+      afficherAccueil();
+    } catch(e) {}
+  }
+
+  function ouvrirDetailProgrammeItem(idx) {
+    const item = programmeItems[idx];
+    if (!item) return;
+    const imgHtml = item.imageUrl
+      ? `<img class="prog-detail-img" src="${escHtml(item.imageUrl)}" alt="${escHtml(item.titre)}" onerror="this.style.display='none'">`
+      : `<div class="prog-detail-no-img"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1.2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>`;
+    const meta = [item.dateStr, item.heureStr, item.lieu].filter(Boolean).join(' · ');
+    document.getElementById('prog-detail-inner').innerHTML = `
+      <div style="position:relative">
+        ${imgHtml}
+        <button class="prog-detail-close" onclick="fermerDetailProgramme()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div style="padding:20px">
+        <div style="display:inline-block;background:#C0001A;color:#fff;font-size:10px;font-weight:800;letter-spacing:1.5px;border-radius:6px;padding:3px 10px;margin-bottom:12px">${escHtml(item.badge||'PROGRAMME')}</div>
+        <div style="font-size:19px;font-weight:800;margin-bottom:8px;line-height:1.3">${escHtml(item.titre)}</div>
+        ${meta ? `<div style="font-size:13px;color:rgba(255,255,255,0.55);margin-bottom:12px">${escHtml(meta)}</div>` : ''}
+        ${item.description ? `<div style="font-size:14px;color:rgba(255,255,255,0.75);line-height:1.6">${escHtml(item.description)}</div>` : ''}
+      </div>`;
+    document.getElementById('overlay-prog-detail').classList.add('visible');
+    document.body.style.overflow = 'hidden';
   }
 
   // Carousel : change de lien YouTube toutes les 6 secondes si plusieurs
@@ -2218,8 +2255,31 @@
     }
 
     // Programme de la semaine — affiches
-    const termines = sermons.filter(s => s.statut === 'termine' || s.statut === 'en_cours').slice(0, 8);
+    // Priorité : affiches admin (programmeItems) sinon fallback sur sermons terminés/en cours
     const el = document.getElementById('home-sermons');
+
+    if (programmeItems && programmeItems.length) {
+      el.innerHTML = programmeItems.map((item, idx) => {
+        const imgContent = item.imageUrl
+          ? `<img class="prog-card-img" src="${escHtml(item.imageUrl)}" alt="${escHtml(item.titre)}" onerror="this.style.display='none'">`
+          : `<div class="prog-no-img"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>`;
+        const sousText = [item.heureStr, item.lieu].filter(Boolean).join(' · ');
+        return `
+          <div class="prog-card" onclick="ouvrirDetailProgrammeItem(${idx})">
+            ${imgContent}
+            <div class="prog-card-gradient"></div>
+            <div class="prog-card-info">
+              <div class="prog-card-badge">${escHtml(item.badge || 'PRÉDICATION')}</div>
+              <div class="prog-card-title">${escHtml(item.titre)}</div>
+              <div class="prog-card-date">${escHtml(item.dateStr || '')}${sousText ? ' · ' + escHtml(sousText) : ''}</div>
+            </div>
+          </div>`;
+      }).join('');
+      return;
+    }
+
+    // Fallback : sermons terminés/en cours
+    const termines = sermons.filter(s => s.statut === 'termine' || s.statut === 'en_cours').slice(0, 8);
     if (!termines.length) {
       el.innerHTML = `<div style="padding:0 16px"><div class="empty-state"><p>Les programmes apparaîtront ici</p></div></div>`;
       return;
