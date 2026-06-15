@@ -1,0 +1,15 @@
+{
+  "name": "Maranatha – Église Missionnaire",
+  "short_name": "Maranatha",
+  "description": "Communauté des Églises Missionnaires Maranatha – Bible, directs, parole du jour",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#070F1C",
+  "theme_color": "#C0001A",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "/logo.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/logo.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "categories": ["religion", "music"]
+}
