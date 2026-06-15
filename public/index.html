@@ -49,6 +49,80 @@
     #splash-screen.fade-out { opacity: 0; pointer-events: none; }
     .splash-logo { width: 140px; height: 140px; object-fit: contain; margin-bottom: 16px; }
 
+    /* ═══════════════ ÉCRAN AUTH ═══════════════ */
+    #auth-screen {
+      position: fixed; inset: 0; z-index: 9000;
+      background: linear-gradient(170deg, #060E1A 0%, #0D1C30 100%);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 24px 20px; opacity: 0; pointer-events: none;
+      transition: opacity .45s;
+    }
+    #auth-screen.auth-visible { opacity: 1; pointer-events: auto; }
+    .auth-box { width: 100%; max-width: 400px; text-align: center; }
+    .auth-logo { width: 88px; height: 88px; object-fit: contain; border-radius: 22px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.5); margin-bottom: 16px; }
+    .auth-church-name { font-size: 22px; font-weight: 900; color: #fff; letter-spacing: .5px; margin-bottom: 4px; }
+    .auth-tagline { font-size: 13px; color: rgba(255,255,255,.45); margin-bottom: 32px; }
+    .auth-step { animation: authStepIn .35s ease; }
+    @keyframes authStepIn { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:none; } }
+    .auth-label { font-size: 11px; font-weight: 800; color: rgba(255,255,255,.45);
+      letter-spacing: 1px; text-transform: uppercase; text-align: left; margin-bottom: 7px; }
+    .auth-input {
+      width: 100%; box-sizing: border-box;
+      background: rgba(255,255,255,.06); border: 1.5px solid rgba(255,255,255,.12);
+      color: #fff; border-radius: 14px; padding: 14px 16px; font-size: 16px;
+      font-family: inherit; margin-bottom: 4px; outline: none; transition: border-color .2s;
+    }
+    .auth-input:focus { border-color: rgba(212,175,55,.6); }
+    .auth-input::placeholder { color: rgba(255,255,255,.25); }
+    .auth-input-row { display: flex; gap: 10px; margin-bottom: 4px; }
+    .auth-input-row .auth-input { margin-bottom: 0; }
+    .auth-btn {
+      width: 100%; padding: 15px; margin-top: 14px;
+      background: linear-gradient(135deg, #D4AF37, #B8942A);
+      border: none; border-radius: 14px; color: #070F1C;
+      font-size: 15px; font-weight: 900; font-family: inherit;
+      cursor: pointer; transition: opacity .15s, transform .1s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .auth-btn:active { opacity: .85; transform: scale(.98); }
+    .auth-btn:disabled { opacity: .5; pointer-events: none; }
+    .auth-skip-btn {
+      width: 100%; padding: 13px; margin-top: 10px;
+      background: transparent; border: 1.5px solid rgba(255,255,255,.1);
+      border-radius: 14px; color: rgba(255,255,255,.5);
+      font-size: 13px; font-weight: 700; font-family: inherit; cursor: pointer;
+      transition: border-color .2s, color .2s;
+    }
+    .auth-skip-btn:hover { border-color: rgba(255,255,255,.25); color: rgba(255,255,255,.7); }
+    .auth-err { font-size: 12px; color: #ff6b6b; min-height: 18px; text-align: left;
+      margin-top: 6px; padding-left: 4px; }
+    .auth-divider { display: flex; align-items: center; gap: 12px; margin: 18px 0 4px;
+      color: rgba(255,255,255,.2); font-size: 12px; }
+    .auth-divider::before, .auth-divider::after { content:''; flex:1;
+      height: 1px; background: rgba(255,255,255,.1); }
+    .auth-welcome-avatar {
+      width: 72px; height: 72px; border-radius: 50%;
+      background: linear-gradient(135deg, rgba(212,175,55,.25), rgba(212,175,55,.1));
+      border: 2px solid rgba(212,175,55,.4);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px; margin: 0 auto 16px;
+    }
+    .auth-welcome-title { font-size: 24px; font-weight: 900; color: #fff; margin-bottom: 6px; }
+    .auth-welcome-sub { font-size: 14px; color: rgba(255,255,255,.5); margin-bottom: 8px; }
+    .auth-reg-title { font-size: 18px; font-weight: 900; color: #fff;
+      margin-bottom: 6px; text-align: left; }
+    .auth-reg-sub { font-size: 12px; color: rgba(255,255,255,.4);
+      margin-bottom: 20px; text-align: left; }
+    .auth-tel-badge {
+      display: flex; align-items: center; gap: 10px;
+      background: rgba(212,175,55,.08); border: 1px solid rgba(212,175,55,.2);
+      border-radius: 12px; padding: 10px 14px; margin-bottom: 14px;
+    }
+    .auth-tel-badge-num { font-size: 14px; font-weight: 700; color: #D4AF37; flex:1; text-align:left; }
+    .auth-tel-badge-chg { font-size: 11px; color: rgba(255,255,255,.35); cursor: pointer; }
+    .auth-tel-badge-chg:hover { color: rgba(255,255,255,.6); }
+
     /* ============================
        LOADER CENTRÉ (actualisation)
     ============================ */
@@ -1137,6 +1211,67 @@
   <div class="splash-spinner"></div>
 </div>
 
+<!-- ══════════════ ÉCRAN AUTHENTIFICATION ══════════════ -->
+<div id="auth-screen">
+  <div class="auth-box">
+    <img class="auth-logo" src="/logo.jpg" alt="Maranatha" />
+    <div class="auth-church-name">Maranatha</div>
+    <div class="auth-tagline">Bienvenue parmi nous</div>
+
+    <!-- ÉTAPE 1 — Numéro de téléphone -->
+    <div id="auth-step-1" class="auth-step">
+      <div class="auth-label">Numéro de téléphone</div>
+      <input class="auth-input" id="auth-tel-input" type="tel"
+        placeholder="+243 8X XXX XXXX"
+        onkeydown="if(event.key==='Enter')authVerifierTel()" />
+      <div class="auth-err" id="auth-tel-err"></div>
+      <button class="auth-btn" id="auth-btn-continuer" onclick="authVerifierTel()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        Continuer
+      </button>
+      <div class="auth-divider">ou</div>
+      <button class="auth-skip-btn" onclick="authSansCompte()">Continuer sans compte</button>
+    </div>
+
+    <!-- ÉTAPE 2A — Bon retour -->
+    <div id="auth-step-2a" class="auth-step" style="display:none">
+      <div class="auth-welcome-avatar">👋</div>
+      <div class="auth-welcome-title">Bon retour,<br><span id="auth-welcome-prenom" style="color:#D4AF37"></span> !</div>
+      <div class="auth-welcome-sub" id="auth-welcome-sub"></div>
+      <button class="auth-btn" onclick="authEntrer()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+        Entrer dans l'application
+      </button>
+      <button class="auth-skip-btn" onclick="authRetourStep1()">← Changer de numéro</button>
+    </div>
+
+    <!-- ÉTAPE 2B — Créer un compte -->
+    <div id="auth-step-2b" class="auth-step" style="display:none">
+      <div class="auth-reg-title">Créer votre compte</div>
+      <div class="auth-reg-sub">Rejoignez la communauté Maranatha</div>
+
+      <div class="auth-tel-badge">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 6.06 6.06l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        <span class="auth-tel-badge-num" id="auth-reg-tel-display"></span>
+        <span class="auth-tel-badge-chg" onclick="authRetourStep1()">Changer</span>
+      </div>
+
+      <div class="auth-input-row">
+        <input class="auth-input" id="auth-reg-nom" type="text" placeholder="Nom *" style="flex:1" />
+        <input class="auth-input" id="auth-reg-postnom" type="text" placeholder="Post-nom" style="flex:1" />
+      </div>
+      <input class="auth-input" id="auth-reg-prenom" type="text" placeholder="Prénom *"
+        onkeydown="if(event.key==='Enter')authCreerCompte()" style="margin-top:10px" />
+      <div class="auth-err" id="auth-reg-err"></div>
+      <button class="auth-btn" id="auth-btn-creer" onclick="authCreerCompte()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Créer mon compte
+      </button>
+      <button class="auth-skip-btn" onclick="authSansCompte()">Continuer sans compte</button>
+    </div>
+  </div>
+</div>
+
 <!-- ============ LOADER CENTRÉ ============ -->
 <div id="page-loader">
   <div class="loader-bubble">
@@ -1911,7 +2046,13 @@
 
     setTimeout(() => {
       splash.classList.add('fade-out');
-      setTimeout(() => { splash.remove(); }, 500);
+      setTimeout(() => {
+        splash.remove();
+        // Afficher écran auth si jamais connecté
+        if (!localStorage.getItem('maranatha_auth_done')) {
+          afficherAuthScreen();
+        }
+      }, 500);
     }, duree);
 
     lancerApp();
@@ -1977,6 +2118,125 @@
   // SUPPRIMÉ — plus de déconnexion manuelle
   function logout() {
     switchTab('home');
+  }
+
+  // ══════════════ AUTHENTIFICATION ══════════════
+  let _authTel = '';   // numéro saisi à l'étape 1
+  let _authMembre = null; // données du membre trouvé
+
+  function afficherAuthScreen() {
+    const s = document.getElementById('auth-screen');
+    if (s) { s.style.display = 'flex'; requestAnimationFrame(() => s.classList.add('auth-visible')); }
+  }
+
+  function masquerAuthScreen() {
+    const s = document.getElementById('auth-screen');
+    if (!s) return;
+    s.classList.remove('auth-visible');
+    setTimeout(() => { s.style.display = 'none'; }, 450);
+  }
+
+  function authRetourStep1() {
+    document.getElementById('auth-step-2a').style.display = 'none';
+    document.getElementById('auth-step-2b').style.display = 'none';
+    const s1 = document.getElementById('auth-step-1');
+    s1.style.display = 'block';
+    s1.classList.remove('auth-step'); void s1.offsetWidth; s1.classList.add('auth-step');
+    document.getElementById('auth-tel-err').textContent = '';
+  }
+
+  function authShowStep(id) {
+    ['auth-step-1','auth-step-2a','auth-step-2b'].forEach(s => {
+      const el = document.getElementById(s);
+      if (el) el.style.display = s === id ? 'block' : 'none';
+    });
+    const el = document.getElementById(id);
+    if (el) { el.classList.remove('auth-step'); void el.offsetWidth; el.classList.add('auth-step'); }
+  }
+
+  async function authVerifierTel() {
+    const tel = (document.getElementById('auth-tel-input').value || '').trim();
+    const errEl = document.getElementById('auth-tel-err');
+    if (!tel || tel.length < 7) { errEl.textContent = 'Entrez un numéro de téléphone valide'; return; }
+    errEl.textContent = '';
+    const btn = document.getElementById('auth-btn-continuer');
+    btn.disabled = true; btn.innerHTML = 'Vérification…';
+    _authTel = tel;
+    try {
+      const res = await fetch(API + '/membres/phone/' + encodeURIComponent(tel));
+      if (res.ok) {
+        // Membre trouvé — étape 2A
+        _authMembre = await res.json();
+        document.getElementById('auth-welcome-prenom').textContent = _authMembre.prenom;
+        const sub = _authMembre.statut === 'accepte' ? '✓ Membre actif' :
+                    _authMembre.statut === 'en_attente' ? '⏳ Demande en cours d\'examen' : '';
+        document.getElementById('auth-welcome-sub').textContent = sub;
+        authShowStep('auth-step-2a');
+      } else if (res.status === 404) {
+        // Nouveau — étape 2B inscription
+        _authMembre = null;
+        document.getElementById('auth-reg-tel-display').textContent = tel;
+        document.getElementById('auth-reg-nom').value = '';
+        document.getElementById('auth-reg-postnom').value = '';
+        document.getElementById('auth-reg-prenom').value = '';
+        document.getElementById('auth-reg-err').textContent = '';
+        authShowStep('auth-step-2b');
+        setTimeout(() => document.getElementById('auth-reg-nom').focus(), 300);
+      } else {
+        errEl.textContent = 'Erreur réseau, réessayez';
+      }
+    } catch(e) { errEl.textContent = 'Impossible de se connecter au serveur'; }
+    finally { btn.disabled = false; btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg> Continuer'; }
+  }
+
+  function authEntrer() {
+    // Connexion avec compte existant
+    if (_authMembre) {
+      localStorage.setItem('maranatha_auth_done', 'compte');
+      localStorage.setItem('maranatha_membre_id', _authMembre._id);
+      localStorage.setItem('maranatha_prenom', _authMembre.prenom);
+      localStorage.setItem('maranatha_nom', _authMembre.nom);
+      localStorage.setItem('maranatha_tel', _authMembre.telephone);
+      localStorage.setItem('maranatha_user', _authMembre.prenom + ' ' + _authMembre.nom);
+    }
+    masquerAuthScreen();
+  }
+
+  async function authCreerCompte() {
+    const nom    = (document.getElementById('auth-reg-nom').value    || '').trim();
+    const postNom= (document.getElementById('auth-reg-postnom').value|| '').trim();
+    const prenom = (document.getElementById('auth-reg-prenom').value || '').trim();
+    const errEl  = document.getElementById('auth-reg-err');
+    if (!nom)    { errEl.textContent = 'Le nom est requis'; return; }
+    if (!prenom) { errEl.textContent = 'Le prénom est requis'; return; }
+    errEl.textContent = '';
+    const btn = document.getElementById('auth-btn-creer');
+    btn.disabled = true; btn.innerHTML = 'Création…';
+    try {
+      const res = await fetch(API + '/membres', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nom, postNom, prenom, telephone: _authTel }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        localStorage.setItem('maranatha_auth_done', 'compte');
+        localStorage.setItem('maranatha_membre_id', data._id);
+        localStorage.setItem('maranatha_prenom', prenom);
+        localStorage.setItem('maranatha_nom', nom);
+        localStorage.setItem('maranatha_tel', _authTel);
+        localStorage.setItem('maranatha_user', prenom + ' ' + nom);
+        masquerAuthScreen();
+      } else {
+        errEl.textContent = data.error || 'Erreur lors de la création du compte';
+      }
+    } catch(e) { errEl.textContent = 'Impossible de se connecter au serveur'; }
+    finally { btn.disabled = false; btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Créer mon compte'; }
+  }
+
+  function authSansCompte() {
+    localStorage.setItem('maranatha_auth_done', 'anonyme');
+    masquerAuthScreen();
   }
 
   // ============ YOUTUBE ============
