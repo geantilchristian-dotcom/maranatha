@@ -10,10 +10,11 @@ function sseHandler(req, res) {
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no');
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.flushHeaders();
 
-  // Envoyer un ping initial pour confirmer la connexion
+  // Ping initial pour confirmer la connexion
   res.write('event: connected\ndata: ok\n\n');
 
   clients.add(res);
@@ -44,5 +45,19 @@ function broadcast(event, data) {
   }
   if (count > 0) console.log(`[SSE] Broadcast "${event}" -> ${count} client(s)`);
 }
+
+// Heartbeat toutes les 25 secondes — evite les coupures silencieuses
+// et detecte les clients morts avant que le scheduler ne rate un evenement
+setInterval(() => {
+  const dead = [];
+  for (const client of clients) {
+    try {
+      client.write(': ping\n\n');
+    } catch (e) {
+      dead.push(client);
+    }
+  }
+  dead.forEach(c => clients.delete(c));
+}, 25000);
 
 module.exports = { sseHandler, broadcast };
