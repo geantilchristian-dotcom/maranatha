@@ -1,0 +1,1579 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Maranatha — Espace Pasteur</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #001220;
+      color: #fff;
+      min-height: 100vh;
+    }
+
+    /* ===== LOGIN ===== */
+    #login-page {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    .login-card {
+      background: #0A2535;
+      border-radius: 20px;
+      padding: 48px 40px;
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+      border: 1px solid rgba(212,175,55,0.2);
+    }
+
+    /* ===== SPLASH ===== */
+    #splash-admin {
+      position: fixed; inset: 0; z-index: 9999;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      background: #ffffff;
+      transition: opacity .5s ease;
+    }
+    #splash-admin.fade-out { opacity: 0; pointer-events: none; }
+    .splash-admin-logo {
+      width: 160px; height: 160px; object-fit: contain;
+      margin-bottom: 48px;
+    }
+    .splash-admin-spinner {
+      width: 32px; height: 32px;
+      border: 3px solid rgba(0,0,0,0.08);
+      border-top-color: #D4AF37;
+      border-radius: 50%;
+      animation: spin-a .8s linear infinite;
+    }
+    @keyframes spin-a { to { transform: rotate(360deg); } }
+
+    .logo-icon { font-size: 60px; margin-bottom: 8px; }
+    .logo-title { color: #D4AF37; font-size: 22px; font-weight: 800; letter-spacing: 4px; margin-bottom: 4px; }
+    .logo-sub { color: rgba(255,255,255,0.5); font-size: 13px; margin-bottom: 36px; }
+
+    .login-card input {
+      width: 100%;
+      padding: 14px 18px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(212,175,55,0.3);
+      border-radius: 10px;
+      color: #fff;
+      font-size: 15px;
+      margin-bottom: 16px;
+      outline: none;
+      transition: border-color .2s;
+    }
+    .login-card input:focus { border-color: #D4AF37; }
+
+    .btn-gold {
+      width: 100%;
+      padding: 14px;
+      background: #D4AF37;
+      color: #001220;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity .2s;
+    }
+    .btn-gold:hover { opacity: 0.85; }
+
+    .login-error { color: #ff6b6b; font-size: 13px; margin-top: 12px; display: none; }
+
+    /* ===== DASHBOARD ===== */
+    #dashboard { display: none; }
+
+    header {
+      background: #0A2535;
+      border-bottom: 1px solid rgba(212,175,55,0.15);
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .header-left { display: flex; align-items: center; gap: 12px; }
+    .header-logo { font-size: 28px; }
+    .header-title { color: #D4AF37; font-size: 18px; font-weight: 800; letter-spacing: 2px; }
+    .header-sub { color: rgba(255,255,255,0.4); font-size: 12px; }
+
+    .btn-logout {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.6);
+      padding: 8px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all .2s;
+    }
+    .btn-logout:hover { background: rgba(255,0,0,0.15); color: #ff6b6b; border-color: rgba(255,0,0,0.3); }
+
+    .main { padding: 32px; max-width: 1100px; margin: 0 auto; }
+
+    /* Stats */
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 32px; }
+
+    .stat-card {
+      background: #0A2535;
+      border-radius: 14px;
+      padding: 24px;
+      border: 1px solid rgba(212,175,55,0.1);
+      text-align: center;
+    }
+
+    .stat-icon { font-size: 32px; margin-bottom: 8px; }
+    .stat-value { font-size: 36px; font-weight: 800; color: #D4AF37; }
+    .stat-label { color: rgba(255,255,255,0.5); font-size: 13px; margin-top: 4px; }
+
+    /* Form */
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #D4AF37;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card {
+      background: #0A2535;
+      border-radius: 16px;
+      padding: 28px;
+      border: 1px solid rgba(212,175,55,0.1);
+      margin-bottom: 32px;
+    }
+
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group.full { grid-column: 1 / -1; }
+
+    label { font-size: 13px; color: rgba(255,255,255,0.6); font-weight: 500; }
+
+    input[type="text"],
+    input[type="datetime-local"],
+    textarea {
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      color: #fff;
+      font-size: 14px;
+      outline: none;
+      transition: border-color .2s;
+      font-family: inherit;
+    }
+    input[type="text"]:focus,
+    input[type="datetime-local"]:focus,
+    textarea:focus { border-color: #D4AF37; }
+
+    textarea { resize: vertical; min-height: 80px; }
+
+    /* Zone upload fichier */
+    .upload-zone {
+      border: 2px dashed rgba(212,175,55,0.3);
+      border-radius: 14px;
+      padding: 32px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all .2s;
+      position: relative;
+      background: rgba(212,175,55,0.03);
+    }
+    .upload-zone:hover, .upload-zone.drag-over {
+      border-color: #D4AF37;
+      background: rgba(212,175,55,0.07);
+    }
+
+    .upload-zone input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+
+    .upload-icon { font-size: 40px; margin-bottom: 10px; }
+    .upload-title { font-size: 15px; font-weight: 700; color: #D4AF37; margin-bottom: 4px; }
+    .upload-sub { font-size: 12px; color: rgba(255,255,255,0.4); }
+
+    /* Fichier sélectionné */
+    .file-preview {
+      display: none;
+      background: rgba(212,175,55,0.08);
+      border: 1px solid rgba(212,175,55,0.25);
+      border-radius: 12px;
+      padding: 14px 18px;
+      margin-top: 12px;
+      align-items: center;
+      gap: 12px;
+    }
+    .file-preview.visible { display: flex; }
+    .file-icon { font-size: 28px; }
+    .file-info { flex: 1; min-width: 0; }
+    .file-name { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .file-size { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 2px; }
+    .btn-remove-file {
+      background: rgba(255,80,80,0.15);
+      border: none;
+      color: #ff6b6b;
+      border-radius: 8px;
+      padding: 6px 10px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    /* Barre de progression upload */
+    .upload-progress { display: none; margin-top: 12px; }
+    .upload-progress.visible { display: block; }
+    .progress-bar {
+      width: 100%;
+      height: 6px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 6px;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #D4AF37, #F0D060);
+      border-radius: 3px;
+      transition: width .3s;
+    }
+    .progress-text { font-size: 12px; color: rgba(255,255,255,0.5); text-align: center; }
+
+    .btn-submit {
+      padding: 14px 32px;
+      background: #D4AF37;
+      color: #001220;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: opacity .2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-submit:hover { opacity: 0.85; }
+    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* Sermons list */
+    .sermon-item {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      transition: border-color .2s;
+    }
+    .sermon-item:hover { border-color: rgba(212,175,55,0.2); }
+
+    .sermon-icon {
+      width: 48px; height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+    .icon-planifie { background: rgba(212,175,55,0.15); }
+    .icon-en_cours { background: rgba(0,200,100,0.15); }
+    .icon-termine { background: rgba(255,255,255,0.07); }
+
+    .sermon-info { flex: 1; min-width: 0; }
+    .sermon-titre { font-weight: 700; font-size: 16px; margin-bottom: 4px; }
+    .sermon-desc { color: rgba(255,255,255,0.5); font-size: 13px; margin-bottom: 8px; }
+    .sermon-meta { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+
+    .badge { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+    .badge-planifie { background: rgba(212,175,55,0.15); color: #D4AF37; }
+    .badge-en_cours { background: rgba(0,200,100,0.15); color: #00c864; }
+    .badge-termine { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.4); }
+
+    .sermon-date { color: rgba(255,255,255,0.4); font-size: 12px; }
+    .audio-link { color: #D4AF37; font-size: 12px; text-decoration: none; }
+    .audio-link:hover { text-decoration: underline; }
+
+    .btn-delete {
+      background: rgba(255,80,80,0.1);
+      border: 1px solid rgba(255,80,80,0.2);
+      color: #ff6b6b;
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      flex-shrink: 0;
+      transition: all .2s;
+    }
+    .btn-delete:hover { background: rgba(255,80,80,0.2); }
+
+    .empty-state { text-align: center; padding: 48px; color: rgba(255,255,255,0.3); }
+    .empty-state div { font-size: 48px; margin-bottom: 12px; }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 32px; right: 32px;
+      padding: 14px 24px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 14px;
+      z-index: 1000;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all .3s;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.success { background: #0A2535; border: 1px solid #00c864; color: #00c864; }
+    .toast.error { background: #0A2535; border: 1px solid #ff6b6b; color: #ff6b6b; }
+
+    @media (max-width: 600px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .main { padding: 16px; }
+      header { padding: 12px 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- SPLASH ADMIN -->
+<div id="splash-admin">
+  <img id="sadmin-logo" class="splash-admin-logo" src="/logo.jpg" alt="Logo Maranatha" />
+  <div class="splash-admin-spinner"></div>
+</div>
+
+<!-- PAGE LOGIN -->
+<div id="login-page">
+  <div class="login-card">
+    <div class="logo-icon">⛪</div>
+    <div class="logo-title">MARANATHA</div>
+    <div class="logo-sub">Espace réservé au Pasteur</div>
+    <input type="password" id="password-input" placeholder="Mot de passe" onkeydown="if(event.key==='Enter')login()" />
+    <button class="btn-gold" onclick="login()">ACCÉDER</button>
+    <div class="login-error" id="login-error">Mot de passe incorrect</div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <header>
+    <div class="header-left">
+      <div class="header-logo">⛪</div>
+      <div>
+        <div class="header-title">MARANATHA</div>
+        <div class="header-sub">Tableau de bord du Pasteur</div>
+      </div>
+    </div>
+    <button class="btn-logout" onclick="logout()">Déconnexion</button>
+  </header>
+
+  <div class="main">
+
+    <!-- Stats -->
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        </div>
+        <div class="stat-value" id="stat-planifie">—</div>
+        <div class="stat-label">Planifiées</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#C0001A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8" fill="#C0001A" opacity="0.15"/><circle cx="12" cy="12" r="4" fill="#C0001A"/></svg>
+        </div>
+        <div class="stat-value" id="stat-en-cours">—</div>
+        <div class="stat-label">En direct</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="stat-value" id="stat-termine">—</div>
+        <div class="stat-label">Terminées</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <div class="stat-value" id="stat-fideles">—</div>
+        <div class="stat-label">Fidèles inscrits</div>
+      </div>
+    </div>
+
+    <!-- Formulaire -->
+    <div class="card">
+      <div class="section-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        Planifier une nouvelle prédication
+      </div>
+      <div class="form-grid">
+
+        <div class="form-group full">
+          <label>Titre de la prédication *</label>
+          <input type="text" id="f-titre" placeholder="Ex: Jésus revient bientôt" />
+        </div>
+
+        <div class="form-group full">
+          <label>Description (optionnel)</label>
+          <textarea id="f-desc" placeholder="Résumé de la prédication…"></textarea>
+        </div>
+
+        <div class="form-group full">
+          <label>Fichier audio MP3 *</label>
+
+          <!-- Zone de dépôt -->
+          <div class="upload-zone" id="upload-zone"
+               ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event)">
+            <input type="file" id="f-audio-file" accept="audio/*,.mp3,.m4a,.ogg,.wav"
+                   onchange="fileSelectionne(event)" />
+            <div class="upload-icon">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+            </div>
+            <div class="upload-title">Cliquez ou glissez-déposez votre fichier audio</div>
+            <div class="upload-sub">MP3, M4A, OGG, WAV — jusqu'à 200 Mo</div>
+          </div>
+
+          <!-- Aperçu fichier sélectionné -->
+          <div class="file-preview" id="file-preview">
+            <div class="file-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+            </div>
+            <div class="file-info">
+              <div class="file-name" id="file-name">—</div>
+              <div class="file-size" id="file-size">—</div>
+            </div>
+            <button class="btn-remove-file" onclick="retirerFichier()">✕</button>
+          </div>
+
+          <!-- Barre de progression -->
+          <div class="upload-progress" id="upload-progress">
+            <div class="progress-bar">
+              <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+            </div>
+            <div class="progress-text" id="progress-text">Upload en cours…</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Date et heure de diffusion *</label>
+          <input type="datetime-local" id="f-date" />
+        </div>
+
+        <div class="form-group" style="justify-content:flex-end">
+          <label>&nbsp;</label>
+          <button class="btn-submit" onclick="planifierSermon()" id="btn-submit">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:5px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Planifier la prédication
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Liste -->
+    <div class="section-title">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      Toutes les prédications
+    </div>
+    <div id="sermons-list">
+      <div class="empty-state"><div style="opacity:.4">⟳</div>Chargement…</div>
+    </div>
+
+    <!-- ===== VIDÉO YOUTUBE ===== -->
+    <div class="section-title" style="margin-top:40px">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+      Vidéos en vedette (Accueil — carousel)
+    </div>
+    <div class="card">
+      <div id="yt-links-list"></div>
+      <button type="button" onclick="ajouterLienYT()" style="background:none;border:1.5px dashed rgba(192,0,26,0.35);color:#C0001A;border-radius:10px;padding:8px 18px;font-size:13px;font-weight:700;cursor:pointer;width:100%;margin:8px 0 16px">
+        + Ajouter un lien YouTube
+      </button>
+      <div style="text-align:right">
+        <button class="btn-submit" onclick="sauvegarderHome()" id="btn-home">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:5px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Enregistrer
+        </button>
+      </div>
+    </div>
+
+    <!-- ===== PARAMÈTRES SPLASH ===== -->
+    <div class="section-title" style="margin-top:40px">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Écran de bienvenue
+    </div>
+    <div class="card">
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label>Nom de l'église</label>
+          <input type="text" id="s-nom" placeholder="Maranatha" />
+        </div>
+
+        <div class="form-group">
+          <label>Sous-titre</label>
+          <input type="text" id="s-sous" placeholder="Ministère Évangélique" />
+        </div>
+
+        <div class="form-group full">
+          <label>Verset biblique affiché</label>
+          <textarea id="s-verset" rows="2" placeholder="Viens, Seigneur Jésus — Apocalypse 22 : 20"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>URL du logo (laisser vide = logo actuel)</label>
+          <input type="text" id="s-logo" placeholder="/logo.jpg" />
+        </div>
+
+        <div class="form-group">
+          <label>Durée d'affichage (secondes)</label>
+          <input type="text" id="s-duree" placeholder="3" />
+        </div>
+
+        <div class="form-group">
+          <label>Couleur de fond</label>
+          <div style="display:flex;gap:10px;align-items:center">
+            <input type="color" id="s-fond-picker" value="#001220" style="width:44px;height:44px;border:none;border-radius:8px;cursor:pointer;background:none;padding:0" oninput="document.getElementById('s-fond').value=this.value" />
+            <input type="text" id="s-fond" placeholder="#001220" style="flex:1" oninput="document.getElementById('s-fond-picker').value=this.value" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Couleur accent (titre, barre)</label>
+          <div style="display:flex;gap:10px;align-items:center">
+            <input type="color" id="s-accent-picker" value="#D4AF37" style="width:44px;height:44px;border:none;border-radius:8px;cursor:pointer;background:none;padding:0" oninput="document.getElementById('s-accent').value=this.value" />
+            <input type="text" id="s-accent" placeholder="#D4AF37" style="flex:1" oninput="document.getElementById('s-accent-picker').value=this.value" />
+          </div>
+        </div>
+
+        <div class="form-group full" style="justify-content:flex-end">
+          <label>&nbsp;</label>
+          <button class="btn-submit" onclick="sauvegarderSplash()" id="btn-splash">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:5px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            Enregistrer les paramètres
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ===== DON — COORDONNÉES ===== -->
+    <div class="section-title" style="margin-top:40px">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      Coordonnées pour les dons
+    </div>
+    <div class="card">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Téléphone 1 (Mobile Money)</label>
+          <input type="text" id="don-tel1" placeholder="Ex : +243 81 000 00 00" />
+        </div>
+        <div class="form-group">
+          <label>Téléphone 2 (optionnel)</label>
+          <input type="text" id="don-tel2" placeholder="Ex : +243 99 000 00 00" />
+        </div>
+        <div class="form-group">
+          <label>Nom du titulaire du compte</label>
+          <input type="text" id="don-titulaire" placeholder="Ex : Église Maranatha" />
+        </div>
+        <div class="form-group">
+          <label>Nom de la banque</label>
+          <input type="text" id="don-banque" placeholder="Ex : Rawbank" />
+        </div>
+        <div class="form-group">
+          <label>Numéro de compte</label>
+          <input type="text" id="don-compte" placeholder="Ex : 00123456789" />
+        </div>
+        <div class="form-group">
+          <label>IBAN (optionnel)</label>
+          <input type="text" id="don-iban" placeholder="Ex : CD00 1234 5678 9012 34" />
+        </div>
+        <div class="form-group">
+          <label>BIC / SWIFT (optionnel)</label>
+          <input type="text" id="don-bic" placeholder="Ex : RAWBCDKI" />
+        </div>
+        <div class="form-group">
+          <label>Instructions / message (optionnel)</label>
+          <input type="text" id="don-instructions" placeholder="Ex : Mentionnez votre nom dans le libellé" />
+        </div>
+        <div class="form-group full" style="justify-content:flex-end">
+          <label>&nbsp;</label>
+          <button class="btn-submit" onclick="sauvegarderDon()" id="btn-don">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:5px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            Enregistrer les coordonnées
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== PRIÈRES ===== -->
+    <div class="section-title" style="margin-top:40px">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3v5"/><path d="M6 11V6a3 3 0 0 1 3-3 3 3 0 0 1 3 3"/><path d="M12 11v3a6 6 0 0 1-6 6H5a5 5 0 0 1-5-5v-3h6v-3h12v3a5 5 0 0 1-5 5h-1"/></svg>
+      Prières
+    </div>
+    <div class="card">
+      <div class="form-group full">
+        <label>Titre de la prière *</label>
+        <input type="text" id="p-titre" placeholder="Ex: Prière du matin" />
+      </div>
+      <div class="form-group full">
+        <label>Texte de la prière *</label>
+        <textarea id="p-texte" rows="5" placeholder="Seigneur, nous te remercions…"></textarea>
+      </div>
+      <button class="btn-submit" onclick="ajouterPriere()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="vertical-align:middle;margin-right:5px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Publier la prière
+      </button>
+    </div>
+    <div id="prieres-admin-list">
+      <div class="empty-state"><div style="font-size:24px;opacity:.4">⟳</div>Chargement…</div>
+    </div>
+
+    <!-- ===== ÉTUDE DU JOUR ===== -->
+    <div class="section-title" style="margin-top:40px">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+      Étude du jour
+    </div>
+    <div class="card">
+      <div class="form-group full">
+        <label>Titre de l'étude *</label>
+        <input type="text" id="et-titre" placeholder="Ex: La foi qui déplace les montagnes" />
+      </div>
+      <div class="form-group full">
+        <label>Texte (optionnel)</label>
+        <textarea id="et-texte" rows="6" placeholder="Contenu de l'étude…"></textarea>
+      </div>
+      <div class="form-group full">
+        <label>URL du PDF (optionnel)</label>
+        <input type="url" id="et-pdf" placeholder="https://… (lien Google Drive, Dropbox, etc.)" />
+      </div>
+      <div class="form-group full">
+        <label>Date de publication</label>
+        <input type="date" id="et-date" />
+      </div>
+      <button class="btn-submit" onclick="ajouterEtude()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="vertical-align:middle;margin-right:5px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Publier l'étude
+      </button>
+    </div>
+    <div id="etudes-admin-list">
+      <div class="empty-state"><div style="font-size:24px;opacity:.4">⟳</div>Chargement…</div>
+    </div>
+
+    <!-- ===== LIVRES ===== -->
+    <div class="section-title" style="margin-top:40px">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+      Bibliothèque — Livres
+    </div>
+    <div class="card">
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>Titre du livre *</label>
+          <input type="text" id="lv-titre" placeholder="Ex: La puissance de la prière" />
+        </div>
+        <div class="form-group">
+          <label>Auteur</label>
+          <input type="text" id="lv-auteur" placeholder="Ex: Charles Spurgeon" />
+        </div>
+        <div class="form-group">
+          <label>Catégorie *</label>
+          <input type="text" id="lv-cat" placeholder="Ex: Spiritualité, Science, Bible…" />
+        </div>
+        <div class="form-group full">
+          <label>Description</label>
+          <textarea id="lv-desc" rows="2" placeholder="Résumé court…"></textarea>
+        </div>
+        <div class="form-group full">
+          <label>URL du PDF ou lien de téléchargement</label>
+          <input type="url" id="lv-fichier" placeholder="https://…" />
+        </div>
+        <div class="form-group full">
+          <label>Image de couverture (URL)</label>
+          <input type="url" id="lv-couverture" placeholder="https://… (image de la couverture)" />
+        </div>
+      </div>
+      <button class="btn-submit" onclick="ajouterLivre()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="vertical-align:middle;margin-right:5px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Ajouter ce livre
+      </button>
+    </div>
+    <div id="livres-admin-list">
+      <div class="empty-state"><div style="font-size:24px;opacity:.4">⟳</div>Chargement…</div>
+    </div>
+
+    <!-- ===== VIDÉOS ===== -->
+    <div class="section-title" style="margin-top:40px">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+      Bibliothèque — Vidéos
+    </div>
+    <div class="card">
+      <div class="form-group full">
+        <label>Titre de la vidéo *</label>
+        <input type="text" id="vid-titre" placeholder="Ex: Culte du dimanche 15 juin" />
+      </div>
+      <div class="form-group full">
+        <label>Catégorie *</label>
+        <input type="text" id="vid-cat" placeholder="Ex: Prédication, Louange, Témoignage…" />
+      </div>
+      <div class="form-group full">
+        <label>Lien YouTube *</label>
+        <input type="url" id="vid-url" placeholder="https://www.youtube.com/watch?v=…" />
+      </div>
+      <div class="form-group full">
+        <label>Description (optionnel)</label>
+        <textarea id="vid-desc" rows="2" placeholder="Résumé…"></textarea>
+      </div>
+      <button class="btn-submit" onclick="ajouterVideo()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="vertical-align:middle;margin-right:5px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Ajouter la vidéo
+      </button>
+    </div>
+    <div id="videos-admin-list">
+      <div class="empty-state"><div style="font-size:24px;opacity:.4">⟳</div>Chargement…</div>
+    </div>
+
+    <!-- ===== MEMBRES ===== -->
+    <div class="section-title" style="margin-top:40px">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Demandes d'adhésion
+      <span id="badge-membres" style="background:#C0001A;color:#fff;border-radius:20px;padding:2px 10px;font-size:12px;margin-left:8px"></span>
+    </div>
+    <div id="membres-list">
+      <div class="empty-state"><div style="font-size:24px;opacity:.4">⟳</div>Chargement…</div>
+    </div>
+
+    <!-- ===== COMMENTAIRES ===== -->
+    <div class="section-title" style="margin-top:40px">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      Commentaires des fidèles
+      <span id="badge-comments" style="background:#C0001A;color:#fff;border-radius:20px;padding:2px 10px;font-size:12px;margin-left:8px"></span>
+    </div>
+    <div id="comments-admin-list">
+      <div class="empty-state"><div style="font-size:24px;opacity:.4">⟳</div>Chargement…</div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const API = window.location.origin + '/api';
+  let adminPassword = '';
+  let selectedFile = null;
+
+  // ===== SPLASH =====
+  async function lancerSplashAdmin() {
+    const splash = document.getElementById('splash-admin');
+    let duree = 2500;
+    try {
+      const res = await fetch(API + '/settings/splash');
+      if (res.ok) {
+        const cfg = await res.json();
+        if (cfg.logoUrl) document.getElementById('sadmin-logo').src = cfg.logoUrl;
+        if (cfg.dureeSplash) duree = cfg.dureeSplash * 1000;
+      }
+    } catch(e) {}
+    setTimeout(() => {
+      splash.classList.add('fade-out');
+      setTimeout(() => splash.remove(), 600);
+    }, duree);
+  }
+
+  window.addEventListener('DOMContentLoaded', lancerSplashAdmin);
+
+  // ===== DATE AUTO — s'initialise à maintenant, se met à jour chaque minute =====
+  let _dateManuelle = false; // true si le pasteur a touché au champ
+
+  function dateLocaleISO(d) {
+    // Formate une Date en "YYYY-MM-DDTHH:MM" (format requis par datetime-local)
+    const pad = n => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+
+  function initDateAuto() {
+    const champ = document.getElementById('f-date');
+    if (!champ) return;
+
+    // Mettre la date/heure actuelle
+    champ.value = dateLocaleISO(new Date());
+
+    // Marquer si le pasteur modifie lui-même
+    champ.addEventListener('input', () => { _dateManuelle = true; });
+
+    // Avancer automatiquement chaque minute si pas modifié
+    setInterval(() => {
+      if (!_dateManuelle) champ.value = dateLocaleISO(new Date());
+    }, 60000);
+  }
+
+  // Réinitialiser le flag quand le formulaire est soumis avec succès
+  function resetDateAuto() {
+    _dateManuelle = false;
+    document.getElementById('f-date').value = dateLocaleISO(new Date());
+  }
+
+  // ===== PARAMÈTRES SPLASH =====
+  async function chargerSplash() {
+    try {
+      const res = await fetch(API + '/settings/splash');
+      if (!res.ok) return;
+      const cfg = await res.json();
+      document.getElementById('s-nom').value   = cfg.nomEglise   || '';
+      document.getElementById('s-sous').value  = cfg.sousTitre   || '';
+      document.getElementById('s-verset').value= cfg.verset      || '';
+      document.getElementById('s-logo').value  = cfg.logoUrl     || '';
+      document.getElementById('s-duree').value = cfg.dureeSplash != null ? cfg.dureeSplash : 3;
+      const fond   = cfg.couleurFond   || '#001220';
+      const accent = cfg.couleurAccent || '#D4AF37';
+      document.getElementById('s-fond').value   = fond;
+      document.getElementById('s-accent').value = accent;
+      try { document.getElementById('s-fond-picker').value   = fond;   } catch(e) {}
+      try { document.getElementById('s-accent-picker').value = accent; } catch(e) {}
+    } catch(e) {}
+  }
+
+  // ===== YOUTUBE LINKS =====
+  function renderYTLinks(links) {
+    const list = document.getElementById('yt-links-list');
+    if (!links || !links.length) { list.innerHTML = ''; return; }
+    list.innerHTML = links.map((l, i) => `
+      <div class="form-grid" id="yt-row-${i}" style="margin-bottom:8px;align-items:flex-end">
+        <div class="form-group full" style="flex:2">
+          <label>Lien YouTube n°${i+1}</label>
+          <input type="text" id="yt-url-${i}" value="${(l.url||'').replace(/"/g,'&quot;')}" placeholder="https://www.youtube.com/watch?v=xxxxx" />
+        </div>
+        <div class="form-group" style="flex:1">
+          <label>Texte du bouton</label>
+          <input type="text" id="yt-lbl-${i}" value="${(l.label||'').replace(/"/g,'&quot;')}" placeholder="Regarder sur YouTube" />
+        </div>
+        <div class="form-group" style="flex:0 0 auto">
+          <label>&nbsp;</label>
+          <button type="button" onclick="supprimerLienYT(${i})" style="background:rgba(192,0,26,0.1);border:1px solid rgba(192,0,26,0.3);color:#C0001A;border-radius:8px;padding:8px 12px;cursor:pointer">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+          </button>
+        </div>
+      </div>`).join('');
+  }
+
+  let _ytLinks = [];
+  function ajouterLienYT() {
+    _ytLinks.push({ url: '', label: '' });
+    renderYTLinks(_ytLinks);
+  }
+  function supprimerLienYT(i) {
+    _ytLinks.splice(i, 1);
+    renderYTLinks(_ytLinks);
+  }
+  function collecterYTLinks() {
+    return _ytLinks.map((_, i) => ({
+      url:   (document.getElementById('yt-url-'+i)||{}).value || '',
+      label: (document.getElementById('yt-lbl-'+i)||{}).value || '',
+    })).filter(l => l.url.trim());
+  }
+
+  async function chargerHome() {
+    try {
+      const res = await fetch(API + '/settings/home');
+      if (!res.ok) return;
+      const cfg = await res.json();
+      if (Array.isArray(cfg.youtubeLinks) && cfg.youtubeLinks.length) {
+        _ytLinks = cfg.youtubeLinks.map(l => ({ url: l.url||'', label: l.label||'' }));
+      } else if (cfg.youtubeUrl) {
+        _ytLinks = [{ url: cfg.youtubeUrl, label: cfg.ytLabel||'' }];
+      } else {
+        _ytLinks = [];
+      }
+      renderYTLinks(_ytLinks);
+    } catch(e) {}
+  }
+
+  async function sauvegarderHome() {
+    const btn = document.getElementById('btn-home');
+    btn.disabled = true; btn.innerHTML = 'Enregistrement…';
+    try {
+      const youtubeLinks = collecterYTLinks();
+      const res = await fetch(API + '/settings/home', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        body: JSON.stringify({ youtubeLinks }),
+      });
+      if (res.ok) toast('Liens YouTube enregistrés !', 'success');
+      else toast('Erreur lors de la sauvegarde', 'error');
+    } catch(e) { toast('Erreur réseau', 'error'); }
+    finally { btn.disabled = false; btn.innerHTML = 'Enregistrer'; }
+  }
+
+  async function sauvegarderSplash() {
+    const btn = document.getElementById('btn-splash');
+    btn.disabled = true;
+    btn.innerHTML = 'Enregistrement…';
+    try {
+      const body = {
+        nomEglise:    document.getElementById('s-nom').value.trim()   || undefined,
+        sousTitre:    document.getElementById('s-sous').value.trim()  || undefined,
+        verset:       document.getElementById('s-verset').value.trim()|| undefined,
+        logoUrl:      document.getElementById('s-logo').value.trim()  || undefined,
+        dureeSplash:  parseFloat(document.getElementById('s-duree').value) || 3,
+        couleurFond:  document.getElementById('s-fond').value.trim()  || undefined,
+        couleurAccent:document.getElementById('s-accent').value.trim()|| undefined,
+      };
+      const res = await fetch(API + '/settings/splash', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        body: JSON.stringify(body),
+      });
+      if (res.ok) { toast('Paramètres sauvegardés !', 'success'); }
+      else { toast('Erreur lors de la sauvegarde', 'error'); }
+    } catch(e) { toast('Erreur réseau', 'error'); }
+    finally {
+      btn.disabled = false;
+      btn.innerHTML = 'Enregistrer les paramètres';
+    }
+  }
+
+  // ===== LOGIN =====
+  function login() {
+    const pwd = document.getElementById('password-input').value;
+    if (!pwd) return;
+    adminPassword = pwd;
+
+    fetch(`${API}/admin/verify`, { headers: { 'x-admin-password': pwd } })
+      .then(r => {
+        if (r.ok) {
+          document.getElementById('login-page').style.display = 'none';
+          document.getElementById('dashboard').style.display = 'block';
+          chargerTout();
+          initDateAuto();
+        } else {
+          document.getElementById('login-error').style.display = 'block';
+          adminPassword = '';
+        }
+      })
+      .catch(() => document.getElementById('login-error').style.display = 'block');
+  }
+
+  function logout() {
+    adminPassword = '';
+    document.getElementById('dashboard').style.display = 'none';
+    document.getElementById('login-page').style.display = 'flex';
+    document.getElementById('password-input').value = '';
+  }
+
+  function authHeaders() {
+    return { 'x-admin-password': adminPassword };
+  }
+
+  // ===== STATS & CHARGEMENT =====
+  async function chargerTout() {
+    await Promise.all([
+      chargerSermons(), chargerStats(), chargerSplash(), chargerHome(),
+      chargerDonAdmin(), chargerMembres(), chargerCommentairesAdmin(),
+      chargerPrieresAdmin(), chargerEtudesAdmin(), chargerLivresAdmin(), chargerVideosAdmin()
+    ]);
+    document.getElementById('et-date').valueAsDate = new Date();
+  }
+
+  async function chargerStats() {
+    try {
+      const [sRes, uRes] = await Promise.all([
+        fetch(`${API}/sermons`, { headers: authHeaders() }),
+        fetch(`${API}/users/count`, { headers: authHeaders() })
+      ]);
+      const sermons = await sRes.json();
+      const users = await uRes.json();
+      document.getElementById('stat-planifie').textContent = sermons.filter(s => s.statut === 'planifie').length;
+      document.getElementById('stat-en-cours').textContent = sermons.filter(s => s.statut === 'en_cours').length;
+      document.getElementById('stat-termine').textContent = sermons.filter(s => s.statut === 'termine').length;
+      document.getElementById('stat-fideles').textContent = users.count ?? '—';
+    } catch(e) {}
+  }
+
+  async function chargerSermons() {
+    try {
+      const res = await fetch(`${API}/sermons`, { headers: authHeaders() });
+      const sermons = await res.json();
+      const container = document.getElementById('sermons-list');
+
+      if (!sermons.length) {
+        container.innerHTML = `<div class="empty-state"><div style="opacity:.4"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg></div>Aucune prédication planifiée</div>`;
+        return;
+      }
+
+      const svgClock  = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
+      const svgLive   = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C0001A" stroke-width="2"><circle cx="12" cy="12" r="5" fill="#C0001A"/></svg>`;
+      const svgCheck  = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+      const svgMic    = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>`;
+      const iconMap   = { planifie: svgClock, en_cours: svgLive, termine: svgCheck };
+      const iconClass = { planifie:'icon-planifie', en_cours:'icon-en_cours', termine:'icon-termine' };
+      const svgTrash  = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>`;
+      const svgCalendar = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`;
+      const svgPlay   = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>`;
+
+      container.innerHTML = sermons.map(s => {
+        const date = new Date(s.dateDiffusion);
+        const dateStr = date.toLocaleDateString('fr-FR', { day:'2-digit', month:'long', year:'numeric' });
+        const timeStr = date.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
+        return `
+          <div class="sermon-item">
+            <div class="sermon-icon ${iconClass[s.statut]||'icon-planifie'}">${iconMap[s.statut]||svgMic}</div>
+            <div class="sermon-info">
+              <div class="sermon-titre">${s.titre}</div>
+              ${s.description ? `<div class="sermon-desc">${s.description}</div>` : ''}
+              <div class="sermon-meta">
+                <span class="badge badge-${s.statut}">${s.statut === 'planifie' ? 'PLANIFIÉ' : s.statut === 'en_cours' ? 'EN DIRECT' : 'TERMINÉ'}</span>
+                <span class="sermon-date">${svgCalendar} ${dateStr} à ${timeStr}</span>
+                ${s.audioUrl ? `<a class="audio-link" href="${s.audioUrl}" target="_blank">${svgPlay} Écouter</a>` : ''}
+              </div>
+            </div>
+            <button class="btn-delete" onclick="supprimer('${s._id}')" title="Supprimer">${svgTrash}</button>
+          </div>`;
+      }).join('');
+    } catch(e) {
+      document.getElementById('sermons-list').innerHTML = `<div class="empty-state"><div style="opacity:.4;font-size:28px">✕</div>Erreur de chargement</div>`;
+    }
+  }
+
+  // ===== UPLOAD FICHIER =====
+  function dragOver(e) { e.preventDefault(); document.getElementById('upload-zone').classList.add('drag-over'); }
+  function dragLeave() { document.getElementById('upload-zone').classList.remove('drag-over'); }
+  function dropFile(e) {
+    e.preventDefault();
+    dragLeave();
+    const files = e.dataTransfer.files;
+    if (files.length > 0) appliquerFichier(files[0]);
+  }
+
+  function fileSelectionne(e) {
+    if (e.target.files.length > 0) appliquerFichier(e.target.files[0]);
+  }
+
+  function appliquerFichier(file) {
+    selectedFile = file;
+    document.getElementById('file-name').textContent = file.name;
+    document.getElementById('file-size').textContent = formatBytes(file.size);
+    document.getElementById('file-preview').classList.add('visible');
+    document.getElementById('upload-zone').style.display = 'none';
+  }
+
+  function retirerFichier() {
+    selectedFile = null;
+    document.getElementById('f-audio-file').value = '';
+    document.getElementById('file-preview').classList.remove('visible');
+    document.getElementById('upload-zone').style.display = 'block';
+  }
+
+  function formatBytes(bytes) {
+    if (bytes < 1024*1024) return (bytes/1024).toFixed(1) + ' Ko';
+    return (bytes/1024/1024).toFixed(1) + ' Mo';
+  }
+
+  // ===== PLANIFICATION =====
+  async function planifierSermon() {
+    const titre = document.getElementById('f-titre').value.trim();
+    const desc = document.getElementById('f-desc').value.trim();
+    const date = document.getElementById('f-date').value;
+
+    if (!titre || !date) { toast('Titre et date obligatoires', 'error'); return; }
+    if (!selectedFile) { toast('Selectionnez un fichier audio', 'error'); return; }
+
+    const btn = document.getElementById('btn-submit');
+    btn.disabled = true;
+    btn.innerHTML = 'Upload en cours…';
+
+    document.getElementById('upload-progress').classList.add('visible');
+    const stopAnim = animerProgression();
+
+    // Timeout de 3 minutes (180s) pour les gros fichiers
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 180000);
+
+    try {
+      const formData = new FormData();
+      formData.append('titre', titre);
+      formData.append('description', desc);
+      formData.append('dateDiffusion', new Date(date).toISOString());
+      formData.append('audio', selectedFile, selectedFile.name);
+
+      const res = await fetch(`${API}/sermons/schedule`, {
+        method: 'POST',
+        headers: { 'x-admin-password': adminPassword },
+        body: formData,
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeout);
+      stopAnim();
+
+      // Lire le corps de la reponse (texte brut d'abord pour eviter les erreurs JSON)
+      const body = await res.text();
+      let json = {};
+      try { json = JSON.parse(body); } catch(e) {}
+
+      if (res.ok) {
+        document.getElementById('progress-fill').style.width = '100%';
+        document.getElementById('progress-text').textContent = 'Upload termine !';
+        toast('Predication planifiee !', 'success');
+        document.getElementById('f-titre').value = '';
+        document.getElementById('f-desc').value = '';
+        retirerFichier();
+        resetDateAuto();
+        chargerTout();
+      } else {
+        const msg = json.error || json.message || ('Erreur serveur ' + res.status + ' : ' + body.substring(0, 120));
+        toast(msg, 'error');
+      }
+    } catch(e) {
+      clearTimeout(timeout);
+      stopAnim();
+      if (e.name === 'AbortError') {
+        toast('Timeout : le serveur met trop de temps. Reessayez.', 'error');
+      } else {
+        toast('Erreur reseau : ' + (e.message || 'verifiez votre connexion'), 'error');
+      }
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = 'Planifier la predication';
+      setTimeout(() => {
+        document.getElementById('upload-progress').classList.remove('visible');
+        document.getElementById('progress-fill').style.width = '0%';
+      }, 4000);
+    }
+  }
+
+  // Animation de progression — retourne une fonction stop()
+  function animerProgression() {
+    let pct = 0;
+    const interval = setInterval(() => {
+      if (pct >= 90) { clearInterval(interval); return; }
+      pct += Math.random() * 6;
+      pct = Math.min(pct, 90);
+      document.getElementById('progress-fill').style.width = pct + '%';
+      document.getElementById('progress-text').textContent = 'Upload en cours… ' + Math.round(pct) + '%';
+    }, 500);
+    // Retourne une fonction pour arreter l'animation
+    return () => clearInterval(interval);
+  }
+
+  // ===== SUPPRESSION =====
+  async function supprimer(id) {
+    if (!confirm('Supprimer cette prédication ?')) return;
+    try {
+      const res = await fetch(`${API}/sermons/${id}`, {
+        method: 'DELETE',
+        headers: authHeaders()
+      });
+      if (res.ok) { toast('Supprimée', 'success'); chargerTout(); }
+    } catch(e) { toast('Erreur', 'error'); }
+  }
+
+  // ===== DON =====
+  async function chargerDonAdmin() {
+    try {
+      const res = await fetch(API + '/settings/don');
+      if (!res.ok) return;
+      const d = await res.json();
+      document.getElementById('don-tel1').value        = d.telephone1    || '';
+      document.getElementById('don-tel2').value        = d.telephone2    || '';
+      document.getElementById('don-titulaire').value   = d.nomTitulaire  || '';
+      document.getElementById('don-banque').value      = d.nomBanque     || '';
+      document.getElementById('don-compte').value      = d.numeroCompte  || '';
+      document.getElementById('don-iban').value        = d.iban          || '';
+      document.getElementById('don-bic').value         = d.bic           || '';
+      document.getElementById('don-instructions').value= d.instructions  || '';
+    } catch(e) {}
+  }
+
+  async function sauvegarderDon() {
+    const btn = document.getElementById('btn-don');
+    btn.disabled = true; btn.innerHTML = 'Enregistrement…';
+    try {
+      const body = {
+        telephone1:   document.getElementById('don-tel1').value.trim()        || undefined,
+        telephone2:   document.getElementById('don-tel2').value.trim()        || undefined,
+        nomTitulaire: document.getElementById('don-titulaire').value.trim()   || undefined,
+        nomBanque:    document.getElementById('don-banque').value.trim()      || undefined,
+        numeroCompte: document.getElementById('don-compte').value.trim()      || undefined,
+        iban:         document.getElementById('don-iban').value.trim()        || undefined,
+        bic:          document.getElementById('don-bic').value.trim()         || undefined,
+        instructions: document.getElementById('don-instructions').value.trim()|| undefined,
+      };
+      const res = await fetch(API + '/settings/don', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        body: JSON.stringify(body),
+      });
+      if (res.ok) toast('Coordonnées de don enregistrées !', 'success');
+      else toast('Erreur sauvegarde don', 'error');
+    } catch(e) { toast('Erreur réseau', 'error'); }
+    finally { btn.disabled = false; btn.innerHTML = 'Enregistrer les coordonnées'; }
+  }
+
+  // ===== MEMBRES =====
+  async function chargerMembres() {
+    try {
+      const res = await fetch(API + '/membres', { headers: authHeaders() });
+      if (!res.ok) return;
+      const list = await res.json();
+      const el = document.getElementById('membres-list');
+      const en_attente = list.filter(m => m.statut === 'en_attente').length;
+      const badge = document.getElementById('badge-membres');
+      badge.textContent = en_attente > 0 ? en_attente + ' en attente' : list.length + ' total';
+      if (!list.length) { el.innerHTML = `<div class="empty-state"><div style="opacity:.4"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>Aucune demande pour l'instant</div>`; return; }
+      const svgUser = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
+      el.innerHTML = list.map(m => {
+        const date = new Date(m.dateInscription).toLocaleDateString('fr-FR', { day:'2-digit', month:'long', year:'numeric' });
+        const statutColor = { en_attente:'#D97706', accepte:'#16A34A', refuse:'#DC2626' };
+        const statutLabel = { en_attente:'EN ATTENTE', accepte:'ACCEPTÉ', refuse:'REFUSÉ' };
+        return `
+          <div class="sermon-item">
+            <div class="sermon-icon" style="background:rgba(212,175,55,0.15)">${svgUser}</div>
+            <div class="sermon-info">
+              <div class="sermon-titre">${escA(m.nom)}</div>
+              <div class="sermon-desc">${escA(m.telephone)} &nbsp;·&nbsp; ${escA(m.adresse)}</div>
+              <div class="sermon-meta">
+                <span class="badge" style="background:${statutColor[m.statut]||'#888'}22;color:${statutColor[m.statut]||'#888'};border:1px solid ${statutColor[m.statut]||'#888'}44">${statutLabel[m.statut]||m.statut}</span>
+                <span class="sermon-date">${date}</span>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              ${m.statut !== 'accepte' ? `<button class="btn-submit" style="padding:6px 12px;font-size:12px" onclick="majStatutMembre('${m._id}','accepte')">Accepter</button>` : ''}
+              ${m.statut !== 'refuse'  ? `<button class="btn-delete" style="padding:6px 10px;font-size:12px" onclick="majStatutMembre('${m._id}','refuse')">Refuser</button>` : ''}
+              <button class="btn-delete" style="padding:6px 10px;font-size:12px" onclick="supprimerMembre('${m._id}')" title="Supprimer"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M9 6V4h6v2"/></svg></button>
+            </div>
+          </div>`;
+      }).join('');
+    } catch(e) {}
+  }
+
+  async function majStatutMembre(id, statut) {
+    try {
+      const res = await fetch(`${API}/membres/${id}/statut`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        body: JSON.stringify({ statut }),
+      });
+      if (res.ok) { toast('Statut mis à jour', 'success'); chargerMembres(); }
+      else toast('Erreur', 'error');
+    } catch(e) { toast('Erreur réseau', 'error'); }
+  }
+
+  async function supprimerMembre(id) {
+    if (!confirm('Supprimer cette demande ?')) return;
+    try {
+      const res = await fetch(`${API}/membres/${id}`, { method: 'DELETE', headers: authHeaders() });
+      if (res.ok) { toast('Supprimé', 'success'); chargerMembres(); }
+    } catch(e) {}
+  }
+
+  // ===== COMMENTAIRES =====
+  async function chargerCommentairesAdmin() {
+    try {
+      const res = await fetch(API + '/comments');
+      if (!res.ok) return;
+      const list = await res.json();
+      const el = document.getElementById('comments-admin-list');
+      const sansReponse = list.filter(c => !c.adminReponse).length;
+      document.getElementById('badge-comments').textContent = sansReponse > 0 ? sansReponse + ' sans réponse' : list.length + ' total';
+      if (!list.length) { el.innerHTML = `<div class="empty-state"><div style="opacity:.4"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>Aucun commentaire pour l'instant</div>`; return; }
+      const svgMsgIcon = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`;
+      el.innerHTML = list.map(c => {
+        const date = new Date(c.dateEnvoi).toLocaleDateString('fr-FR', { day:'2-digit', month:'long', year:'numeric' })
+          + ' ' + new Date(c.dateEnvoi).toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
+        return `
+          <div class="sermon-item" style="flex-direction:column;align-items:flex-start;gap:10px">
+            <div style="display:flex;align-items:flex-start;gap:12px;width:100%">
+              <div class="sermon-icon" style="background:rgba(212,175,55,0.15);flex-shrink:0">${svgMsgIcon}</div>
+              <div style="flex:1">
+                <div class="sermon-titre" style="font-weight:400;font-size:14px">${escA(c.texte)}</div>
+                <div class="sermon-meta" style="margin-top:4px"><span class="sermon-date">${date}</span></div>
+              </div>
+              <button class="btn-delete" style="flex-shrink:0" onclick="supprimerCommentaire('${c._id}')" title="Supprimer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M9 6V4h6v2"/></svg></button>
+            </div>
+            ${c.adminReponse ? `
+              <div style="background:rgba(212,175,55,0.08);border-left:3px solid #D4AF37;border-radius:8px;padding:10px 12px;width:100%">
+                <div style="font-size:11px;color:#D4AF37;font-weight:700;margin-bottom:4px">— RÉPONSE DU PASTEUR</div>
+                <div style="font-size:13px">${escA(c.adminReponse)}</div>
+              </div>` : ''}
+            <div style="display:flex;gap:8px;width:100%;align-items:center">
+              <textarea id="reply-${c._id}" rows="2" placeholder="Écrire une réponse…"
+                style="flex:1;background:rgba(255,255,255,0.06);border:1px solid rgba(212,175,55,0.25);border-radius:8px;color:#fff;padding:8px 10px;font-size:13px;font-family:inherit;resize:none;outline:none"
+                >${escA(c.adminReponse)}</textarea>
+              <button class="btn-submit" style="padding:8px 14px;font-size:13px" onclick="repondreCommentaire('${c._id}')">
+                Répondre
+              </button>
+            </div>
+          </div>`;
+      }).join('');
+    } catch(e) {}
+  }
+
+  async function repondreCommentaire(id) {
+    const reponse = document.getElementById('reply-' + id).value.trim();
+    try {
+      const res = await fetch(`${API}/comments/${id}/reply`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        body: JSON.stringify({ reponse }),
+      });
+      if (res.ok) { toast('Réponse enregistrée', 'success'); chargerCommentairesAdmin(); }
+      else toast('Erreur', 'error');
+    } catch(e) { toast('Erreur réseau', 'error'); }
+  }
+
+  async function supprimerCommentaire(id) {
+    if (!confirm('Supprimer ce commentaire ?')) return;
+    try {
+      const res = await fetch(`${API}/comments/${id}`, { method: 'DELETE', headers: authHeaders() });
+      if (res.ok) { toast('Supprimé', 'success'); chargerCommentairesAdmin(); }
+    } catch(e) {}
+  }
+
+  function escA(s) {
+    return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // ══════════════════════════════════════════════════════════
+  //  PRIÈRES
+  // ══════════════════════════════════════════════════════════
+  async function chargerPrieresAdmin() {
+    const el = document.getElementById('prieres-admin-list');
+    try {
+      const r = await fetch(`${API}/prieres/all`, { headers: authHeaders() });
+      const list = await r.json();
+      if (!list.length) { el.innerHTML = '<div class="empty-state">Aucune prière publiée</div>'; return; }
+      el.innerHTML = list.map(p => `
+        <div class="sermon-item" style="align-items:flex-start;gap:10px">
+          <div class="sermon-info">
+            <div class="sermon-title">${esc(p.titre)}</div>
+            <div class="sermon-meta" style="white-space:pre-wrap">${esc(p.texte.substring(0,100))}…</div>
+          </div>
+          <button class="btn-delete" title="Supprimer" onclick="supprimerPriere('${p._id}')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+          </button>
+        </div>`).join('');
+    } catch(e) { el.innerHTML = '<div class="empty-state">Erreur de chargement</div>'; }
+  }
+
+  async function ajouterPriere() {
+    const titre = document.getElementById('p-titre').value.trim();
+    const texte = document.getElementById('p-texte').value.trim();
+    if (!titre || !texte) { toast('Titre et texte requis', 'error'); return; }
+    try {
+      const r = await fetch(`${API}/prieres`, { method:'POST', headers:{...authHeaders(),'Content-Type':'application/json'}, body: JSON.stringify({titre,texte}) });
+      if (!r.ok) throw new Error('Erreur');
+      document.getElementById('p-titre').value = '';
+      document.getElementById('p-texte').value = '';
+      toast('Prière publiée', 'success');
+      chargerPrieresAdmin();
+    } catch(e) { toast('Erreur lors de l\'ajout', 'error'); }
+  }
+
+  async function supprimerPriere(id) {
+    if (!confirm('Supprimer cette prière ?')) return;
+    try {
+      await fetch(`${API}/prieres/${id}`, { method:'DELETE', headers: authHeaders() });
+      toast('Supprimée', 'success');
+      chargerPrieresAdmin();
+    } catch(e) { toast('Erreur', 'error'); }
+  }
+
+  // ══════════════════════════════════════════════════════════
+  //  ÉTUDES DU JOUR
+  // ══════════════════════════════════════════════════════════
+  async function chargerEtudesAdmin() {
+    const el = document.getElementById('etudes-admin-list');
+    try {
+      const r = await fetch(`${API}/etudes/all`, { headers: authHeaders() });
+      const list = await r.json();
+      if (!list.length) { el.innerHTML = '<div class="empty-state">Aucune étude publiée</div>'; return; }
+      el.innerHTML = list.map(e => {
+        const d = new Date(e.datePublication).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'});
+        const badge = e.actif ? `<span style="background:#22A87A;color:#fff;border-radius:20px;padding:2px 8px;font-size:10px;font-weight:700">Active</span>` : `<span style="background:#EEE;color:#666;border-radius:20px;padding:2px 8px;font-size:10px">Masquée</span>`;
+        return `<div class="sermon-item" style="align-items:flex-start;gap:10px">
+          <div class="sermon-info">
+            <div class="sermon-title">${esc(e.titre)} ${badge}</div>
+            <div class="sermon-meta">${d}${e.pdfUrl ? ' · PDF' : ''}</div>
+          </div>
+          <div style="display:flex;gap:6px;flex-shrink:0">
+            <button class="btn-delete" title="${e.actif ? 'Masquer' : 'Activer'}" onclick="toggleEtude('${e._id}',${!e.actif})" style="background:${e.actif ? '#FEF5E6' : '#E5F6EF'}">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="${e.actif ? '#D97706' : '#22A87A'}" stroke-width="2.5" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+            <button class="btn-delete" title="Supprimer" onclick="supprimerEtude('${e._id}')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M9 6V4h6v2"/></svg>
+            </button>
+          </div>
+        </div>`;
+      }).join('');
+    } catch(e) { el.innerHTML = '<div class="empty-state">Erreur de chargement</div>'; }
+  }
+
+  async function ajouterEtude() {
+    const titre = document.getElementById('et-titre').value.trim();
+    const texte = document.getElementById('et-texte').value.trim();
+    const pdfUrl = document.getElementById('et-pdf').value.trim();
+    const dateVal = document.getElementById('et-date').value;
+    if (!titre) { toast('Titre requis', 'error'); return; }
+    if (!texte && !pdfUrl) { toast('Texte ou PDF requis', 'error'); return; }
+    try {
+      const body = { titre, texte, pdfUrl, datePublication: dateVal ? new Date(dateVal) : new Date(), actif: true };
+      const r = await fetch(`${API}/etudes`, { method:'POST', headers:{...authHeaders(),'Content-Type':'application/json'}, body: JSON.stringify(body) });
+      if (!r.ok) throw new Error('Erreur');
+      document.getElementById('et-titre').value = '';
+      document.getElementById('et-texte').value = '';
+      document.getElementById('et-pdf').value = '';
+      document.getElementById('et-date').valueAsDate = new Date();
+      toast('Étude publiée', 'success');
+      chargerEtudesAdmin();
+    } catch(e) { toast('Erreur lors de la publication', 'error'); }
+  }
+
+  async function toggleEtude(id, actif) {
+    try {
+      await fetch(`${API}/etudes/${id}`, { method:'PUT', headers:{...authHeaders(),'Content-Type':'application/json'}, body: JSON.stringify({actif}) });
+      toast(actif ? 'Étude activée' : 'Étude masquée', 'success');
+      chargerEtudesAdmin();
+    } catch(e) { toast('Erreur', 'error'); }
+  }
+
+  async function supprimerEtude(id) {
+    if (!confirm('Supprimer cette étude ?')) return;
+    try {
+      await fetch(`${API}/etudes/${id}`, { method:'DELETE', headers: authHeaders() });
+      toast('Supprimée', 'success');
+      chargerEtudesAdmin();
+    } catch(e) { toast('Erreur', 'error'); }
+  }
+
+  // ══════════════════════════════════════════════════════════
+  //  LIVRES
+  // ══════════════════════════════════════════════════════════
+  async function chargerLivresAdmin() {
+    const el = document.getElementById('livres-admin-list');
+    try {
+      const r = await fetch(`${API}/livres`, { headers: authHeaders() });
+      const list = await r.json();
+      if (!list.length) { el.innerHTML = '<div class="empty-state">Aucun livre ajouté</div>'; return; }
+      el.innerHTML = list.map(l => `
+        <div class="sermon-item" style="align-items:flex-start;gap:10px">
+          <div class="sermon-info">
+            <div class="sermon-title">${esc(l.titre)}</div>
+            <div class="sermon-meta">${esc(l.categorie)}${l.auteur ? ' · ' + esc(l.auteur) : ''}</div>
+          </div>
+          <button class="btn-delete" onclick="supprimerLivre('${l._id}')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M9 6V4h6v2"/></svg>
+          </button>
+        </div>`).join('');
+    } catch(e) { el.innerHTML = '<div class="empty-state">Erreur de chargement</div>'; }
+  }
+
+  async function ajouterLivre() {
+    const titre = document.getElementById('lv-titre').value.trim();
+    const auteur = document.getElementById('lv-auteur').value.trim();
+    const categorie = document.getElementById('lv-cat').value.trim();
+    const description = document.getElementById('lv-desc').value.trim();
+    const fichierUrl = document.getElementById('lv-fichier').value.trim();
+    const couvertureUrl = document.getElementById('lv-couverture').value.trim();
+    if (!titre || !categorie) { toast('Titre et catégorie requis', 'error'); return; }
+    try {
+      const r = await fetch(`${API}/livres`, { method:'POST', headers:{...authHeaders(),'Content-Type':'application/json'}, body: JSON.stringify({titre,auteur,categorie,description,fichierUrl,couvertureUrl}) });
+      if (!r.ok) throw new Error('Erreur');
+      ['lv-titre','lv-auteur','lv-cat','lv-desc','lv-fichier','lv-couverture'].forEach(id => document.getElementById(id).value = '');
+      toast('Livre ajouté', 'success');
+      chargerLivresAdmin();
+    } catch(e) { toast('Erreur lors de l\'ajout', 'error'); }
+  }
+
+  async function supprimerLivre(id) {
+    if (!confirm('Supprimer ce livre ?')) return;
+    try {
+      await fetch(`${API}/livres/${id}`, { method:'DELETE', headers: authHeaders() });
+      toast('Supprimé', 'success');
+      chargerLivresAdmin();
+    } catch(e) { toast('Erreur', 'error'); }
+  }
+
+  // ══════════════════════════════════════════════════════════
+  //  VIDÉOS
+  // ══════════════════════════════════════════════════════════
+  async function chargerVideosAdmin() {
+    const el = document.getElementById('videos-admin-list');
+    try {
+      const r = await fetch(`${API}/videos`, { headers: authHeaders() });
+      const list = await r.json();
+      if (!list.length) { el.innerHTML = '<div class="empty-state">Aucune vidéo ajoutée</div>'; return; }
+      el.innerHTML = list.map(v => `
+        <div class="sermon-item" style="align-items:flex-start;gap:10px">
+          <div class="sermon-info">
+            <div class="sermon-title">${esc(v.titre)}</div>
+            <div class="sermon-meta">${esc(v.categorie)} · <a href="${v.youtubeUrl}" target="_blank" style="color:var(--primary)">YouTube</a></div>
+          </div>
+          <button class="btn-delete" onclick="supprimerVideo('${v._id}')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M9 6V4h6v2"/></svg>
+          </button>
+        </div>`).join('');
+    } catch(e) { el.innerHTML = '<div class="empty-state">Erreur de chargement</div>'; }
+  }
+
+  async function ajouterVideo() {
+    const titre = document.getElementById('vid-titre').value.trim();
+    const categorie = document.getElementById('vid-cat').value.trim();
+    const youtubeUrl = document.getElementById('vid-url').value.trim();
+    const description = document.getElementById('vid-desc').value.trim();
+    if (!titre || !categorie || !youtubeUrl) { toast('Titre, catégorie et lien YouTube requis', 'error'); return; }
+    try {
+      const r = await fetch(`${API}/videos`, { method:'POST', headers:{...authHeaders(),'Content-Type':'application/json'}, body: JSON.stringify({titre,categorie,youtubeUrl,description}) });
+      if (!r.ok) throw new Error('Erreur');
+      ['vid-titre','vid-cat','vid-url','vid-desc'].forEach(id => document.getElementById(id).value = '');
+      toast('Vidéo ajoutée', 'success');
+      chargerVideosAdmin();
+    } catch(e) { toast('Erreur lors de l\'ajout', 'error'); }
+  }
+
+  async function supprimerVideo(id) {
+    if (!confirm('Supprimer cette vidéo ?')) return;
+    try {
+      await fetch(`${API}/videos/${id}`, { method:'DELETE', headers: authHeaders() });
+      toast('Supprimée', 'success');
+      chargerVideosAdmin();
+    } catch(e) { toast('Erreur', 'error'); }
+  }
+
+  function esc(s) {
+    return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // ===== TOAST =====
+  function toast(msg, type) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = `toast ${type} show`;
+    setTimeout(() => el.classList.remove('show'), 3500);
+  }
+
+  // Heure minimum = maintenant
+  const now = new Date();
+  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+  document.getElementById('f-date').min = now.toISOString().slice(0, 16);
+</script>
+</body>
+</html>
