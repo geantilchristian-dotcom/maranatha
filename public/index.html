@@ -298,15 +298,15 @@
       text-align: center; line-height: 1.25; margin-bottom: 12px;
     }
     .lov-sub {
-      font-size: 15px; color: rgba(255,255,255,0.75);
-      text-align: center; line-height: 1.5; margin-bottom: 48px;
+      font-size: 14px; color: rgba(255,255,255,0.75);
+      text-align: center; line-height: 1.5; margin-top: 18px;
     }
     .lov-btn {
-      width: 100%; max-width: 340px;
+      width: auto; min-width: 200px; max-width: 260px;
       background: #fff; color: #A0001A;
-      border: none; border-radius: 18px;
-      padding: 20px; font-size: 20px; font-weight: 900;
-      cursor: pointer; letter-spacing: 0.5px;
+      border: none; border-radius: 14px;
+      padding: 13px 28px; font-size: 15px; font-weight: 900;
+      cursor: pointer; letter-spacing: 0.5px; margin-top: 28px;
       animation: pulse-tap 1.2s infinite;
     }
     .lov-skip {
@@ -916,8 +916,8 @@
 <div id="live-overlay">
   <div class="lov-badge"><div class="lov-dot"></div> EN DIRECT</div>
   <div class="lov-title" id="lov-titre">Culte en direct</div>
-  <div class="lov-sub">La prédication vient de commencer.<br>Appuyez pour écouter.</div>
   <button class="lov-btn" onclick="ecouterLive()">▶ ÉCOUTER MAINTENANT</button>
+  <div class="lov-sub">Rejoignez-nous maintenant et adorons ensemble !</div>
   <button class="lov-skip" onclick="fermerOverlay()">Pas maintenant</button>
 </div>
 
