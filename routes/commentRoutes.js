@@ -19,9 +19,13 @@ router.get('/', async (req, res) => {
 // POST /api/comments  — public
 router.post('/', async (req, res) => {
   try {
-    const { texte } = req.body;
+    const { texte, type, auteur } = req.body;
     if (!texte || !texte.trim()) return res.status(400).json({ error: 'Texte requis' });
-    const c = await Comment.create({ texte: texte.trim() });
+    const c = await Comment.create({
+      texte:  texte.trim(),
+      type:   ['commentaire','suggestion'].includes(type) ? type : 'commentaire',
+      auteur: (auteur || '').trim(),
+    });
     res.status(201).json(c);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
