@@ -965,6 +965,27 @@
   let youtubeUrl = '';
   let ytLabel = 'Regarder sur YouTube';
 
+  // ── FCM TOKEN INJECTION depuis Flutter ─────────────────────────────────────
+  // Flutter appelle window.__onFcmToken("TOKEN") après chaque chargement de page.
+  // Si l'utilisateur est déjà connecté (localStorage), on met à jour le token
+  // en base IMMÉDIATEMENT — sinon il ne recevra jamais les notifications.
+  window.__onFcmToken = function(token) {
+    window.flutterFcmToken = token;
+    const tel = localStorage.getItem('maranatha_tel');
+    if (!tel) return; // pas encore inscrit, rien à faire
+    // Mise à jour silencieuse du token FCM pour cet utilisateur
+    fetch(API + '/users/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        nom: localStorage.getItem('maranatha_user') || 'Fidèle',
+        telephone: tel,
+        role: 'fidele',
+        fcmToken: token,
+      }),
+    }).catch(() => {});
+  };
+
   // ============ SPLASH ============
   async function lancerSplash() {
     const splash = document.getElementById('splash-screen');
@@ -1011,11 +1032,15 @@
     const nom = document.getElementById('reg-nom').value.trim();
     if (!nom) { showToast('Entrez votre prénom pour continuer'); return; }
     userName = nom;
-    const tel = document.getElementById('reg-tel').value.trim();
+    // Utiliser le numéro saisi, ou en générer un stable basé sur le nom
+    const telSaisi = document.getElementById('reg-tel').value.trim();
+    const tel = telSaisi || ('fidele-' + nom.toLowerCase().replace(/\s+/g, '') + '-' + (Date.now() % 100000));
+    // Sauvegarder en local pour pouvoir mettre à jour le token FCM plus tard
+    localStorage.setItem('maranatha_tel', tel);
     fetch(`${API}/users/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nom: userName, telephone: tel || 'web-' + Date.now(), role: 'fidele', fcmToken: window.flutterFcmToken || '' })
+      body: JSON.stringify({ nom: userName, telephone: tel, role: 'fidele', fcmToken: window.flutterFcmToken || '' })
     }).catch(() => {}).finally(lancerApp);
   }
 
