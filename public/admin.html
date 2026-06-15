@@ -234,9 +234,30 @@
       font-size: 12px; font-family: inherit;
     }
     .prog-item-preview-img {
-      width: 64px; height: 64px; border-radius: 10px; object-fit: cover;
-      border: 1px solid rgba(255,255,255,0.1); float: right; margin-left: 12px; margin-bottom: 4px;
+      width: 100%; max-height: 180px; border-radius: 12px; object-fit: cover;
+      border: 1px solid rgba(255,255,255,0.1); margin-bottom: 14px; display: block;
     }
+    .img-upload-zone {
+      border: 1.5px dashed rgba(212,175,55,0.4); border-radius: 12px;
+      padding: 14px; display: flex; flex-direction: column; align-items: center;
+      gap: 8px; cursor: pointer; transition: background .2s;
+    }
+    .img-upload-zone:hover { background: rgba(212,175,55,0.05); }
+    .img-upload-btn {
+      display: inline-flex; align-items: center; gap: 7px;
+      background: rgba(212,175,55,0.12); border: 1px solid rgba(212,175,55,0.35);
+      color: #D4AF37; border-radius: 10px; padding: 9px 18px;
+      font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit;
+      transition: background .15s;
+    }
+    .img-upload-btn:hover { background: rgba(212,175,55,0.22); }
+    .img-upload-hint { font-size: 11px; color: rgba(255,255,255,0.35); text-align: center; }
+    .img-url-row { display:flex; gap:8px; align-items:center; margin-top:8px; }
+    .img-url-row input { flex:1; }
+    .img-url-clear { background: rgba(255,80,80,0.1); border: 1px solid rgba(255,80,80,0.2);
+      color:#ff6b6b; border-radius:8px; padding:7px 12px; cursor:pointer;
+      font-size:12px; font-family:inherit; white-space:nowrap; }
+    .img-compress-info { font-size:10px; color:rgba(212,175,55,0.6); text-align:center; }
     .prog-save-bar {
       display: flex; align-items: center; justify-content: space-between;
       padding: 16px 20px; background: rgba(212,175,55,0.07);
@@ -1007,8 +1028,20 @@
             <textarea id="prog-desc-${i}" rows="2" placeholder="Quelques mots sur cet événement…">${esc(item.description||'')}</textarea>
           </div>
           <div class="form-group full">
-            <label>Image de l'affiche (URL)</label>
-            <input type="url" id="prog-img-${i}" value="${esc(item.imageUrl||'')}" placeholder="https://… (image ou affiche)" oninput="majImagePreview(${i})" />
+            <label>Image de l'affiche</label>
+            <div class="img-upload-zone" onclick="document.getElementById('prog-file-${i}').click()">
+              <input type="file" id="prog-file-${i}" accept="image/*" style="display:none" onchange="choisirImage(${i}, this)">
+              <button type="button" class="img-upload-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Choisir une photo
+              </button>
+              <div class="img-upload-hint">Depuis l'ordinateur ou le téléphone • JPG, PNG, WEBP<br>Compressée automatiquement</div>
+            </div>
+            <div class="img-url-row">
+              <input type="url" id="prog-img-${i}" value="${esc(item.imageUrl||'')}" placeholder="ou coller une URL https://…" oninput="majImagePreview(${i})" />
+              ${item.imageUrl ? `<button type="button" class="img-url-clear" onclick="effacerImage(${i})">✕ Effacer</button>` : ''}
+            </div>
+            <div class="img-compress-info" id="prog-compress-info-${i}"></div>
           </div>
         </div>
       </div>`;
@@ -1022,8 +1055,9 @@
   }
 
   function majImagePreview(i) {
-    const url = document.getElementById('prog-img-' + i).value.trim();
+    const url = (document.getElementById('prog-img-' + i)||{}).value?.trim() || '';
     const row = document.getElementById('prog-row-' + i);
+    if (!row) return;
     let img = row.querySelector('.prog-item-preview-img');
     if (url) {
       if (!img) {
@@ -1037,6 +1071,62 @@
     } else if (img) {
       img.style.display = 'none';
     }
+  }
+
+  // ── Compression image via canvas ──────────────────────────────────────
+  function compresserImage(file, maxW, maxH, quality) {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        const image = new Image();
+        image.onload = () => {
+          let w = image.width, h = image.height;
+          if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+          if (h > maxH) { w = Math.round(w * maxH / h); h = maxH; }
+          const canvas = document.createElement('canvas');
+          canvas.width = w; canvas.height = h;
+          canvas.getContext('2d').drawImage(image, 0, 0, w, h);
+          resolve({ dataUrl: canvas.toDataURL('image/jpeg', quality), w, h });
+        };
+        image.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function choisirImage(i, input) {
+    const file = input.files[0];
+    if (!file) return;
+    const info = document.getElementById('prog-compress-info-' + i);
+    if (info) info.textContent = 'Compression en cours…';
+    const origKB = Math.round(file.size / 1024);
+    // Compresse à max 900×900 px, qualité JPEG 80 %
+    const { dataUrl, w, h } = await compresserImage(file, 900, 900, 0.80);
+    const compKB = Math.round(dataUrl.length * 3 / 4 / 1024);
+    // Injecter dans le champ URL (réutilise la même clé)
+    const urlInput = document.getElementById('prog-img-' + i);
+    if (urlInput) { urlInput.value = dataUrl; majImagePreview(i); }
+    if (info) info.textContent = `✓ ${w}×${h}px — ${origKB} KB → ${compKB} KB`;
+    // Afficher bouton Effacer si absent
+    const urlRow = document.querySelector(`#prog-row-${i} .img-url-row`);
+    if (urlRow && !urlRow.querySelector('.img-url-clear')) {
+      const btn = document.createElement('button');
+      btn.type = 'button'; btn.className = 'img-url-clear';
+      btn.textContent = '✕ Effacer';
+      btn.onclick = () => effacerImage(i);
+      urlRow.appendChild(btn);
+    }
+  }
+
+  function effacerImage(i) {
+    const urlInput = document.getElementById('prog-img-' + i);
+    if (urlInput) { urlInput.value = ''; majImagePreview(i); }
+    const info = document.getElementById('prog-compress-info-' + i);
+    if (info) info.textContent = '';
+    const fileInput = document.getElementById('prog-file-' + i);
+    if (fileInput) fileInput.value = '';
+    const urlRow = document.querySelector(`#prog-row-${i} .img-url-row`);
+    if (urlRow) { const btn = urlRow.querySelector('.img-url-clear'); if (btn) btn.remove(); }
   }
 
   function ajouterAffiche() {
