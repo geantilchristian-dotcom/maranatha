@@ -23,33 +23,15 @@ class _WebScreenState extends State<WebScreen> {
 
   static const _sysChannel = MethodChannel('maranatha/system');
 
-  // Script injecté par le timer toutes les 2 secondes.
-  // Il tente de jouer l'audio si celui-ci est en pause et a une source.
-  // Stratégie en 3 étapes :
-  //   1. Appeler _pendingAutoplay si défini (stocké par ouvrirAudio)
-  //   2. Sinon : mute trick (muted=true → play → muted=false)
-  //   3. Les deux utilisent le mute trick qui bypass la politique autoplay Android
-  static const _autoplayScript = r"""
-(function() {
-  var a = document.getElementById('main-audio');
-  if (!a || !a.paused || !a.src || a.src.length < 10) return;
-
-  function jouerAvecMute() {
-    a.muted = true;
-    a.play().then(function() {
-      a.muted = false;
-      if (typeof setPlayIcon === 'function') setPlayIcon(true);
-      window._pendingAutoplay = null;
-    }).catch(function() { a.muted = false; });
-  }
-
-  if (typeof window._pendingAutoplay === 'function') {
-    window._pendingAutoplay();
-  } else {
-    jouerAvecMute();
-  }
-})();
-""";
+  // Timer script : appelle _pendingAutoplay() UNIQUEMENT si la page JS l'a stocké.
+  // _pendingAutoplay est mis à null dès que :
+  //   - l'audio démarre avec succès (autoplay ou mute trick)
+  //   - l'utilisateur appuie sur ▶ ou ⏸ manuellement
+  // → Le timer ne perturbe JAMAIS une pause volontaire de l'utilisateur.
+  static const _autoplayScript =
+    'if (typeof window._pendingAutoplay === "function") {'
+    '  window._pendingAutoplay();'
+    '}';
 
   @override
   void initState() {
@@ -111,16 +93,15 @@ class _WebScreenState extends State<WebScreen> {
               );
             }
 
-            // Démarrer le timer autoplay :
-            // Vérifie toutes les 2s si un audio est en pause + a une source.
-            // Si oui → le joue via mute trick (bypass autoplay Android).
-            // Couvre : chargement initial ET prédications démarrées via SSE.
+            // Timer : vérifie toutes les 2s si _pendingAutoplay est stocké.
+            // Sécurité : _pendingAutoplay est effacé (= null) dès que :
+            //   • l'audio joue avec succès
+            //   • l'utilisateur appuie sur ▶ ou ⏸
+            // → zéro risque de relancer une pause volontaire.
             _autoplayTimer?.cancel();
             _autoplayTimer = Timer.periodic(const Duration(seconds: 2), (_) async {
               if (!mounted) return;
-              try {
-                await _controller.runJavaScript(_autoplayScript);
-              } catch (_) {}
+              try { await _controller.runJavaScript(_autoplayScript); } catch (_) {}
             });
           },
           onWebResourceError: (err) {
