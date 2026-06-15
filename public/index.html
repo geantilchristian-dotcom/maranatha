@@ -3,6 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#C0001A" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Maranatha" />
+  <link rel="manifest" href="/manifest.json" />
   <title>Maranatha</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -181,6 +187,52 @@
        APP
     ============================ */
     #app { display: block; padding-bottom: var(--nav-h); min-height: 100vh; }
+
+    /* ── Info Overlays (À propos / Aide / Règles) ── */
+    .info-overlay {
+      position: fixed; inset: 0; z-index: 1100;
+      background: var(--bg); display: none; flex-direction: column;
+      overflow-y: auto;
+    }
+    .info-overlay.open { display: flex; }
+    .info-hdr {
+      position: sticky; top: 0; z-index: 2;
+      background: #C0001A; color: #fff;
+      display: flex; align-items: center; gap: 12px;
+      padding: calc(var(--safe-top) + 12px) 16px 14px;
+    }
+    .info-hdr-back {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: rgba(255,255,255,.18); border: none;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; flex-shrink: 0;
+    }
+    .info-hdr-title { font-size: 16px; font-weight: 900; flex: 1; }
+    .info-body { padding: 20px 20px 40px; }
+    .info-section { margin-bottom: 24px; }
+    .info-section-title {
+      font-size: 11px; font-weight: 900; letter-spacing: 1px;
+      text-transform: uppercase; color: #C0001A; margin-bottom: 10px;
+    }
+    .info-section p {
+      font-size: 14px; color: var(--text); line-height: 1.75;
+      margin-bottom: 10px;
+    }
+    .info-section ul {
+      padding-left: 18px; font-size: 14px; color: var(--text);
+      line-height: 1.75;
+    }
+    .info-card {
+      background: var(--card); border-radius: 16px;
+      padding: 16px; margin-bottom: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,.05);
+    }
+    .info-card-title {
+      font-size: 13px; font-weight: 800; color: var(--text); margin-bottom: 6px;
+    }
+    .info-card p {
+      font-size: 13px; color: var(--text-sub); line-height: 1.65; margin: 0;
+    }
     audio { display: none; }
 
     /* ======= HEADER — ligne unique ======= */
@@ -1792,6 +1844,30 @@
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         </div>
         <div class="settings-row-label">Paramètres</div>
+        <div class="settings-row-arrow">›</div>
+      </div>
+
+      <div style="height:1px;background:var(--border);margin:8px 0"></div>
+
+      <div class="settings-row" onclick="ouvrirInfo('apropos')">
+        <div class="settings-row-icon" style="background:#FFF0F2">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C0001A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <div class="settings-row-label">À propos de nous</div>
+        <div class="settings-row-arrow">›</div>
+      </div>
+      <div class="settings-row" onclick="ouvrirInfo('aide')">
+        <div class="settings-row-icon" style="background:rgba(59,130,246,.08)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div class="settings-row-label">Aide</div>
+        <div class="settings-row-arrow">›</div>
+      </div>
+      <div class="settings-row" onclick="ouvrirInfo('regles')">
+        <div class="settings-row-icon" style="background:rgba(212,175,55,.1)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        </div>
+        <div class="settings-row-label">Règles &amp; Confidentialité</div>
         <div class="settings-row-arrow">›</div>
       </div>
 
@@ -3940,11 +4016,216 @@
     return dt.toLocaleDateString('fr-FR', { day:'numeric', month:'long', year:'numeric' })
       + ' · ' + dt.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
   }
+
+  // ═══════════════════════════════════════════════════════
+  //  MEDIA SESSION API — contrôles écran de verrouillage
+  // ═══════════════════════════════════════════════════════
+  function updateMediaSession(title, playing) {
+    if (!('mediaSession' in navigator)) return;
+    try {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title:  title || 'Maranatha',
+        artist: 'Communauté des Églises Missionnaires Maranatha',
+        album:  'Direct & Sermons',
+        artwork: [
+          { src: '/logo.png', sizes: '192x192', type: 'image/png' },
+          { src: '/logo.png', sizes: '512x512', type: 'image/png' }
+        ]
+      });
+      navigator.mediaSession.playbackState = playing ? 'playing' : 'paused';
+      navigator.mediaSession.setActionHandler('play',         () => { const a = document.getElementById('main-audio'); if (a) { a.play().then(() => setPlayIcon(true)).catch(()=>{}); } });
+      navigator.mediaSession.setActionHandler('pause',        () => { const a = document.getElementById('main-audio'); if (a) { a.pause(); setPlayIcon(false); } });
+      navigator.mediaSession.setActionHandler('stop',         () => { const a = document.getElementById('main-audio'); if (a) { a.pause(); a.currentTime = 0; setPlayIcon(false); } });
+      navigator.mediaSession.setActionHandler('seekbackward', () => skipBack());
+      navigator.mediaSession.setActionHandler('seekforward',  () => skipForward());
+      navigator.mediaSession.setActionHandler('previoustrack', null);
+      navigator.mediaSession.setActionHandler('nexttrack',     null);
+    } catch(_) {}
+  }
+
+  // Patch setPlayIcon pour mettre à jour la Media Session
+  const _origSetPlayIcon = setPlayIcon;
+  function setPlayIcon(playing) {
+    _origSetPlayIcon(playing);
+    const title = document.getElementById('mp-title')?.textContent || 'Maranatha';
+    updateMediaSession(title, playing);
+  }
+
+  // ═══════════════════════════════════════════════════════
+  //  SERVICE WORKER — PWA + audio arrière-plan
+  // ═══════════════════════════════════════════════════════
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  }
+
+  // ═══════════════════════════════════════════════════════
+  //  À PROPOS / AIDE / RÈGLES — overlays
+  // ═══════════════════════════════════════════════════════
+  function ouvrirInfo(page) {
+    const id = { apropos: 'overlay-apropos', aide: 'overlay-aide', regles: 'overlay-regles' }[page];
+    if (!id) return;
+    const el = document.getElementById(id);
+    if (el) { el.classList.add('open'); el.scrollTop = 0; }
+  }
+  function fermerInfo(page) {
+    const id = { apropos: 'overlay-apropos', aide: 'overlay-aide', regles: 'overlay-regles' }[page];
+    if (!id) return;
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('open');
+  }
 </script>
 
 <!-- ============ OVERLAY DÉTAIL PROGRAMME ============ -->
 <div class="prog-detail-overlay" id="prog-detail-overlay" onclick="fermerDetailProgramme()">
   <div class="prog-detail-sheet" onclick="event.stopPropagation()" id="prog-detail-inner"></div>
+</div>
+
+<!-- ============ OVERLAY À PROPOS ============ -->
+<div class="info-overlay" id="overlay-apropos">
+  <div class="info-hdr">
+    <button class="info-hdr-back" onclick="fermerInfo('apropos')">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="info-hdr-title">À propos de nous</div>
+  </div>
+  <div class="info-body">
+    <div style="text-align:center;padding:24px 0 28px">
+      <img src="/logo.png" alt="Maranatha" style="width:80px;height:80px;object-fit:contain;border-radius:20px;box-shadow:0 4px 16px rgba(192,0,26,.2)"/>
+      <div style="font-size:18px;font-weight:900;color:var(--text);margin-top:14px">Communauté des Églises<br>Missionnaires Maranatha</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:6px">Application v1.0</div>
+    </div>
+    <div class="info-section">
+      <div class="info-section-title">Notre mission</div>
+      <p>Maranatha est une communauté chrétienne fondée sur la Parole de Dieu, dédiée à l'évangélisation, la formation spirituelle et la croissance des croyants en Christ Jésus.</p>
+      <p>Notre vision est de voir des vies transformées par l'Évangile et de bâtir une Église vivante, ancrée dans la prière et le service.</p>
+    </div>
+    <div class="info-section">
+      <div class="info-section-title">Ce que nous offrons</div>
+      <div class="info-card">
+        <div class="info-card-title">📖 Bible intégrée</div>
+        <p>Accès complet aux Écritures Saintes directement depuis l'application.</p>
+      </div>
+      <div class="info-card">
+        <div class="info-card-title">🎙️ Directs & cultes</div>
+        <p>Suivez les cultes en direct et écoutez les sermons archivés à tout moment.</p>
+      </div>
+      <div class="info-card">
+        <div class="info-card-title">✨ Parole du jour</div>
+        <p>Une méditation quotidienne pour nourrir votre vie spirituelle chaque jour.</p>
+      </div>
+      <div class="info-card">
+        <div class="info-card-title">🤝 Communauté</div>
+        <p>Partagez des prières, des témoignages et restez connecté avec vos frères et sœurs.</p>
+      </div>
+    </div>
+    <div class="info-section">
+      <div class="info-section-title">Contact</div>
+      <p>Pour toute question ou information, contactez-nous via nos réseaux sociaux ou lors de nos cultes.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ============ OVERLAY AIDE ============ -->
+<div class="info-overlay" id="overlay-aide">
+  <div class="info-hdr">
+    <button class="info-hdr-back" onclick="fermerInfo('aide')">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="info-hdr-title">Aide</div>
+  </div>
+  <div class="info-body">
+    <div class="info-section">
+      <div class="info-section-title">Écouter un direct</div>
+      <div class="info-card">
+        <div class="info-card-title">Comment écouter le culte en direct ?</div>
+        <p>Quand un culte est en cours, la bannière rouge "EN DIRECT" apparaît en haut de l'accueil. Appuyez sur ▶ dans le lecteur pour lancer l'audio. Le son continue même si vous verrouillez votre écran.</p>
+      </div>
+      <div class="info-card">
+        <div class="info-card-title">Le son s'arrête en arrière-plan ?</div>
+        <p>Pour que l'audio continue : ajoutez l'application à votre écran d'accueil (option "Ajouter à l'écran d'accueil" dans votre navigateur). Sur Android, autorisez les médias en arrière-plan dans les paramètres du navigateur.</p>
+      </div>
+    </div>
+    <div class="info-section">
+      <div class="info-section-title">Parole du jour</div>
+      <div class="info-card">
+        <div class="info-card-title">Comment commenter ou suggérer un sujet ?</div>
+        <p>Ouvrez "Parole du jour" depuis l'accueil, faites défiler jusqu'en bas et appuyez sur 💬 Commenter ou ✏️ Suggérer un sujet. Votre nom enregistré sera automatiquement utilisé.</p>
+      </div>
+    </div>
+    <div class="info-section">
+      <div class="info-section-title">Faire un don</div>
+      <div class="info-card">
+        <div class="info-card-title">Comment donner en ligne ?</div>
+        <p>Appuyez sur l'icône ❤️ Don depuis les actions rapides. Choisissez votre mode de paiement (MobileMoney, virement ou autre) configuré par votre pasteur.</p>
+      </div>
+    </div>
+    <div class="info-section">
+      <div class="info-section-title">Devenir membre</div>
+      <div class="info-card">
+        <div class="info-card-title">Comment m'inscrire comme membre ?</div>
+        <p>Depuis l'accueil, appuyez sur "Devenir membre". Remplissez le formulaire avec votre prénom, nom et numéro de téléphone. Votre profil sera visible du pasteur.</p>
+      </div>
+    </div>
+    <div class="info-section">
+      <div class="info-section-title">Bible</div>
+      <div class="info-card">
+        <div class="info-card-title">Comment naviguer dans la Bible ?</div>
+        <p>Depuis "Bible" dans les actions rapides ou l'onglet Bibliothèque, sélectionnez un livre et un chapitre. Vous pouvez prendre des notes sur chaque passage via l'onglet "Notes".</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ OVERLAY RÈGLES & CONFIDENTIALITÉ ============ -->
+<div class="info-overlay" id="overlay-regles">
+  <div class="info-hdr">
+    <button class="info-hdr-back" onclick="fermerInfo('regles')">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="info-hdr-title">Règles &amp; Confidentialité</div>
+  </div>
+  <div class="info-body">
+    <div class="info-section">
+      <div class="info-section-title">Règles d'utilisation</div>
+      <p>En utilisant cette application, vous acceptez de :</p>
+      <ul>
+        <li>Respecter les autres membres de la communauté dans vos commentaires</li>
+        <li>Ne pas publier de contenu offensant, diffamatoire ou contraire aux valeurs chrétiennes</li>
+        <li>Utiliser l'application à des fins spirituelles et communautaires</li>
+        <li>Ne pas partager vos identifiants de connexion avec d'autres personnes</li>
+        <li>Signaler tout comportement inapproprié à l'administration</li>
+      </ul>
+    </div>
+    <div class="info-section">
+      <div class="info-section-title">Données personnelles</div>
+      <div class="info-card">
+        <div class="info-card-title">Quelles données collectons-nous ?</div>
+        <p>Prénom, nom et numéro de téléphone lors de l'inscription comme membre. Ces données sont utilisées uniquement pour la gestion de la communauté.</p>
+      </div>
+      <div class="info-card">
+        <div class="info-card-title">Comment sont utilisées vos données ?</div>
+        <p>Vos informations ne sont jamais vendues ni partagées avec des tiers. Elles sont accessibles uniquement par le pasteur et l'administration de l'église.</p>
+      </div>
+      <div class="info-card">
+        <div class="info-card-title">Stockage local</div>
+        <p>L'application utilise le stockage local de votre téléphone (localStorage) pour sauvegarder vos préférences et vos notes personnelles. Ces données restent sur votre appareil.</p>
+      </div>
+    </div>
+    <div class="info-section">
+      <div class="info-section-title">Audio &amp; Médias</div>
+      <div class="info-card">
+        <div class="info-card-title">Lectures audio</div>
+        <p>Les sermons et directs sont diffusés via des liens externes. L'application ne stocke pas les fichiers audio sur votre appareil.</p>
+      </div>
+    </div>
+    <div class="info-section">
+      <div class="info-section-title">Suppression de compte</div>
+      <p>Pour supprimer vos données de membre, contactez l'administration de l'église. Vos commentaires et suggestions resteront anonymisés.</p>
+    </div>
+    <div style="text-align:center;padding:16px 0 8px;font-size:12px;color:var(--text-muted)">
+      Dernière mise à jour : juin 2026
+    </div>
+  </div>
 </div>
 
 </body>
