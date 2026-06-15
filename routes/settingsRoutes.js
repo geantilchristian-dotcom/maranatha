@@ -51,13 +51,22 @@ router.get('/home', async (req, res) => {
 });
 
 // PUT /api/settings/home — admin only
+// Accepte youtubeLinks (tableau [{url, label}]) + rétrocompatibilité youtubeUrl/ytLabel
 router.put('/home', adminOnly, async (req, res) => {
   try {
-    const allowed = ['youtubeUrl', 'ytLabel'];
     const update = {};
-    for (const k of allowed) {
-      if (req.body[k] !== undefined) update[k] = req.body[k];
+
+    // Nouveau format : tableau de liens
+    if (Array.isArray(req.body.youtubeLinks)) {
+      update.youtubeLinks = req.body.youtubeLinks
+        .filter(l => l && l.url && l.url.trim())
+        .map(l => ({ url: l.url.trim(), label: (l.label || '').trim() || 'Regarder sur YouTube' }));
     }
+
+    // Rétrocompatibilité : ancien format champ unique
+    if (req.body.youtubeUrl !== undefined) update.youtubeUrl = req.body.youtubeUrl;
+    if (req.body.ytLabel   !== undefined) update.ytLabel    = req.body.ytLabel;
+
     const s = await Settings.findOneAndUpdate(
       { key: 'home' },
       { $set: update },
