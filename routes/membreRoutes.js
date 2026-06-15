@@ -8,6 +8,15 @@ function adminOnly(req, res, next) {
   next();
 }
 
+// GET /api/membres/phone/:tel — public, connexion par numéro
+router.get('/phone/:tel', async (req, res) => {
+  try {
+    const m = await Membre.findOne({ telephone: req.params.tel.trim() });
+    if (!m) return res.status(404).json({ error: 'Numéro non trouvé' });
+    res.json({ _id: m._id, nom: m.nom, postNom: m.postNom, prenom: m.prenom, telephone: m.telephone, statut: m.statut });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 // GET  /api/membres  — admin seulement
 router.get('/', adminOnly, async (req, res) => {
   try {
@@ -20,8 +29,8 @@ router.get('/', adminOnly, async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const { nom, postNom, prenom, age, sexe, telephone, indicatif, pays, adresse } = req.body;
-    if (!nom || !prenom || !telephone || !pays)
-      return res.status(400).json({ error: 'Nom, prénom, téléphone et pays sont requis' });
+    if (!nom || !prenom || !telephone)
+      return res.status(400).json({ error: 'Nom, prénom et téléphone sont requis' });
     const m = await Membre.create({
       nom:       nom.trim(),
       postNom:   (postNom  || '').trim(),
