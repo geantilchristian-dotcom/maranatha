@@ -389,6 +389,108 @@
       margin-top: 6px; display: flex; align-items: center; gap: 2px;
     }
 
+    /* ======= PROGRAMME DE LA SEMAINE — AFFICHES ======= */
+    .prog-scroll {
+      display: flex; gap: 12px; overflow-x: auto; padding: 0 16px 12px;
+      scrollbar-width: none;
+    }
+    .prog-scroll::-webkit-scrollbar { display: none; }
+    .prog-card {
+      flex: 0 0 130px; border-radius: 16px; overflow: hidden;
+      background: #1a1040; position: relative; cursor: pointer;
+      aspect-ratio: 2/3;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.18);
+      transition: transform .18s;
+    }
+    .prog-card:active { transform: scale(0.94); }
+    .prog-card-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .prog-card-gradient {
+      position: absolute; inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.05) 55%);
+    }
+    .prog-card-info {
+      position: absolute; bottom: 0; left: 0; right: 0; padding: 10px 9px;
+    }
+    .prog-card-badge {
+      display: inline-block; font-size: 9px; font-weight: 800; letter-spacing: .8px;
+      text-transform: uppercase; color: #fff; background: #C0001A;
+      border-radius: 5px; padding: 2px 6px; margin-bottom: 4px;
+    }
+    .prog-card-title { font-size: 11.5px; font-weight: 800; color: #fff; line-height: 1.3; }
+    .prog-card-date  { font-size: 10px; color: rgba(255,255,255,0.65); margin-top: 3px; }
+    .prog-no-img {
+      width: 100%; height: 100%;
+      background: linear-gradient(155deg, #1a1040 0%, #C0001A 100%);
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* Overlay détail programme */
+    .prog-detail-overlay {
+      position: fixed; inset: 0; z-index: 600;
+      background: rgba(0,0,0,0.6); backdrop-filter: blur(3px);
+      display: none; align-items: flex-end; justify-content: center;
+    }
+    .prog-detail-overlay.open { display: flex; }
+    .prog-detail-sheet {
+      width: 100%; max-width: 430px;
+      background: #fff; border-radius: 24px 24px 0 0;
+      max-height: 88vh; overflow-y: auto;
+      animation: slideUp .28s ease;
+    }
+    @keyframes slideUp { from { transform: translateY(60px); opacity:0; } to { transform: translateY(0); opacity:1; } }
+    .prog-detail-img {
+      width: 100%; height: 220px; object-fit: cover;
+      border-radius: 24px 24px 0 0;
+    }
+    .prog-detail-no-img {
+      width: 100%; height: 180px; border-radius: 24px 24px 0 0;
+      background: linear-gradient(155deg, #1a1040, #C0001A);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .prog-detail-body { padding: 20px 20px 36px; }
+    .prog-detail-tag {
+      display: inline-block; font-size: 10px; font-weight: 800; letter-spacing: 1px;
+      text-transform: uppercase; color: #C0001A; background: #fff0f0;
+      border-radius: 6px; padding: 3px 9px; margin-bottom: 10px;
+    }
+    .prog-detail-title { font-size: 21px; font-weight: 900; color: #1a1040; line-height: 1.2; margin-bottom: 6px; }
+    .prog-detail-auteur { font-size: 13px; color: #666; margin-bottom: 14px; }
+    .prog-detail-meta { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+    .prog-detail-meta-item {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 12px; color: #555; background: #f5f5f8;
+      border-radius: 8px; padding: 5px 10px;
+    }
+    .prog-detail-desc { font-size: 14px; color: #444; line-height: 1.7; margin-bottom: 20px; white-space: pre-wrap; }
+    .prog-detail-play {
+      width: 100%; background: #C0001A; color: #fff;
+      border: none; border-radius: 14px; padding: 14px;
+      font-size: 14px; font-weight: 800; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .prog-detail-close {
+      position: absolute; top: 12px; right: 14px; z-index: 10;
+      width: 32px; height: 32px; border-radius: 50%;
+      background: rgba(0,0,0,0.45); border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* Commentaires — toggle */
+    .comment-toggle-btn {
+      display: flex; align-items: center; gap: 8px;
+      width: calc(100% - 32px); margin: 0 16px 14px;
+      background: #fff; border: 1.5px solid var(--border);
+      border-radius: 14px; padding: 12px 16px; cursor: pointer;
+      font-size: 14px; font-weight: 700; color: var(--text);
+    }
+    .comment-toggle-btn svg { color: #C0001A; }
+    .comment-toggle-badge {
+      margin-left: auto; font-size: 11px; color: #C0001A; font-weight: 800;
+      background: #fff0f0; border-radius: 20px; padding: 2px 9px;
+    }
+    .comment-section-inner { display: none; }
+    .comment-section-inner.open { display: block; }
+
     /* ======= EVENTS ======= */
     .event-list { padding: 0 16px; display: flex; flex-direction: column; gap: 12px; margin-bottom: 8px; }
 
@@ -1184,18 +1286,15 @@
       <div id="etude-home-card"></div>
     </div>
 
-    <!-- Prédications récentes -->
+    <!-- Programme de la semaine -->
     <div class="sec-row">
-      <div class="sec-title">Prédications récentes</div>
+      <div class="sec-title">Programme de la semaine</div>
       <div class="sec-voir" onclick="switchTab('library')">Voir tout <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
     </div>
-    <div class="sermon-list" id="home-sermons"></div>
+    <div class="prog-scroll" id="home-sermons"></div>
 
-    <!-- Évènements à venir -->
-    <div class="sec-row" style="margin-top:24px">
-      <div class="sec-title">Évènements à venir</div>
-      <div class="sec-voir" onclick="showToast('Agenda — Bientôt disponible')">Voir tout <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
-    </div>
+    <!-- Évènements à venir (masqué) -->
+    <div style="display:none">
     <div class="event-list" id="events-list">
       <!-- Veillée de prière -->
       <div class="ev-card">
@@ -1230,6 +1329,7 @@
         </div>
       </div>
     </div>
+    </div><!-- fin events masqués -->
 
     <!-- ===== DEVENIR MEMBRE ===== -->
     <div class="membre-card" onclick="ouvrirModalMembre()">
@@ -1248,19 +1348,21 @@
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
     </div>
 
-    <!-- ===== COMMENTAIRES ===== -->
-    <div class="sec-row" style="margin: 4px 0 12px">
-      <div class="sec-title">Commentaires</div>
-    </div>
-    <div class="comment-form-area">
-      <textarea id="comment-input" class="comment-textarea" placeholder="Partagez un message, une prière ou un témoignage…" maxlength="500"></textarea>
-      <button class="comment-send-btn" onclick="envoyerCommentaire()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-        Envoyer
-      </button>
-    </div>
-    <div class="comment-list" id="comment-list">
-      <div class="empty-state"><p>Chargement…</p></div>
+    <!-- ===== COMMENTAIRES (toggle) ===== -->
+    <button class="comment-toggle-btn" onclick="toggleCommentaires()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C0001A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      Commentaires de la communauté
+      <span class="comment-toggle-badge" id="comment-count-badge">Voir</span>
+    </button>
+    <div class="comment-section-inner" id="comment-section-inner">
+      <div class="comment-form-area">
+        <textarea id="comment-input" class="comment-textarea" placeholder="Partagez un message, une prière ou un témoignage…" maxlength="500"></textarea>
+        <button class="comment-send-btn" onclick="envoyerCommentaire()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          Envoyer
+        </button>
+      </div>
+      <div class="comment-list" id="comment-list"></div>
     </div>
 
     <div class="ph"></div>
@@ -2098,47 +2200,83 @@
       mini.classList.remove('visible');
     }
 
-    // Prédications récentes (liste)
-    const termines = sermons.filter(s => s.statut === 'termine' || s.statut === 'en_cours').slice(0, 4);
+    // Programme de la semaine — affiches
+    const termines = sermons.filter(s => s.statut === 'termine' || s.statut === 'en_cours').slice(0, 8);
     const el = document.getElementById('home-sermons');
     if (!termines.length) {
-      el.innerHTML = `<div class="empty-state"><p>Les prédications apparaîtront ici</p></div>`;
+      el.innerHTML = `<div style="padding:0 16px"><div class="empty-state"><p>Les programmes apparaîtront ici</p></div></div>`;
       return;
     }
     el.innerHTML = termines.map(s => {
       const d = new Date(s.dateDiffusion);
-      const dateStr = d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
-      const thumb = s.coverUrl
-        ? `<img src="${s.coverUrl}" alt="" />`
-        : `<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>`;
+      const dateStr = d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
       const auteur = s.auteur || s.pasteur || 'Église Maranatha';
-      const dureeMin = s.duree ? Math.round(s.duree / 60) + ' min' : '';
+      const imgContent = s.coverUrl
+        ? `<img class="prog-card-img" src="${s.coverUrl}" alt="${s.titre}">`
+        : `<div class="prog-no-img"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>`;
       return `
-        <div class="sl-card" onclick="jouerSermon('${s._id}')">
-          <div class="sl-thumb">
-            ${thumb}
-            <div class="sl-play-over">
-              <div class="sl-play-circle">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-              </div>
-            </div>
-          </div>
-          <div class="sl-info">
-            <div class="sl-top">
-              <div class="sl-title">${s.titre}</div>
-              <div class="sl-bookmark" onclick="event.stopPropagation();showToast('Sauvegardé')">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-              </div>
-            </div>
-            <div class="sl-author">${auteur}</div>
-            <div class="sl-meta">
-              <span style="display:inline-flex;align-items:center;gap:3px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> ${dateStr}</span>
-              ${dureeMin ? `<span style="display:inline-flex;align-items:center;gap:3px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> ${dureeMin}</span>` : ''}
-            </div>
-            <div class="sl-action">Lire la prédication <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+        <div class="prog-card" onclick="ouvrirDetailProgramme('${s._id}')">
+          ${imgContent}
+          <div class="prog-card-gradient"></div>
+          <div class="prog-card-info">
+            <div class="prog-card-badge">${s.statut === 'en_cours' ? '🔴 EN DIRECT' : 'PRÉDICATION'}</div>
+            <div class="prog-card-title">${escHtml(s.titre)}</div>
+            <div class="prog-card-date">${auteur} · ${dateStr}</div>
           </div>
         </div>`;
     }).join('');
+  }
+
+  // ── Détail programme ─────────────────────────────────────────
+  function ouvrirDetailProgramme(id) {
+    const s = sermons.find(x => String(x._id) === String(id));
+    if (!s) return;
+    const d = new Date(s.dateDiffusion);
+    const dateStr = d.toLocaleDateString('fr-FR', { weekday:'long', day:'2-digit', month:'long', year:'numeric' });
+    const heureStr = d.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
+    const auteur = s.auteur || s.pasteur || 'Église Maranatha';
+    const dureeMin = s.duree ? Math.round(s.duree / 60) + ' min' : null;
+
+    const imgHtml = s.coverUrl
+      ? `<img class="prog-detail-img" src="${s.coverUrl}" alt="${s.titre}">`
+      : `<div class="prog-detail-no-img"><svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1.2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>`;
+
+    const playBtn = s.audioUrl
+      ? `<button class="prog-detail-play" onclick="jouerSermon('${s._id}');fermerDetailProgramme()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Écouter la prédication
+         </button>`
+      : '';
+
+    document.getElementById('prog-detail-inner').innerHTML = `
+      <div style="position:relative">
+        ${imgHtml}
+        <button class="prog-detail-close" onclick="fermerDetailProgramme()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="prog-detail-body">
+        <div class="prog-detail-tag">${s.statut === 'en_cours' ? '🔴 EN DIRECT' : 'PRÉDICATION'}</div>
+        <div class="prog-detail-title">${escHtml(s.titre)}</div>
+        <div class="prog-detail-auteur">${escHtml(auteur)}</div>
+        <div class="prog-detail-meta">
+          <span class="prog-detail-meta-item">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#C0001A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            ${dateStr}
+          </span>
+          <span class="prog-detail-meta-item">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#C0001A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            ${heureStr}${dureeMin ? ' · ' + dureeMin : ''}
+          </span>
+        </div>
+        ${s.description ? `<div class="prog-detail-desc">${escHtml(s.description)}</div>` : ''}
+        ${playBtn}
+      </div>`;
+    document.getElementById('prog-detail-overlay').classList.add('open');
+  }
+
+  function fermerDetailProgramme() {
+    document.getElementById('prog-detail-overlay').classList.remove('open');
   }
 
   // ============ BIBLIOTHÈQUE ============
@@ -2991,12 +3129,15 @@
   }
 
   // ============ COMMENTAIRES ============
+  let commentairesCharges = false;
   async function chargerCommentaires() {
     try {
       const res = await fetch(API + '/comments');
       if (!res.ok) return;
       const list = await res.json();
       const el = document.getElementById('comment-list');
+      const badge = document.getElementById('comment-count-badge');
+      if (badge && list.length) badge.textContent = list.length + ' message' + (list.length > 1 ? 's' : '');
       if (!list.length) {
         el.innerHTML = '<div class="empty-state"><p>Aucun message pour l\'instant</p></div>';
         return;
@@ -3013,7 +3154,28 @@
         </div>`).join('');
     } catch(e) {}
   }
-  chargerCommentaires();
+
+  function toggleCommentaires() {
+    const inner = document.getElementById('comment-section-inner');
+    const isOpen = inner.classList.toggle('open');
+    if (isOpen && !commentairesCharges) {
+      commentairesCharges = true;
+      document.getElementById('comment-list').innerHTML = '<div class="empty-state"><p>Chargement…</p></div>';
+      chargerCommentaires();
+    }
+    inner.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  // Charger le compteur au démarrage (sans afficher la liste)
+  (async () => {
+    try {
+      const res = await fetch(API + '/comments');
+      if (!res.ok) return;
+      const list = await res.json();
+      const badge = document.getElementById('comment-count-badge');
+      if (badge && list.length) badge.textContent = list.length + ' message' + (list.length > 1 ? 's' : '');
+    } catch(e) {}
+  })();
 
   async function envoyerCommentaire() {
     const input = document.getElementById('comment-input');
@@ -3043,5 +3205,11 @@
       + ' · ' + dt.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
   }
 </script>
+
+<!-- ============ OVERLAY DÉTAIL PROGRAMME ============ -->
+<div class="prog-detail-overlay" id="prog-detail-overlay" onclick="fermerDetailProgramme()">
+  <div class="prog-detail-sheet" onclick="event.stopPropagation()" id="prog-detail-inner"></div>
+</div>
+
 </body>
 </html>
