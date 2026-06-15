@@ -1244,18 +1244,26 @@
         const date = new Date(m.dateInscription).toLocaleDateString('fr-FR', { day:'2-digit', month:'long', year:'numeric' });
         const statutColor = { en_attente:'#D97706', accepte:'#16A34A', refuse:'#DC2626' };
         const statutLabel = { en_attente:'EN ATTENTE', accepte:'ACCEPTÉ', refuse:'REFUSÉ' };
+        const nomComplet = [escA(m.nom), escA(m.postNom||''), escA(m.prenom||'')].filter(Boolean).join(' ');
+        const infosLigne2 = [
+          m.sexe ? `<b>${escA(m.sexe)}</b>` : '',
+          m.age  ? `${m.age} ans` : '',
+          m.pays ? `📍 ${escA(m.pays)}` : '',
+        ].filter(Boolean).join(' &nbsp;·&nbsp; ');
+        const telDisplay = (m.indicatif || '') + escA(m.telephone||'');
         return `
-          <div class="sermon-item">
-            <div class="sermon-icon" style="background:rgba(212,175,55,0.15)">${svgUser}</div>
-            <div class="sermon-info">
-              <div class="sermon-titre">${escA(m.nom)}</div>
-              <div class="sermon-desc">${escA(m.telephone)} &nbsp;·&nbsp; ${escA(m.adresse)}</div>
-              <div class="sermon-meta">
+          <div class="sermon-item" style="align-items:flex-start">
+            <div class="sermon-icon" style="background:rgba(212,175,55,0.15);margin-top:4px">${svgUser}</div>
+            <div class="sermon-info" style="flex:1;min-width:0">
+              <div class="sermon-titre">${nomComplet}</div>
+              ${infosLigne2 ? `<div class="sermon-desc" style="margin-top:2px">${infosLigne2}</div>` : ''}
+              <div class="sermon-desc" style="margin-top:2px">📞 ${telDisplay}</div>
+              <div class="sermon-meta" style="margin-top:6px">
                 <span class="badge" style="background:${statutColor[m.statut]||'#888'}22;color:${statutColor[m.statut]||'#888'};border:1px solid ${statutColor[m.statut]||'#888'}44">${statutLabel[m.statut]||m.statut}</span>
                 <span class="sermon-date">${date}</span>
               </div>
             </div>
-            <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">
               ${m.statut !== 'accepte' ? `<button class="btn-submit" style="padding:6px 12px;font-size:12px" onclick="majStatutMembre('${m._id}','accepte')">Accepter</button>` : ''}
               ${m.statut !== 'refuse'  ? `<button class="btn-delete" style="padding:6px 10px;font-size:12px" onclick="majStatutMembre('${m._id}','refuse')">Refuser</button>` : ''}
               <button class="btn-delete" style="padding:6px 10px;font-size:12px" onclick="supprimerMembre('${m._id}')" title="Supprimer"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M9 6V4h6v2"/></svg></button>
