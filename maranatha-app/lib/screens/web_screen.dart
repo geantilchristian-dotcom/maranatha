@@ -23,16 +23,16 @@ class _WebScreenState extends State<WebScreen> {
   int  _progress = 0;
 
   // ── AudioPlayer natif ───────────────────────────────────────────────────
-  // Bypass total de la restriction autoplay du WebView Android.
-  // L'audio joue ici, la page web n'est que l'interface visuelle.
   final AudioPlayer _player = AudioPlayer();
   Duration _duration = Duration.zero;
   Duration _position = Duration.zero;
+  String   _activeUrl = '';   // URL en cours de lecture (déduplication)
   StreamSubscription<Duration>? _durSub;
   StreamSubscription<Duration>? _posSub;
   StreamSubscription<PlayerState>? _stateSub;
-  Timer? _progressTimer;    // envoie la position à la page web chaque seconde
-  Timer? _autoplayTimer;    // fallback navigateur : _pendingAutoplay
+  StreamSubscription<void>? _completeSub;
+  Timer? _progressTimer;
+  Timer? _autoplayTimer;
 
   static const _sysChannel = MethodChannel('maranatha/system');
 
@@ -45,9 +45,21 @@ class _WebScreenState extends State<WebScreen> {
       statusBarIconBrightness: Brightness.dark,
     ));
 
-    // Écouter les events AudioPlayer pour mettre à jour l'UI web
-    _durSub = _player.onDurationChanged.listen((dur) => _duration = dur);
-    _posSub = _player.onPositionChanged.listen((pos) => _position = pos);
+    // ── AudioContext : maintient la lecture en arrière-plan ─────────────
+    AudioPlayer.global.setAudioContext(const AudioContext(
+      android: AndroidAudioContext(
+        stayAwake: true,
+        contentType: AndroidContentType.music,
+        usageType: AndroidUsageType.media,
+        audioFocus: AndroidAudioFocus.gain,
+      ),
+    ));
+
+    // ── Listeners position / durée ──────────────────────────────────────
+    _durSub   = _player.onDurationChanged.listen((dur) => _duration = dur);
+    _posSub   = _player.onPositionChanged.listen((pos) => _position = pos);
+
+    // ── Listener état play/pause ────────────────────────────────────────
     _stateSub = _player.onPlayerStateChanged.listen((state) async {
       final playing = state == PlayerState.playing;
       if (!mounted) return;
@@ -57,6 +69,29 @@ class _WebScreenState extends State<WebScreen> {
           ' window._flutterUpdate({pos:${_position.inSeconds},'
           'dur:${_duration.inSeconds},playing:$playing})'
         );
+      } catch (_) {}
+    });
+
+    // ── Listener fin de sermon ──────────────────────────────────────────
+    // Quand l'audio se termine :
+    //   1. Met à jour l'UI web (bouton → ▶, barre → 0)
+    //   2. Arrête la notification arrière-plan
+    //   3. Enregistre le sermon dans l'historique via l'API
+    _completeSub = _player.onPlayerComplete.listen((_) async {
+      _progressTimer?.cancel();
+      _activeUrl = '';
+      if (!mounted) return;
+      try {
+        // Mettre à jour l'UI : bouton ▶, barre à 0
+        await _controller.runJavaScript(
+          'if(typeof setPlayIcon==="function") setPlayIcon(false);'
+          'if(typeof window._flutterUpdate==="function")'
+          ' window._flutterUpdate({pos:0,dur:0,playing:false});'
+          // Notifier la page que le sermon est terminé
+          'if(typeof window._sermonTermine==="function") window._sermonTermine();'
+        );
+        // Arrêter le service de fond
+        await _sysChannel.invokeMethod('stopAudioService');
       } catch (_) {}
     });
 
@@ -71,18 +106,23 @@ class _WebScreenState extends State<WebScreen> {
             final action = data['action'] as String? ?? '';
             switch (action) {
 
-              // ── Autoplay natif : jouer via audioplayers ─────────────────
+              // ── Autoplay natif ─────────────────────────────────────────
               case 'autoplay':
                 final url   = data['url']   as String? ?? '';
                 final titre = data['titre'] as String? ?? 'Prédication';
                 if (url.isNotEmpty) {
+                  // Évite de redémarrer si le même URL joue déjà
+                  if (url == _activeUrl && _player.state == PlayerState.playing) break;
+                  _activeUrl = url;
+                  // ReleaseMode.stop : s'arrête à la fin sans boucler
+                  await _player.setReleaseMode(ReleaseMode.stop);
                   await _player.play(UrlSource(url));
                   await _sysChannel.invokeMethod('startAudioService', {'titre': titre});
                   _startProgressTimer();
                 }
                 break;
 
-              // ── Toggle play / pause ─────────────────────────────────────
+              // ── Toggle play / pause ────────────────────────────────────
               case 'toggle':
                 if (_player.state == PlayerState.playing) {
                   await _player.pause();
@@ -93,14 +133,14 @@ class _WebScreenState extends State<WebScreen> {
                 }
                 break;
 
-              // ── Seek (pourcentage 0-1) ──────────────────────────────────
+              // ── Seek (pourcentage 0-1) ─────────────────────────────────
               case 'seek':
                 final pct = (data['pct'] as num?)?.toDouble() ?? 0;
                 final ms  = (_duration.inMilliseconds * pct).round();
                 await _player.seek(Duration(milliseconds: ms));
                 break;
 
-              // ── Reculer / avancer 10 s ──────────────────────────────────
+              // ── Reculer / avancer 10 s ─────────────────────────────────
               case 'skipBack':
                 await _player.seek(Duration(
                   seconds: max(0, _position.inSeconds - 10)));
@@ -110,7 +150,7 @@ class _WebScreenState extends State<WebScreen> {
                   seconds: min(_duration.inSeconds, _position.inSeconds + 10)));
                 break;
 
-              // ── Notifications anciens événements (compatibilité) ────────
+              // ── Compatibilité anciens messages ─────────────────────────
               case 'play':
                 await _sysChannel.invokeMethod('startAudioService',
                     {'titre': data['titre'] as String? ?? 'Prédication'});
@@ -120,6 +160,8 @@ class _WebScreenState extends State<WebScreen> {
                 break;
               case 'stop':
                 await _player.stop();
+                _activeUrl = '';
+                _progressTimer?.cancel();
                 await _sysChannel.invokeMethod('stopAudioService');
                 break;
             }
@@ -196,6 +238,7 @@ class _WebScreenState extends State<WebScreen> {
     _durSub?.cancel();
     _posSub?.cancel();
     _stateSub?.cancel();
+    _completeSub?.cancel();
     _progressTimer?.cancel();
     _autoplayTimer?.cancel();
     _player.dispose();
