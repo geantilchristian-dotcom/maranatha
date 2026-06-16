@@ -64,6 +64,10 @@
       transition: opacity .45s;
     }
     #auth-screen.auth-visible { opacity: 1; pointer-events: auto; }
+    .auth-tabs { display:flex; gap:4px; background:rgba(255,255,255,0.05); border-radius:10px; padding:3px; margin:12px 0 14px; }
+    .auth-tab { flex:1; padding:8px; border:none; border-radius:8px; background:none; color:rgba(255,255,255,0.5); font-size:13px; font-weight:600; cursor:pointer; transition:all .2s; font-family:inherit; }
+    .auth-tab.active { background:rgba(212,175,55,0.2); color:#D4AF37; }
+    .auth-panel { width:100%; }
     .auth-box { width: 100%; max-width: 400px; text-align: center; }
     .auth-logo { width: 88px; height: 88px; object-fit: contain; border-radius: 22px;
       box-shadow: 0 8px 32px rgba(0,0,0,.5); margin-bottom: 16px; }
@@ -1387,61 +1391,53 @@
 <!-- ══════════════ ÉCRAN AUTHENTIFICATION ══════════════ -->
 <div id="auth-screen">
   <div class="auth-box">
-    <img class="auth-logo" src="/logo.jpg" alt="Maranatha" />
-    <div class="auth-church-name">Maranatha</div>
+    <img class="auth-logo" src="/logo.jpg" id="auth-logo-img" alt="Maranatha" />
+    <div class="auth-church-name" id="auth-church-name-txt">Maranatha</div>
     <div class="auth-tagline">Bienvenue parmi nous</div>
 
-    <!-- ÉTAPE 1 — Numéro de téléphone -->
-    <div id="auth-step-1" class="auth-step">
+    <!-- Onglets Connexion / Inscription -->
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="auth-tab-cx" onclick="authSwitchTab('cx')">Connexion</button>
+      <button class="auth-tab" id="auth-tab-reg" onclick="authSwitchTab('reg')">Inscription</button>
+    </div>
+
+    <!-- CONNEXION -->
+    <div id="auth-panel-cx" class="auth-panel">
       <div class="auth-label">Numéro de téléphone</div>
-      <input class="auth-input" id="auth-tel-input" type="tel"
+      <input class="auth-input" id="auth-cx-tel" type="tel"
         placeholder="+243 8X XXX XXXX"
-        onkeydown="if(event.key==='Enter')authVerifierTel()" />
-      <div class="auth-err" id="auth-tel-err"></div>
-      <button class="auth-btn" id="auth-btn-continuer" onclick="authVerifierTel()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-        Continuer
-      </button>
-      <div class="auth-divider">ou</div>
-      <button class="auth-skip-btn" onclick="authSansCompte()">Continuer sans compte</button>
-    </div>
-
-    <!-- ÉTAPE 2A — Bon retour -->
-    <div id="auth-step-2a" class="auth-step" style="display:none">
-      <div class="auth-welcome-avatar">👋</div>
-      <div class="auth-welcome-title">Bon retour,<br><span id="auth-welcome-prenom" style="color:#D4AF37"></span> !</div>
-      <div class="auth-welcome-sub" id="auth-welcome-sub"></div>
-      <button class="auth-btn" onclick="authEntrer()">
+        onkeydown="if(event.key==='Enter')authConnecter()" />
+      <div class="auth-err" id="auth-cx-err"></div>
+      <button class="auth-btn" id="auth-btn-cx" onclick="authConnecter()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-        Entrer dans l'application
+        Se connecter
       </button>
-      <button class="auth-skip-btn" onclick="authRetourStep1()">← Changer de numéro</button>
     </div>
 
-    <!-- ÉTAPE 2B — Créer un compte -->
-    <div id="auth-step-2b" class="auth-step" style="display:none">
-      <div class="auth-reg-title">Créer votre compte</div>
-      <div class="auth-reg-sub">Rejoignez la communauté Maranatha</div>
-
-      <div class="auth-tel-badge">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 6.06 6.06l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-        <span class="auth-tel-badge-num" id="auth-reg-tel-display"></span>
-        <span class="auth-tel-badge-chg" onclick="authRetourStep1()">Changer</span>
-      </div>
-
-      <div class="auth-input-row">
-        <input class="auth-input" id="auth-reg-nom" type="text" placeholder="Nom *" style="flex:1" />
-        <input class="auth-input" id="auth-reg-postnom" type="text" placeholder="Post-nom" style="flex:1" />
-      </div>
-      <input class="auth-input" id="auth-reg-prenom" type="text" placeholder="Prénom *"
-        onkeydown="if(event.key==='Enter')authCreerCompte()" style="margin-top:10px" />
-      <div class="auth-err" id="auth-reg-err"></div>
-      <button class="auth-btn" id="auth-btn-creer" onclick="authCreerCompte()">
+    <!-- INSCRIPTION -->
+    <div id="auth-panel-reg" class="auth-panel" style="display:none">
+      <input class="auth-input" id="auth-reg-nomcomplet" type="text" placeholder="Nom complet *" />
+      <input class="auth-input" id="auth-reg-tel2" type="tel" placeholder="Numéro de téléphone *" style="margin-top:10px" />
+      <select class="auth-input" id="auth-reg-pays" style="margin-top:10px;color:rgba(255,255,255,0.7);background:#0d1f31">
+        <option value="">-- Choisir votre pays --</option>
+        <option>Bénin</option><option>Burundi</option><option>Cameroun</option>
+        <option>Canada</option><option>Congo (Brazzaville)</option><option>Congo (RDC)</option>
+        <option>Côte d'Ivoire</option><option>France</option><option>Gabon</option>
+        <option>Guinée</option><option>Haïti</option><option>Madagascar</option>
+        <option>Mali</option><option>Maroc</option><option>Niger</option>
+        <option>République centrafricaine</option><option>Rwanda</option>
+        <option>Sénégal</option><option>Suisse</option><option>Togo</option>
+        <option>USA</option><option>Autre</option>
+      </select>
+      <div class="auth-err" id="auth-reg-err2"></div>
+      <button class="auth-btn" id="auth-btn-reg" onclick="authInscrire()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         Créer mon compte
       </button>
-      <button class="auth-skip-btn" onclick="authSansCompte()">Continuer sans compte</button>
     </div>
+
+    <div class="auth-divider">ou</div>
+    <button class="auth-skip-btn" onclick="authSansCompte()">Continuer sans compte</button>
   </div>
 </div>
 
@@ -1825,12 +1821,19 @@
       <div class="settings-name" id="more-username">Fidèle</div>
       <div class="settings-sub">Communauté Maranatha</div>
 
-      <div class="settings-row" onclick="showToast('Bientôt disponible')">
+      <div class="settings-row" onclick="ouvrirProfil()">
         <div class="settings-row-icon" style="background:var(--primary-lt,#EEEEFF)">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         </div>
         <div class="settings-row-label">Mon profil</div>
         <div class="settings-row-arrow">›</div>
+      </div>
+      <div class="settings-row" onclick="logout()" id="row-logout" style="display:none">
+        <div class="settings-row-icon" style="background:#FFF0F2">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C0001A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </div>
+        <div class="settings-row-label" style="color:#C0001A">Se déconnecter</div>
+        <div class="settings-row-arrow" style="color:#C0001A">›</div>
       </div>
       <div class="settings-row" onclick="showToast('Bientôt disponible')">
         <div class="settings-row-icon" style="background:var(--orange-lt,#FEF5E6)">
@@ -2310,20 +2313,29 @@
 
   // ============ DÉMARRAGE AUTOMATIQUE (sans connexion) ============
   function lancerApp() {
-    // Générer un identifiant anonyme stable pour ce navigateur/appareil
-    // (utilisé uniquement pour lier le token FCM côté serveur)
-    let tel = localStorage.getItem('maranatha_tel');
-    if (!tel) {
-      tel = 'anon-' + Math.random().toString(36).slice(2) + Date.now().toString(36);
-      localStorage.setItem('maranatha_tel', tel);
+    // Afficher nom si déjà connecté
+    const authDone = localStorage.getItem('maranatha_auth_done');
+    const nom = localStorage.getItem('maranatha_nom') || localStorage.getItem('maranatha_user');
+    if (authDone === 'compte' && nom) {
+      document.getElementById('more-username').textContent = nom;
+      const rowLogout = document.getElementById('row-logout');
+      if (rowLogout) rowLogout.style.display = 'flex';
     }
-    // Inscription silencieuse (enregistre le token FCM si déjà disponible)
-    fetch(API + '/users/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nom: 'Fidèle', telephone: tel, role: 'fidele', fcmToken: window.flutterFcmToken || '' }),
-    }).catch(() => {});
-
+    // Inscription silencieuse FCM (users anonymes uniquement)
+    if (!authDone || authDone === 'anonyme') {
+      let tel = localStorage.getItem('maranatha_tel');
+      if (!tel || tel.startsWith('anon-')) {
+        if (!tel) {
+          tel = 'anon-' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+          localStorage.setItem('maranatha_tel', tel);
+        }
+        fetch(API + '/users/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nom: 'Fidèle', telephone: tel, role: 'fidele', fcmToken: window.flutterFcmToken || '' }),
+        }).catch(() => {});
+      }
+    }
     afficherLoader('Chargement…');
     Promise.all([chargerSermons(), chargerEtudeJour()])
       .finally(() => cacherLoader());
@@ -2332,128 +2344,164 @@
     connecterSSE();
   }
 
-  // SUPPRIMÉ — plus de déconnexion manuelle
   function logout() {
-    switchTab('home');
+    ['maranatha_auth_done','maranatha_membre_id','maranatha_prenom',
+     'maranatha_nom','maranatha_tel','maranatha_user','maranatha_pays'].forEach(k => localStorage.removeItem(k));
+    document.getElementById('more-username').textContent = 'Fidèle';
+    switchTab('settings');
+    afficherAuthScreen();
   }
 
   // ══════════════ AUTHENTIFICATION ══════════════
-  let _authTel = '';   // numéro saisi à l'étape 1
-  let _authMembre = null; // données du membre trouvé
-
   function afficherAuthScreen() {
     const s = document.getElementById('auth-screen');
     if (s) { s.style.display = 'flex'; requestAnimationFrame(() => s.classList.add('auth-visible')); }
   }
-
   function masquerAuthScreen() {
     const s = document.getElementById('auth-screen');
     if (!s) return;
     s.classList.remove('auth-visible');
     setTimeout(() => { s.style.display = 'none'; }, 450);
   }
-
-  function authRetourStep1() {
-    document.getElementById('auth-step-2a').style.display = 'none';
-    document.getElementById('auth-step-2b').style.display = 'none';
-    const s1 = document.getElementById('auth-step-1');
-    s1.style.display = 'block';
-    s1.classList.remove('auth-step'); void s1.offsetWidth; s1.classList.add('auth-step');
-    document.getElementById('auth-tel-err').textContent = '';
+  function authSwitchTab(tab) {
+    document.getElementById('auth-panel-cx').style.display  = tab==='cx'  ? 'block' : 'none';
+    document.getElementById('auth-panel-reg').style.display = tab==='reg' ? 'block' : 'none';
+    document.getElementById('auth-tab-cx').classList.toggle('active',  tab==='cx');
+    document.getElementById('auth-tab-reg').classList.toggle('active', tab==='reg');
   }
-
-  function authShowStep(id) {
-    ['auth-step-1','auth-step-2a','auth-step-2b'].forEach(s => {
-      const el = document.getElementById(s);
-      if (el) el.style.display = s === id ? 'block' : 'none';
-    });
-    const el = document.getElementById(id);
-    if (el) { el.classList.remove('auth-step'); void el.offsetWidth; el.classList.add('auth-step'); }
-  }
-
-  async function authVerifierTel() {
-    const tel = (document.getElementById('auth-tel-input').value || '').trim();
-    const errEl = document.getElementById('auth-tel-err');
-    if (!tel || tel.length < 7) { errEl.textContent = 'Entrez un numéro de téléphone valide'; return; }
+  async function authConnecter() {
+    const tel   = (document.getElementById('auth-cx-tel').value || '').trim();
+    const errEl = document.getElementById('auth-cx-err');
+    if (!tel || tel.length < 7) { errEl.textContent = 'Entrez un numéro valide'; return; }
     errEl.textContent = '';
-    const btn = document.getElementById('auth-btn-continuer');
-    btn.disabled = true; btn.innerHTML = 'Vérification…';
-    _authTel = tel;
+    const btn = document.getElementById('auth-btn-cx');
+    btn.disabled = true; btn.textContent = 'Vérification…';
     try {
       const res = await fetch(API + '/membres/phone/' + encodeURIComponent(tel));
       if (res.ok) {
-        // Membre trouvé — étape 2A
-        _authMembre = await res.json();
-        document.getElementById('auth-welcome-prenom').textContent = _authMembre.prenom;
-        const sub = _authMembre.statut === 'accepte' ? '✓ Membre actif' :
-                    _authMembre.statut === 'en_attente' ? '⏳ Demande en cours d\'examen' : '';
-        document.getElementById('auth-welcome-sub').textContent = sub;
-        authShowStep('auth-step-2a');
+        const m = await res.json();
+        localStorage.setItem('maranatha_auth_done',  'compte');
+        localStorage.setItem('maranatha_membre_id',   m._id);
+        localStorage.setItem('maranatha_prenom',      m.prenom);
+        localStorage.setItem('maranatha_nom',         m.nom);
+        localStorage.setItem('maranatha_tel',         m.telephone);
+        localStorage.setItem('maranatha_pays',        m.pays || '');
+        localStorage.setItem('maranatha_user',        m.nom);
+        document.getElementById('more-username').textContent = m.nom;
+        const rowLogout = document.getElementById('row-logout');
+        if (rowLogout) rowLogout.style.display = 'flex';
+        masquerAuthScreen();
+        showToast('Bienvenue, ' + m.nom + ' !');
       } else if (res.status === 404) {
-        // Nouveau — étape 2B inscription
-        _authMembre = null;
-        document.getElementById('auth-reg-tel-display').textContent = tel;
-        document.getElementById('auth-reg-nom').value = '';
-        document.getElementById('auth-reg-postnom').value = '';
-        document.getElementById('auth-reg-prenom').value = '';
-        document.getElementById('auth-reg-err').textContent = '';
-        authShowStep('auth-step-2b');
-        setTimeout(() => document.getElementById('auth-reg-nom').focus(), 300);
-      } else {
-        errEl.textContent = 'Erreur réseau, réessayez';
-      }
+        errEl.textContent = "Numéro non enregistré. Inscrivez-vous d'abord.";
+        authSwitchTab('reg');
+        const t2 = document.getElementById('auth-reg-tel2');
+        if (t2) t2.value = tel;
+      } else { errEl.textContent = 'Erreur réseau, réessayez'; }
     } catch(e) { errEl.textContent = 'Impossible de se connecter au serveur'; }
-    finally { btn.disabled = false; btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg> Continuer'; }
+    finally { btn.disabled = false; btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> Se connecter'; }
   }
-
-  function authEntrer() {
-    // Connexion avec compte existant
-    if (_authMembre) {
-      localStorage.setItem('maranatha_auth_done', 'compte');
-      localStorage.setItem('maranatha_membre_id', _authMembre._id);
-      localStorage.setItem('maranatha_prenom', _authMembre.prenom);
-      localStorage.setItem('maranatha_nom', _authMembre.nom);
-      localStorage.setItem('maranatha_tel', _authMembre.telephone);
-      localStorage.setItem('maranatha_user', _authMembre.prenom + ' ' + _authMembre.nom);
-    }
-    masquerAuthScreen();
-  }
-
-  async function authCreerCompte() {
-    const nom    = (document.getElementById('auth-reg-nom').value    || '').trim();
-    const postNom= (document.getElementById('auth-reg-postnom').value|| '').trim();
-    const prenom = (document.getElementById('auth-reg-prenom').value || '').trim();
-    const errEl  = document.getElementById('auth-reg-err');
-    if (!nom)    { errEl.textContent = 'Le nom est requis'; return; }
-    if (!prenom) { errEl.textContent = 'Le prénom est requis'; return; }
+  async function authInscrire() {
+    const nom   = (document.getElementById('auth-reg-nomcomplet').value || '').trim();
+    const tel   = (document.getElementById('auth-reg-tel2').value       || '').trim();
+    const pays  = (document.getElementById('auth-reg-pays').value       || '').trim();
+    const errEl = document.getElementById('auth-reg-err2');
+    if (!nom)              { errEl.textContent = 'Le nom est requis'; return; }
+    if (!tel||tel.length<7){ errEl.textContent = 'Numéro de téléphone invalide'; return; }
+    if (!pays)             { errEl.textContent = 'Choisissez votre pays'; return; }
     errEl.textContent = '';
-    const btn = document.getElementById('auth-btn-creer');
-    btn.disabled = true; btn.innerHTML = 'Création…';
+    const btn = document.getElementById('auth-btn-reg');
+    btn.disabled = true; btn.textContent = 'Création…';
     try {
       const res = await fetch(API + '/membres', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nom, postNom, prenom, telephone: _authTel }),
+        body: JSON.stringify({ nom, prenom: nom, telephone: tel, pays }),
       });
       const data = await res.json();
       if (res.ok) {
-        localStorage.setItem('maranatha_auth_done', 'compte');
-        localStorage.setItem('maranatha_membre_id', data._id);
-        localStorage.setItem('maranatha_prenom', prenom);
-        localStorage.setItem('maranatha_nom', nom);
-        localStorage.setItem('maranatha_tel', _authTel);
-        localStorage.setItem('maranatha_user', prenom + ' ' + nom);
+        localStorage.setItem('maranatha_auth_done',  'compte');
+        localStorage.setItem('maranatha_membre_id',   data._id);
+        localStorage.setItem('maranatha_prenom',      data.prenom);
+        localStorage.setItem('maranatha_nom',         data.nom);
+        localStorage.setItem('maranatha_tel',         tel);
+        localStorage.setItem('maranatha_pays',        pays);
+        localStorage.setItem('maranatha_user',        nom);
+        document.getElementById('more-username').textContent = nom;
+        const rowLogout = document.getElementById('row-logout');
+        if (rowLogout) rowLogout.style.display = 'flex';
         masquerAuthScreen();
+        showToast('Compte créé ! Bienvenue, ' + nom + ' !');
       } else {
         errEl.textContent = data.error || 'Erreur lors de la création du compte';
       }
     } catch(e) { errEl.textContent = 'Impossible de se connecter au serveur'; }
     finally { btn.disabled = false; btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Créer mon compte'; }
   }
-
   function authSansCompte() {
     localStorage.setItem('maranatha_auth_done', 'anonyme');
     masquerAuthScreen();
+  }
+
+  // ── PROFIL ─────────────────────────────────────────────────────────
+  function ouvrirProfil() {
+    const id = localStorage.getItem('maranatha_membre_id');
+    if (!id) { afficherAuthScreen(); return; }
+    const modal = document.getElementById('profil-modal');
+    document.getElementById('profil-nom').value   = localStorage.getItem('maranatha_nom') || '';
+    document.getElementById('profil-tel').value   = localStorage.getItem('maranatha_tel') || '';
+    document.getElementById('profil-pays').value  = localStorage.getItem('maranatha_pays') || '';
+    document.getElementById('profil-email').value = '';
+    document.getElementById('profil-bio').value   = '';
+    document.getElementById('profil-err').textContent = '';
+    // Statut membre
+    const statBox = document.getElementById('profil-statut-box');
+    // Charge infos fraîches depuis le serveur
+    fetch(API + '/membres/phone/' + encodeURIComponent(localStorage.getItem('maranatha_tel') || ''))
+      .then(r => r.ok ? r.json() : null).then(m => {
+        if (!m) return;
+        document.getElementById('profil-email').value = m.email || '';
+        document.getElementById('profil-bio').value   = m.bio   || '';
+        document.getElementById('profil-pays').value  = m.pays  || '';
+        statBox.style.display = 'block';
+        statBox.textContent = m.statut === 'accepte' ? '✅ Membre actif de l'église'
+          : m.statut === 'en_attente' ? '⏳ Demande d'adhésion en cours d'examen'
+          : '❌ Adhésion non acceptée — contactez le pasteur';
+      }).catch(()=>{});
+    modal.style.display = 'flex';
+  }
+  function fermerProfil() {
+    document.getElementById('profil-modal').style.display = 'none';
+  }
+  async function sauvegarderProfil() {
+    const id = localStorage.getItem('maranatha_membre_id');
+    if (!id) return;
+    const nom   = document.getElementById('profil-nom').value.trim();
+    const pays  = document.getElementById('profil-pays').value.trim();
+    const email = document.getElementById('profil-email').value.trim();
+    const bio   = document.getElementById('profil-bio').value.trim();
+    const errEl = document.getElementById('profil-err');
+    if (!nom) { errEl.textContent = 'Le nom est requis'; return; }
+    errEl.textContent = '';
+    const btn = document.getElementById('btn-profil-save');
+    btn.disabled = true; btn.textContent = 'Enregistrement…';
+    try {
+      const res = await fetch(API + '/membres/' + id, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nom, prenom: nom, pays, email, bio }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        localStorage.setItem('maranatha_nom',  nom);
+        localStorage.setItem('maranatha_user', nom);
+        localStorage.setItem('maranatha_pays', pays);
+        document.getElementById('more-username').textContent = nom;
+        fermerProfil();
+        showToast('Profil mis à jour !');
+      } else { errEl.textContent = data.error || 'Erreur'; }
+    } catch(e) { errEl.textContent = 'Erreur réseau'; }
+    finally { btn.disabled = false; btn.textContent = 'Enregistrer'; }
   }
 
   // ============ YOUTUBE ============
@@ -4228,5 +4276,51 @@
   </div>
 </div>
 
+
+<!-- ============ MODAL PROFIL ============ -->
+<div id="profil-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:3000;align-items:flex-end;justify-content:center">
+  <div style="background:#0D1C30;border-radius:20px 20px 0 0;width:100%;max-width:500px;padding:28px 24px 40px;animation:slideUp .3s ease">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <div style="font-size:17px;font-weight:800;color:#D4AF37">Mon profil</div>
+      <button onclick="fermerProfil()" style="background:none;border:none;color:rgba(255,255,255,0.5);font-size:22px;cursor:pointer;line-height:1">&times;</button>
+    </div>
+    <div style="margin-bottom:12px">
+      <label style="font-size:12px;color:rgba(255,255,255,0.5);display:block;margin-bottom:4px">Nom complet</label>
+      <input id="profil-nom" type="text" style="width:100%;background:#0A2535;border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:11px 14px;color:#fff;font-size:14px;box-sizing:border-box" />
+    </div>
+    <div style="margin-bottom:12px">
+      <label style="font-size:12px;color:rgba(255,255,255,0.5);display:block;margin-bottom:4px">Numéro de téléphone</label>
+      <input id="profil-tel" type="tel" readonly style="width:100%;background:#071828;border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:11px 14px;color:rgba(255,255,255,0.4);font-size:14px;box-sizing:border-box" />
+    </div>
+    <div style="margin-bottom:12px">
+      <label style="font-size:12px;color:rgba(255,255,255,0.5);display:block;margin-bottom:4px">Pays</label>
+      <select id="profil-pays" style="width:100%;background:#0A2535;border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:11px 14px;color:#fff;font-size:14px;box-sizing:border-box">
+        <option value="">-- Pays --</option>
+        <option>Bénin</option><option>Burundi</option><option>Cameroun</option>
+        <option>Canada</option><option>Congo (Brazzaville)</option><option>Congo (RDC)</option>
+        <option>Côte d'Ivoire</option><option>France</option><option>Gabon</option>
+        <option>Guinée</option><option>Haïti</option><option>Madagascar</option>
+        <option>Mali</option><option>Maroc</option><option>Niger</option>
+        <option>République centrafricaine</option><option>Rwanda</option>
+        <option>Sénégal</option><option>Suisse</option><option>Togo</option>
+        <option>USA</option><option>Autre</option>
+      </select>
+    </div>
+    <div style="margin-bottom:12px">
+      <label style="font-size:12px;color:rgba(255,255,255,0.5);display:block;margin-bottom:4px">Email (optionnel)</label>
+      <input id="profil-email" type="email" style="width:100%;background:#0A2535;border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:11px 14px;color:#fff;font-size:14px;box-sizing:border-box" />
+    </div>
+    <div style="margin-bottom:20px">
+      <label style="font-size:12px;color:rgba(255,255,255,0.5);display:block;margin-bottom:4px">Bio (optionnel)</label>
+      <textarea id="profil-bio" rows="2" style="width:100%;background:#0A2535;border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:11px 14px;color:#fff;font-size:14px;box-sizing:border-box;resize:none"></textarea>
+    </div>
+    <div id="profil-err" style="color:#ff7070;font-size:13px;margin-bottom:10px;min-height:18px"></div>
+    <button onclick="sauvegarderProfil()" id="btn-profil-save"
+      style="width:100%;padding:14px;background:linear-gradient(135deg,#D4AF37,#C0001A);border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">
+      Enregistrer
+    </button>
+    <div id="profil-statut-box" style="margin-top:14px;padding:11px 14px;border-radius:10px;background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.15);font-size:12px;color:rgba(255,255,255,0.6);display:none"></div>
+  </div>
+</div>
 </body>
 </html>
