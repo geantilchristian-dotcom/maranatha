@@ -32,7 +32,6 @@ class _WebScreenState extends State<WebScreen> {
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setBackgroundColor(Colors.black)
-      ..setMediaPlaybackRequiresUserGesture(false)
       ..addJavaScriptChannel(
         'FlutterAudio',
         onMessageReceived: (msg) => _handleMessage(msg.message),
