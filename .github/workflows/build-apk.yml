@@ -33,6 +33,10 @@ jobs:
         working-directory: maranatha-app
         run: flutter pub get
 
+      - name: Générer les icônes du ministère
+        working-directory: maranatha-app
+        run: dart run flutter_launcher_icons
+
       - name: Compiler l'APK
         working-directory: maranatha-app
         run: flutter build apk --release --no-tree-shake-icons
