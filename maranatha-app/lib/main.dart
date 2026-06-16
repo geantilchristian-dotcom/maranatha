@@ -7,7 +7,10 @@ import 'firebase_options.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  await NotificationService.instance.initialiser();
+  // Lancer les permissions système en arrière-plan (ne bloque PAS runApp).
+  // requestExactAlarmsPermission / requestFullScreenIntentPermission ouvrent
+  // des écrans système Android et n'ont pas besoin d'être awaités au démarrage.
+  NotificationService.instance.initialiser().catchError((_) {});
   runApp(const MaranathaApp());
 }
 
