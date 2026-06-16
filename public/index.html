@@ -2476,8 +2476,8 @@
         document.getElementById('profil-bio').value   = m.bio   || '';
         document.getElementById('profil-pays').value  = m.pays  || '';
         statBox.style.display = 'block';
-        statBox.textContent = m.statut === 'accepte' ? '✅ Membre actif de l'église'
-          : m.statut === 'en_attente' ? '⏳ Demande d'adhésion en cours d'examen'
+        statBox.textContent = m.statut === 'accepte' ? '✅ Membre actif de l\'église'
+          : m.statut === 'en_attente' ? '⏳ Demande d\'adhésion en cours d\'examen'
           : '❌ Adhésion non acceptée — contactez le pasteur';
       }).catch(()=>{});
     modal.style.display = 'flex';
