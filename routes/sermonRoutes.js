@@ -42,7 +42,6 @@ router.post('/schedule', upload.single('audio'), async (req, res) => {
     const sermon = new Sermon({ titre, description, audioUrl, dateDiffusion });
     await sermon.save();
 
-    // Notifier tous les clients SSE en temps reel
     const { broadcast } = require('../utils/sse');
     broadcast('sermon_update', { action: 'new', sermon });
 
@@ -76,6 +75,42 @@ router.delete('/:id', async (req, res) => {
     res.status(200).json({ message: "Predication supprimee" });
   } catch (error) {
     res.status(500).json({ error: "Erreur lors de la suppression" });
+  }
+});
+
+// ROUTE 4 : Demarrer une predication en direct (autoplay)
+// Met toutes les autres en 'termine' puis passe celle-ci en 'en_cours'
+router.patch('/:id/start', async (req, res) => {
+  try {
+    await Sermon.updateMany({ statut: 'en_cours' }, { statut: 'termine' });
+    const sermon = await Sermon.findByIdAndUpdate(
+      req.params.id,
+      { statut: 'en_cours' },
+      { new: true }
+    );
+    if (!sermon) return res.status(404).json({ error: 'Predication introuvable' });
+    const { broadcast } = require('../utils/sse');
+    broadcast('sermon_update', { action: 'started', sermon });
+    res.json(sermon);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ROUTE 5 : Terminer une predication
+router.patch('/:id/stop', async (req, res) => {
+  try {
+    const sermon = await Sermon.findByIdAndUpdate(
+      req.params.id,
+      { statut: 'termine' },
+      { new: true }
+    );
+    if (!sermon) return res.status(404).json({ error: 'Predication introuvable' });
+    const { broadcast } = require('../utils/sse');
+    broadcast('sermon_update', { action: 'stopped', sermon });
+    res.json(sermon);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
 
