@@ -2822,13 +2822,12 @@
       if (live.coverUrl) document.getElementById('hero-img').src = live.coverUrl;
       hero.onclick = scrollToPlayer;
       hero.classList.add('visible');
-      // Player audio — chargé mais PAS lancé automatiquement
-      // L'utilisateur doit appuyer sur ▶ lui-même
+      // Player audio — lancé automatiquement (natif Flutter ou mute trick navigateur)
       mini.classList.add('visible');
       document.getElementById('mp-title').textContent = live.titre;
       document.getElementById('mp-live-badge').style.display = 'inline-flex';
       document.getElementById('mp-status').style.display = 'none';
-      preparerAudio(live.audioUrl);
+      ouvrirAudio(live.audioUrl);
 
     } else if (youtubeUrl) {
       // ── Vidéo YouTube vedette ──
@@ -3666,7 +3665,7 @@
     setPlayIcon(false); // bouton ▶ affiché en état "prêt à jouer"
   }
 
-  // ── ouvrirAudio : charge ET lance la lecture (appel explicite par l'utilisateur) ──
+  // ── ouvrirAudio : charge ET lance la lecture ─────────────────────────────
   function ouvrirAudio(url) {
     if (!url) return;
     const audio = document.getElementById('main-audio');
@@ -3681,17 +3680,28 @@
       // Même URL mais l'utilisateur a pausé volontairement → on ne relance PAS
       return;
     }
+
+    // ── MODE FLUTTER : lecture native Android ─────────────────────────────
+    // FlutterAudio est injecté par le WebView Flutter.
+    // audioplayers joue l'URL directement → aucune politique autoplay ne bloque.
+    if (typeof FlutterAudio !== 'undefined') {
+      const titre = document.getElementById('mp-title')?.textContent || 'Prédication';
+      FlutterAudio.postMessage(JSON.stringify({ action: 'autoplay', url, titre }));
+      setPlayIcon(true);
+      window._pendingAutoplay = null;
+      return;
+    }
+
+    // ── MODE NAVIGATEUR : élément <audio> HTML ────────────────────────────
     // Tentative 1 : lecture normale
     audio.play()
       .then(() => { setPlayIcon(true); window._pendingAutoplay = null; })
       .catch(() => {
-        // Tentative 2 : MUTE TRICK
-        // Chrome/Android WebView autorise toujours la lecture d'un audio muet.
-        // On démarre muet → puis on coupe le mute immédiatement.
+        // Tentative 2 : mute trick (Chrome autorise le muted autoplay)
         audio.muted = true;
         audio.play()
           .then(() => {
-            audio.muted = false;   // son revient dès que la lecture est lancée
+            audio.muted = false;
             setPlayIcon(true);
             window._pendingAutoplay = null;
           })
@@ -3710,18 +3720,24 @@
 
   // Appelé par le bouton ▶ : toggle play/pause
   function demarrerOuToggle() {
+    // Mode Flutter : l'AudioPlayer natif gère la lecture
+    if (typeof FlutterAudio !== 'undefined') {
+      FlutterAudio.postMessage(JSON.stringify({ action: 'toggle' }));
+      return;
+    }
+    // Mode navigateur
     const a = document.getElementById('main-audio');
     if (!a.src) return;
-    a.muted = false; // réinitialiser si bloqué muet
+    a.muted = false;
     if (a.paused) {
       userPaused = false;
-      window._pendingAutoplay = null; // annuler le timer Flutter
+      window._pendingAutoplay = null;
       a.play()
         .then(() => { setPlayIcon(true); })
         .catch(() => showToast('Lecture impossible'));
     } else {
       userPaused = true;
-      window._pendingAutoplay = null; // annuler le timer Flutter
+      window._pendingAutoplay = null;
       a.pause(); setPlayIcon(false);
     }
   }
@@ -3734,6 +3750,18 @@
       : `<svg id="play-icon" width="26" height="26" viewBox="0 0 24 24" fill="#7A0015"><polygon points="5 3 19 12 5 21 5 3"/></svg>`;
   }
 
+  // Appelé par Flutter chaque seconde avec l'état de l'AudioPlayer natif
+  window._flutterUpdate = function(data) {
+    const { pos, dur, playing } = data;
+    if (dur > 0) {
+      const pct = (pos / dur) * 100;
+      document.getElementById('mp-fill').style.width = pct + '%';
+      document.getElementById('time-current').textContent = fmt(pos);
+      document.getElementById('time-total').textContent = fmt(dur);
+    }
+    setPlayIcon(playing);
+  };
+
   function updatePlayer() {
     const a = document.getElementById('main-audio');
     if (!a.duration) return;
@@ -3744,6 +3772,12 @@
   }
 
   function seekAudio(e) {
+    if (typeof FlutterAudio !== 'undefined') {
+      const track = document.getElementById('mp-progress');
+      const pct = e.offsetX / track.offsetWidth;
+      FlutterAudio.postMessage(JSON.stringify({ action: 'seek', pct }));
+      return;
+    }
     const a = document.getElementById('main-audio');
     if (!a.duration) return;
     const track = document.getElementById('mp-progress');
@@ -3751,8 +3785,14 @@
   }
 
   function setVolume(v) { document.getElementById('main-audio').volume = v; }
-  function skipBack()    { const a = document.getElementById('main-audio'); a.currentTime = Math.max(0, a.currentTime - 10); }
-  function skipForward() { const a = document.getElementById('main-audio'); a.currentTime = Math.min(a.duration || 0, a.currentTime + 10); }
+  function skipBack() {
+    if (typeof FlutterAudio !== 'undefined') { FlutterAudio.postMessage(JSON.stringify({ action: 'skipBack' })); return; }
+    const a = document.getElementById('main-audio'); a.currentTime = Math.max(0, a.currentTime - 10);
+  }
+  function skipForward() {
+    if (typeof FlutterAudio !== 'undefined') { FlutterAudio.postMessage(JSON.stringify({ action: 'skipForward' })); return; }
+    const a = document.getElementById('main-audio'); a.currentTime = Math.min(a.duration || 0, a.currentTime + 10);
+  }
   function scrollToPlayer() { document.getElementById('mini-player').scrollIntoView({ behavior: 'smooth' }); }
   function fmt(s) { if (!s || isNaN(s)) return '0:00'; return Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0'); }
 
