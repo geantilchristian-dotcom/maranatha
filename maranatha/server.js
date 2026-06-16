@@ -1,3 +1,4 @@
+// Maranatha Server — v2026.06.16
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -13,11 +14,13 @@ const priereRoutes  = require('./routes/priereRoutes');
 const etudeRoutes   = require('./routes/etudeRoutes');
 const livreRoutes   = require('./routes/livreRoutes');
 const videoRoutes   = require('./routes/videoRoutes');
+const bibleRoutes   = require('./routes/bibleRoutes');
 
 const app = express();
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '5mb' }));
+app.use(express.urlencoded({ extended: true, limit: '5mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 const adminAuth = (req, res, next) => {
@@ -42,6 +45,7 @@ app.use('/api/prieres',  priereRoutes);
 app.use('/api/etudes',   etudeRoutes);
 app.use('/api/livres',   livreRoutes);
 app.use('/api/videos',   videoRoutes);
+app.use('/api/bible',    bibleRoutes);
 
 require('./utils/scheduler');
 
@@ -49,8 +53,17 @@ app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
-app.get('/', (req, res) => {
-  res.send("Serveur Maranatha operationnel");
+app.get('/api/health', (req, res) => {
+  const states = { 0: 'disconnected', 1: 'connected', 2: 'connecting', 3: 'disconnecting' };
+  res.json({
+    status: 'ok',
+    version: '2026.06.16',
+    mongo: states[mongoose.connection.readyState] || 'unknown',
+    env: {
+      MONGO_URI: process.env.MONGO_URI ? 'defini' : 'MANQUANT',
+      CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME || 'MANQUANT',
+    }
+  });
 });
 
 const PORT = process.env.PORT || 5000;
@@ -61,25 +74,13 @@ if (!MONGO_URI) {
   process.exit(1);
 }
 
-app.get('/api/health', (req, res) => {
-  const states = { 0: 'disconnected', 1: 'connected', 2: 'connecting', 3: 'disconnecting' };
-  res.json({
-    status: 'ok',
-    mongo: states[mongoose.connection.readyState] || 'unknown',
-    env: {
-      MONGO_URI: MONGO_URI ? 'defini (' + MONGO_URI.substring(0, 20) + '...)' : 'MANQUANT',
-      CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME || 'MANQUANT',
-    }
-  });
-});
-
 mongoose.connect(MONGO_URI, {
   serverSelectionTimeoutMS: 10000,
   socketTimeoutMS: 45000,
 })
   .then(() => {
     console.log("MongoDB connecte");
-    app.listen(PORT, () => console.log(`Serveur demarre sur le port ${PORT}`));
+    app.listen(PORT, () => console.log(`Serveur Maranatha v2026.06.16 demarre sur le port ${PORT}`));
   })
   .catch(err => {
     console.error("Erreur connexion MongoDB :", err.message);
