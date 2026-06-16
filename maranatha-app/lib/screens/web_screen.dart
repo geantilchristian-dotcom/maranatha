@@ -16,7 +16,7 @@ class _WebScreenState extends State<WebScreen> {
   final AudioPlayer _player = AudioPlayer();
   Timer? _progressTimer;
 
-  static const String APP_URL = 'https://www.cemm-eglisemaranatha.site';
+  static const String APP_URL = 'https://cemm-eglisemaranatha.site';
 
   @override
   void initState() {
