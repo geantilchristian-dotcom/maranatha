@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
+import 'package:audioplayers/audioplayers.dart';
 import '../services/notification_service.dart';
 
 const String APP_URL = 'https://maranatha-2vgy.onrender.com';
@@ -19,19 +21,20 @@ class _WebScreenState extends State<WebScreen> {
   bool _loading  = true;
   bool _erreur   = false;
   int  _progress = 0;
-  Timer? _autoplayTimer;
+
+  // ── AudioPlayer natif ───────────────────────────────────────────────────
+  // Bypass total de la restriction autoplay du WebView Android.
+  // L'audio joue ici, la page web n'est que l'interface visuelle.
+  final AudioPlayer _player = AudioPlayer();
+  Duration _duration = Duration.zero;
+  Duration _position = Duration.zero;
+  StreamSubscription<Duration>? _durSub;
+  StreamSubscription<Duration>? _posSub;
+  StreamSubscription<PlayerState>? _stateSub;
+  Timer? _progressTimer;    // envoie la position à la page web chaque seconde
+  Timer? _autoplayTimer;    // fallback navigateur : _pendingAutoplay
 
   static const _sysChannel = MethodChannel('maranatha/system');
-
-  // Timer script : appelle _pendingAutoplay() UNIQUEMENT si la page JS l'a stocké.
-  // _pendingAutoplay est mis à null dès que :
-  //   - l'audio démarre avec succès (autoplay ou mute trick)
-  //   - l'utilisateur appuie sur ▶ ou ⏸ manuellement
-  // → Le timer ne perturbe JAMAIS une pause volontaire de l'utilisateur.
-  static const _autoplayScript =
-    'if (typeof window._pendingAutoplay === "function") {'
-    '  window._pendingAutoplay();'
-    '}';
 
   @override
   void initState() {
@@ -42,6 +45,21 @@ class _WebScreenState extends State<WebScreen> {
       statusBarIconBrightness: Brightness.dark,
     ));
 
+    // Écouter les events AudioPlayer pour mettre à jour l'UI web
+    _durSub = _player.onDurationChanged.listen((dur) => _duration = dur);
+    _posSub = _player.onPositionChanged.listen((pos) => _position = pos);
+    _stateSub = _player.onPlayerStateChanged.listen((state) async {
+      final playing = state == PlayerState.playing;
+      if (!mounted) return;
+      try {
+        await _controller.runJavaScript(
+          'if(typeof window._flutterUpdate==="function")'
+          ' window._flutterUpdate({pos:${_position.inSeconds},'
+          'dur:${_duration.inSeconds},playing:$playing})'
+        );
+      } catch (_) {}
+    });
+
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setBackgroundColor(Colors.white)
@@ -51,15 +69,57 @@ class _WebScreenState extends State<WebScreen> {
           try {
             final data   = jsonDecode(msg.message) as Map<String, dynamic>;
             final action = data['action'] as String? ?? '';
-            final titre  = data['titre']  as String? ?? 'Maranatha';
             switch (action) {
+
+              // ── Autoplay natif : jouer via audioplayers ─────────────────
+              case 'autoplay':
+                final url   = data['url']   as String? ?? '';
+                final titre = data['titre'] as String? ?? 'Prédication';
+                if (url.isNotEmpty) {
+                  await _player.play(UrlSource(url));
+                  await _sysChannel.invokeMethod('startAudioService', {'titre': titre});
+                  _startProgressTimer();
+                }
+                break;
+
+              // ── Toggle play / pause ─────────────────────────────────────
+              case 'toggle':
+                if (_player.state == PlayerState.playing) {
+                  await _player.pause();
+                  await _sysChannel.invokeMethod('pauseAudioService');
+                } else {
+                  await _player.resume();
+                  await _sysChannel.invokeMethod('startAudioService', {'titre': 'Prédication'});
+                }
+                break;
+
+              // ── Seek (pourcentage 0-1) ──────────────────────────────────
+              case 'seek':
+                final pct = (data['pct'] as num?)?.toDouble() ?? 0;
+                final ms  = (_duration.inMilliseconds * pct).round();
+                await _player.seek(Duration(milliseconds: ms));
+                break;
+
+              // ── Reculer / avancer 10 s ──────────────────────────────────
+              case 'skipBack':
+                await _player.seek(Duration(
+                  seconds: max(0, _position.inSeconds - 10)));
+                break;
+              case 'skipForward':
+                await _player.seek(Duration(
+                  seconds: min(_duration.inSeconds, _position.inSeconds + 10)));
+                break;
+
+              // ── Notifications anciens événements (compatibilité) ────────
               case 'play':
-                await _sysChannel.invokeMethod('startAudioService', {'titre': titre});
+                await _sysChannel.invokeMethod('startAudioService',
+                    {'titre': data['titre'] as String? ?? 'Prédication'});
                 break;
               case 'pause':
                 await _sysChannel.invokeMethod('pauseAudioService');
                 break;
               case 'stop':
+                await _player.stop();
                 await _sysChannel.invokeMethod('stopAudioService');
                 break;
             }
@@ -67,7 +127,7 @@ class _WebScreenState extends State<WebScreen> {
         },
       );
 
-    // Désactiver le blocage autoplay AVANT le chargement de la page
+    // Désactiver le blocage autoplay WebView (filet de sécurité)
     if (_controller.platform is AndroidWebViewController) {
       (_controller.platform as AndroidWebViewController)
           .setMediaPlaybackRequiresUserGesture(false);
@@ -93,15 +153,16 @@ class _WebScreenState extends State<WebScreen> {
               );
             }
 
-            // Timer : vérifie toutes les 2s si _pendingAutoplay est stocké.
-            // Sécurité : _pendingAutoplay est effacé (= null) dès que :
-            //   • l'audio joue avec succès
-            //   • l'utilisateur appuie sur ▶ ou ⏸
-            // → zéro risque de relancer une pause volontaire.
+            // Fallback navigateur : si _pendingAutoplay est stocké, l'appeler
             _autoplayTimer?.cancel();
             _autoplayTimer = Timer.periodic(const Duration(seconds: 2), (_) async {
               if (!mounted) return;
-              try { await _controller.runJavaScript(_autoplayScript); } catch (_) {}
+              try {
+                await _controller.runJavaScript(
+                  'if(typeof window._pendingAutoplay==="function")'
+                  ' window._pendingAutoplay()'
+                );
+              } catch (_) {}
             });
           },
           onWebResourceError: (err) {
@@ -114,9 +175,30 @@ class _WebScreenState extends State<WebScreen> {
       ..loadRequest(Uri.parse(APP_URL));
   }
 
+  // Envoie position + durée à la page web chaque seconde
+  void _startProgressTimer() {
+    _progressTimer?.cancel();
+    _progressTimer = Timer.periodic(const Duration(seconds: 1), (_) async {
+      if (!mounted) return;
+      final playing = _player.state == PlayerState.playing;
+      try {
+        await _controller.runJavaScript(
+          'if(typeof window._flutterUpdate==="function")'
+          ' window._flutterUpdate({pos:${_position.inSeconds},'
+          'dur:${_duration.inSeconds},playing:$playing})'
+        );
+      } catch (_) {}
+    });
+  }
+
   @override
   void dispose() {
+    _durSub?.cancel();
+    _posSub?.cancel();
+    _stateSub?.cancel();
+    _progressTimer?.cancel();
     _autoplayTimer?.cancel();
+    _player.dispose();
     super.dispose();
   }
 
@@ -162,10 +244,12 @@ class _WebScreenState extends State<WebScreen> {
                       const SizedBox(height: 40),
                       const SizedBox(
                         width: 32, height: 32,
-                        child: CircularProgressIndicator(strokeWidth: 3, color: Color(0xFFC0001A)),
+                        child: CircularProgressIndicator(
+                          strokeWidth: 3, color: Color(0xFFC0001A)),
                       ),
                       const SizedBox(height: 16),
-                      const Text('Chargement…', style: TextStyle(color: Colors.grey, fontSize: 13)),
+                      const Text('Chargement…',
+                        style: TextStyle(color: Colors.grey, fontSize: 13)),
                     ],
                   ),
                 ),
@@ -187,23 +271,25 @@ class _WebScreenState extends State<WebScreen> {
             const SizedBox(height: 24),
             const Text("Impossible de charger l'application",
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1A1A2E)),
-            ),
+              style: TextStyle(
+                fontSize: 18, fontWeight: FontWeight.bold,
+                color: Color(0xFF1A1A2E))),
             const SizedBox(height: 12),
             const Text('Vérifiez votre connexion Internet et réessayez.',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: Colors.grey),
-            ),
+              style: TextStyle(fontSize: 14, color: Colors.grey)),
             const SizedBox(height: 32),
             ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFC0001A),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14)),
               ),
               icon: const Icon(Icons.refresh),
-              label: const Text('Réessayer', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              label: const Text('Réessayer',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               onPressed: () {
                 setState(() { _erreur = false; _loading = true; });
                 _controller.loadRequest(Uri.parse(APP_URL));
