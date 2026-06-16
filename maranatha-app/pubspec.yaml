@@ -1,7 +1,7 @@
 name: maranatha_app
 description: Application mobile du Ministère Maranatha — prédications en direct.
 publish_to: 'none'
-version: 1.0.0+2
+version: 1.0.0+3
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -20,6 +20,9 @@ dependencies:
   # WebView — affiche le site web dans l'app
   webview_flutter: ^4.7.0
   webview_flutter_android: ^3.16.1
+
+  # Lecture audio native (bypass restriction autoplay WebView)
+  audioplayers: ^6.0.0
 
   # Stockage local (token FCM)
   shared_preferences: ^2.3.2
