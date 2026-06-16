@@ -2254,26 +2254,38 @@
   // ============ SPLASH ============
   async function lancerSplash() {
     const splash = document.getElementById('splash-screen');
-    let duree = 2000;
+
+    // ── Masquage garanti ────────────────────────────────────────────────────
+    // Le timer est lancé IMMÉDIATEMENT (avant tout fetch) pour que le splash
+    // disparaisse toujours, même si le réseau est lent ou Render dort.
+    function _cacheSplash() {
+      if (!splash || !splash.parentNode) return;
+      splash.classList.add('fade-out');
+      setTimeout(() => {
+        if (splash.parentNode) splash.remove();
+        if (!localStorage.getItem('maranatha_auth_done')) afficherAuthScreen();
+      }, 500);
+    }
+
+    let duree = 2500;
+    let hideTimer = setTimeout(_cacheSplash, duree); // fallback garanti
+
+    // ── Fetch config avec timeout 3s ────────────────────────────────────────
     try {
-      const res = await fetch(API + '/settings/splash');
+      const ctrl = new AbortController();
+      const fetchTimeout = setTimeout(() => ctrl.abort(), 3000);
+      const res = await fetch(API + '/settings/splash', { signal: ctrl.signal });
+      clearTimeout(fetchTimeout);
       if (res.ok) {
         const cfg = await res.json();
         if (cfg.logoUrl) document.getElementById('splash-logo').src = cfg.logoUrl;
-        if (cfg.dureeSplash) duree = cfg.dureeSplash * 1000;
+        if (cfg.dureeSplash && cfg.dureeSplash * 1000 !== duree) {
+          clearTimeout(hideTimer);
+          duree = cfg.dureeSplash * 1000;
+          hideTimer = setTimeout(_cacheSplash, duree);
+        }
       }
     } catch(e) {}
-
-    setTimeout(() => {
-      splash.classList.add('fade-out');
-      setTimeout(() => {
-        splash.remove();
-        // Afficher écran auth si jamais connecté
-        if (!localStorage.getItem('maranatha_auth_done')) {
-          afficherAuthScreen();
-        }
-      }, 500);
-    }, duree);
 
     lancerApp();
   }
