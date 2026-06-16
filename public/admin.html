@@ -151,6 +151,11 @@
     .btn-submit:hover { opacity: 0.85; }
     .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
 
+    .sermon-actions { display:flex; gap:6px; align-items:center; }
+    .btn-start { background:#00c864; color:#fff; border:none; border-radius:8px; padding:6px 12px; font-size:12px; font-weight:700; cursor:pointer; }
+    .btn-start:hover { background:#00a050; }
+    .btn-stop  { background:#C0001A; color:#fff; border:none; border-radius:8px; padding:6px 12px; font-size:12px; font-weight:700; cursor:pointer; }
+    .btn-stop:hover  { background:#900015; }
     .btn-delete {
       background: rgba(255,80,80,0.1); border: 1px solid rgba(255,80,80,0.2);
       color: #ff6b6b; padding: 7px 13px; border-radius: 8px;
@@ -903,19 +908,27 @@
   // ===== SPLASH =====
   async function lancerSplashAdmin() {
     const splash = document.getElementById('splash-admin');
+    function _cacher() {
+      if (!splash || !splash.parentNode) return;
+      splash.classList.add('fade-out');
+      setTimeout(() => { if (splash.parentNode) splash.remove(); }, 600);
+    }
     let duree = 2500;
+    let hideTimer = setTimeout(_cacher, duree); // garanti même si fetch échoue
     try {
-      const res = await fetch(API + '/settings/splash');
+      const ctrl = new AbortController();
+      setTimeout(() => ctrl.abort(), 3000);
+      const res = await fetch(API + '/settings/splash', { signal: ctrl.signal });
       if (res.ok) {
         const cfg = await res.json();
         if (cfg.logoUrl) document.getElementById('sadmin-logo').src = cfg.logoUrl;
-        if (cfg.dureeSplash) duree = cfg.dureeSplash * 1000;
+        if (cfg.dureeSplash && cfg.dureeSplash * 1000 !== duree) {
+          clearTimeout(hideTimer);
+          duree = cfg.dureeSplash * 1000;
+          hideTimer = setTimeout(_cacher, duree);
+        }
       }
     } catch(e) {}
-    setTimeout(() => {
-      splash.classList.add('fade-out');
-      setTimeout(() => splash.remove(), 600);
-    }, duree);
   }
   window.addEventListener('DOMContentLoaded', lancerSplashAdmin);
 
@@ -1253,7 +1266,12 @@
                 ${s.audioUrl ? `<a class="audio-link" href="${s.audioUrl}" target="_blank">▶ Écouter</a>` : ''}
               </div>
             </div>
-            <button class="btn-delete" onclick="supprimer('${s._id}')" title="Supprimer">${svgTrash}</button>
+            <div class="sermon-actions">
+              ${s.statut !== 'en_cours'
+                ? `<button class="btn-start" onclick="demarrerSermon('${s._id}')" title="Démarrer en direct">▶ Démarrer</button>`
+                : `<button class="btn-stop"  onclick="arreterSermon('${s._id}')" title="Terminer la diffusion">■ Arrêter</button>`}
+              <button class="btn-delete" onclick="supprimer('${s._id}')" title="Supprimer">${svgTrash}</button>
+            </div>
           </div>`;
       }).join('');
     } catch(e) {
@@ -1336,6 +1354,22 @@
       document.getElementById('progress-text').textContent = 'Upload en cours… ' + Math.round(pct) + '%';
     }, 500);
     return () => clearInterval(iv);
+  }
+
+  async function demarrerSermon(id) {
+    try {
+      const res = await fetch(`${API}/sermons/${id}/start`, { method: 'PATCH', headers: authHeaders() });
+      if (res.ok) { toast('Prédication démarrée — autoplay actif !', 'success'); chargerTout(); }
+      else { const d = await res.json(); toast(d.error || 'Erreur', 'error'); }
+    } catch(e) { toast('Erreur réseau', 'error'); }
+  }
+
+  async function arreterSermon(id) {
+    try {
+      const res = await fetch(`${API}/sermons/${id}/stop`, { method: 'PATCH', headers: authHeaders() });
+      if (res.ok) { toast('Prédication terminée', 'success'); chargerTout(); }
+      else { const d = await res.json(); toast(d.error || 'Erreur', 'error'); }
+    } catch(e) { toast('Erreur réseau', 'error'); }
   }
 
   async function supprimer(id) {
