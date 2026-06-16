@@ -8,7 +8,7 @@ import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:audioplayers/audioplayers.dart';
 import '../services/notification_service.dart';
 
-const String APP_URL = 'https://maranatha-2vgy.onrender.com';
+const String APP_URL = 'https://www.cemm-eglisemaranatha.site';
 
 class WebScreen extends StatefulWidget {
   const WebScreen({Key? key}) : super(key: key);
@@ -22,11 +22,10 @@ class _WebScreenState extends State<WebScreen> {
   bool _erreur   = false;
   int  _progress = 0;
 
-  // ── AudioPlayer natif ───────────────────────────────────────────────────
   final AudioPlayer _player = AudioPlayer();
   Duration _duration = Duration.zero;
   Duration _position = Duration.zero;
-  String   _activeUrl = '';   // URL en cours de lecture (déduplication)
+  String   _activeUrl = '';
   StreamSubscription<Duration>? _durSub;
   StreamSubscription<Duration>? _posSub;
   StreamSubscription<PlayerState>? _stateSub;
@@ -45,7 +44,6 @@ class _WebScreenState extends State<WebScreen> {
       statusBarIconBrightness: Brightness.dark,
     ));
 
-    // ── AudioContext : maintient la lecture en arrière-plan ─────────────
     AudioPlayer.global.setAudioContext(const AudioContext(
       android: AndroidAudioContext(
         stayAwake: true,
@@ -55,11 +53,9 @@ class _WebScreenState extends State<WebScreen> {
       ),
     ));
 
-    // ── Listeners position / durée ──────────────────────────────────────
     _durSub   = _player.onDurationChanged.listen((dur) => _duration = dur);
     _posSub   = _player.onPositionChanged.listen((pos) => _position = pos);
 
-    // ── Listener état play/pause ────────────────────────────────────────
     _stateSub = _player.onPlayerStateChanged.listen((state) async {
       final playing = state == PlayerState.playing;
       if (!mounted) return;
@@ -72,25 +68,17 @@ class _WebScreenState extends State<WebScreen> {
       } catch (_) {}
     });
 
-    // ── Listener fin de sermon ──────────────────────────────────────────
-    // Quand l'audio se termine :
-    //   1. Met à jour l'UI web (bouton → ▶, barre → 0)
-    //   2. Arrête la notification arrière-plan
-    //   3. Enregistre le sermon dans l'historique via l'API
     _completeSub = _player.onPlayerComplete.listen((_) async {
       _progressTimer?.cancel();
       _activeUrl = '';
       if (!mounted) return;
       try {
-        // Mettre à jour l'UI : bouton ▶, barre à 0
         await _controller.runJavaScript(
           'if(typeof setPlayIcon==="function") setPlayIcon(false);'
           'if(typeof window._flutterUpdate==="function")'
           ' window._flutterUpdate({pos:0,dur:0,playing:false});'
-          // Notifier la page que le sermon est terminé
           'if(typeof window._sermonTermine==="function") window._sermonTermine();'
         );
-        // Arrêter le service de fond
         await _sysChannel.invokeMethod('stopAudioService');
       } catch (_) {}
     });
@@ -105,24 +93,18 @@ class _WebScreenState extends State<WebScreen> {
             final data   = jsonDecode(msg.message) as Map<String, dynamic>;
             final action = data['action'] as String? ?? '';
             switch (action) {
-
-              // ── Autoplay natif ─────────────────────────────────────────
               case 'autoplay':
                 final url   = data['url']   as String? ?? '';
                 final titre = data['titre'] as String? ?? 'Prédication';
                 if (url.isNotEmpty) {
-                  // Évite de redémarrer si le même URL joue déjà
                   if (url == _activeUrl && _player.state == PlayerState.playing) break;
                   _activeUrl = url;
-                  // ReleaseMode.stop : s'arrête à la fin sans boucler
                   await _player.setReleaseMode(ReleaseMode.stop);
                   await _player.play(UrlSource(url));
                   await _sysChannel.invokeMethod('startAudioService', {'titre': titre});
                   _startProgressTimer();
                 }
                 break;
-
-              // ── Toggle play / pause ────────────────────────────────────
               case 'toggle':
                 if (_player.state == PlayerState.playing) {
                   await _player.pause();
@@ -132,25 +114,17 @@ class _WebScreenState extends State<WebScreen> {
                   await _sysChannel.invokeMethod('startAudioService', {'titre': 'Prédication'});
                 }
                 break;
-
-              // ── Seek (pourcentage 0-1) ─────────────────────────────────
               case 'seek':
                 final pct = (data['pct'] as num?)?.toDouble() ?? 0;
                 final ms  = (_duration.inMilliseconds * pct).round();
                 await _player.seek(Duration(milliseconds: ms));
                 break;
-
-              // ── Reculer / avancer 10 s ─────────────────────────────────
               case 'skipBack':
-                await _player.seek(Duration(
-                  seconds: max(0, _position.inSeconds - 10)));
+                await _player.seek(Duration(seconds: max(0, _position.inSeconds - 10)));
                 break;
               case 'skipForward':
-                await _player.seek(Duration(
-                  seconds: min(_duration.inSeconds, _position.inSeconds + 10)));
+                await _player.seek(Duration(seconds: min(_duration.inSeconds, _position.inSeconds + 10)));
                 break;
-
-              // ── Compatibilité anciens messages ─────────────────────────
               case 'play':
                 await _sysChannel.invokeMethod('startAudioService',
                     {'titre': data['titre'] as String? ?? 'Prédication'});
@@ -169,7 +143,6 @@ class _WebScreenState extends State<WebScreen> {
         },
       );
 
-    // Désactiver le blocage autoplay WebView (filet de sécurité)
     if (_controller.platform is AndroidWebViewController) {
       (_controller.platform as AndroidWebViewController)
           .setMediaPlaybackRequiresUserGesture(false);
@@ -185,8 +158,6 @@ class _WebScreenState extends State<WebScreen> {
           onProgress: (p) => setState(() => _progress = p),
           onPageFinished: (_) async {
             setState(() => _loading = false);
-
-            // Token FCM
             final token = await NotificationService.instance.obtenirTokenFCM();
             if (token != null && token.isNotEmpty) {
               await _controller.runJavaScript(
@@ -194,8 +165,6 @@ class _WebScreenState extends State<WebScreen> {
                 'if(typeof window.__onFcmToken==="function") window.__onFcmToken("$token");'
               );
             }
-
-            // Fallback navigateur : si _pendingAutoplay est stocké, l'appeler
             _autoplayTimer?.cancel();
             _autoplayTimer = Timer.periodic(const Duration(seconds: 2), (_) async {
               if (!mounted) return;
@@ -217,7 +186,6 @@ class _WebScreenState extends State<WebScreen> {
       ..loadRequest(Uri.parse(APP_URL));
   }
 
-  // Envoie position + durée à la page web chaque seconde
   void _startProgressTimer() {
     _progressTimer?.cancel();
     _progressTimer = Timer.periodic(const Duration(seconds: 1), (_) async {
@@ -285,14 +253,10 @@ class _WebScreenState extends State<WebScreen> {
                         letterSpacing: 3, color: Color(0xFFC0001A),
                       )),
                       const SizedBox(height: 40),
-                      const SizedBox(
-                        width: 32, height: 32,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 3, color: Color(0xFFC0001A)),
-                      ),
+                      const SizedBox(width: 32, height: 32,
+                        child: CircularProgressIndicator(strokeWidth: 3, color: Color(0xFFC0001A))),
                       const SizedBox(height: 16),
-                      const Text('Chargement…',
-                        style: TextStyle(color: Colors.grey, fontSize: 13)),
+                      const Text('Chargement…', style: TextStyle(color: Colors.grey, fontSize: 13)),
                     ],
                   ),
                 ),
@@ -314,9 +278,7 @@ class _WebScreenState extends State<WebScreen> {
             const SizedBox(height: 24),
             const Text("Impossible de charger l'application",
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 18, fontWeight: FontWeight.bold,
-                color: Color(0xFF1A1A2E))),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1A1A2E))),
             const SizedBox(height: 12),
             const Text('Vérifiez votre connexion Internet et réessayez.',
               textAlign: TextAlign.center,
@@ -327,12 +289,10 @@ class _WebScreenState extends State<WebScreen> {
                 backgroundColor: const Color(0xFFC0001A),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
               ),
               icon: const Icon(Icons.refresh),
-              label: const Text('Réessayer',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              label: const Text('Réessayer', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               onPressed: () {
                 setState(() { _erreur = false; _loading = true; });
                 _controller.loadRequest(Uri.parse(APP_URL));
