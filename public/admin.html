@@ -351,6 +351,10 @@
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
       Membres <span class="tab-badge" id="tab-badge-membres" style="display:none"></span>
     </button>
+    <button class="tab-btn" onclick="switchTab('annuaire')" data-tab="annuaire">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Annuaire <span class="tab-badge" id="tab-badge-annuaire" style="display:none"></span>
+    </button>
     <button class="tab-btn" onclick="switchTab('commentaires')" data-tab="commentaires">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
       Commentaires <span class="tab-badge" id="tab-badge-comments" style="display:none"></span>
@@ -705,6 +709,41 @@
       </div>
     </div>
 
+    <!-- ══════════════ ONGLET : ANNUAIRE ══════════════ -->
+    <div class="tab-pane" id="pane-annuaire">
+      <div class="section-title">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Annuaire des inscrits
+      </div>
+
+      <div style="background:rgba(212,175,55,0.06);border:1px solid rgba(212,175,55,0.18);border-radius:12px;padding:14px 18px;margin-bottom:18px;font-size:13px;color:rgba(255,255,255,0.65);line-height:1.6">
+        Liste de toutes les personnes inscrites depuis l'application. Utilisez l'onglet <strong style="color:#D4AF37">Membres</strong> pour gérer les statuts (accepté / refusé).
+      </div>
+
+      <!-- Barre de recherche + filtres -->
+      <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+        <input type="text" id="annuaire-search" placeholder="Rechercher par nom ou téléphone…"
+          oninput="filtrerAnnuaire()"
+          style="flex:1;min-width:180px;background:#0A2535;border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:10px 14px;color:#fff;font-size:13px;font-family:inherit" />
+        <select id="annuaire-filter-pays" onchange="filtrerAnnuaire()"
+          style="background:#0A2535;border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:10px 14px;color:rgba(255,255,255,0.7);font-size:13px;font-family:inherit">
+          <option value="">Tous les pays</option>
+        </select>
+        <select id="annuaire-filter-statut" onchange="filtrerAnnuaire()"
+          style="background:#0A2535;border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:10px 14px;color:rgba(255,255,255,0.7);font-size:13px;font-family:inherit">
+          <option value="">Tous statuts</option>
+          <option value="en_attente">En attente</option>
+          <option value="accepte">Membre actif</option>
+          <option value="refuse">Refusé</option>
+        </select>
+      </div>
+
+      <div id="annuaire-count" style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:10px"></div>
+      <div id="annuaire-list">
+        <div class="empty-state"><div style="opacity:.4">⟳</div>Chargement…</div>
+      </div>
+    </div>
+
     <!-- ══════════════ ONGLET : DONS ══════════════ -->
     <div class="tab-pane" id="pane-dons">
       <div class="section-title">
@@ -942,7 +981,7 @@
   async function chargerTout() {
     await Promise.all([
       chargerSermons(), chargerStats(), chargerSplash(), chargerHome(),
-      chargerDonAdmin(), chargerMembres(), chargerCommentairesAdmin(),
+      chargerDonAdmin(), chargerMembres(), chargerAnnuaire(), chargerCommentairesAdmin(),
       chargerPrieresAdmin(), chargerEtudesAdmin(), chargerLivresAdmin(),
       chargerVideosAdmin(), chargerProgrammeAdmin()
     ]);
@@ -1436,6 +1475,71 @@
       else toast('Erreur lors de la sauvegarde', 'error');
     } catch(e) { toast('Erreur réseau', 'error'); }
     finally { btn.disabled = false; btn.innerHTML = 'Enregistrer les paramètres'; }
+  }
+
+
+  // ═══════════════════════════════════════════
+  //  ANNUAIRE
+  // ═══════════════════════════════════════════
+  let _annuaireData = [];
+
+  async function chargerAnnuaire() {
+    try {
+      const res = await fetch(API + '/membres', { headers: authHeaders() });
+      if (!res.ok) return;
+      _annuaireData = await res.json();
+      // Peupler filtre pays
+      const pays = [...new Set(_annuaireData.map(m => m.pays).filter(Boolean))].sort();
+      const sel = document.getElementById('annuaire-filter-pays');
+      if (sel) {
+        sel.innerHTML = '<option value="">Tous les pays</option>' +
+          pays.map(p => `<option>${p}</option>`).join('');
+      }
+      filtrerAnnuaire();
+      const badge = document.getElementById('tab-badge-annuaire');
+      if (badge) { badge.textContent = _annuaireData.length; badge.style.display = 'inline-block'; }
+    } catch(e) {}
+  }
+
+  function filtrerAnnuaire() {
+    const q       = (document.getElementById('annuaire-search')?.value || '').toLowerCase();
+    const fPays   = document.getElementById('annuaire-filter-pays')?.value || '';
+    const fStatut = document.getElementById('annuaire-filter-statut')?.value || '';
+    let list = _annuaireData.filter(m => {
+      const text = (m.nom + ' ' + (m.prenom||'') + ' ' + m.telephone).toLowerCase();
+      if (q && !text.includes(q)) return false;
+      if (fPays   && m.pays   !== fPays)   return false;
+      if (fStatut && m.statut !== fStatut) return false;
+      return true;
+    });
+    const el = document.getElementById('annuaire-list');
+    const cnt = document.getElementById('annuaire-count');
+    if (cnt) cnt.textContent = list.length + ' inscrit(s) affiché(s) sur ' + _annuaireData.length;
+    if (!el) return;
+    if (!list.length) { el.innerHTML = '<div class="empty-state">Aucun résultat</div>'; return; }
+    el.innerHTML = list.map(m => {
+      const statutCol = m.statut === 'accepte' ? '#16A34A' : m.statut === 'refuse' ? '#C0001A' : '#D4AF37';
+      const statutLbl = m.statut === 'accepte' ? 'Membre actif' : m.statut === 'refuse' ? 'Refusé' : 'En attente';
+      const date = new Date(m.dateInscription).toLocaleDateString('fr-FR');
+      return `<div style="background:#0A2535;border-radius:12px;padding:14px 16px;margin-bottom:10px;border:1px solid rgba(255,255,255,0.06)">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
+          <div>
+            <div style="font-weight:700;color:#fff;font-size:14px">${escHtml(m.nom)}${m.prenom && m.prenom!==m.nom ? ' '+escHtml(m.prenom) : ''}</div>
+            <div style="font-size:12px;color:rgba(255,255,255,0.45);margin-top:2px">${escHtml(m.telephone)}${m.pays ? ' · '+escHtml(m.pays) : ''}</div>
+            ${m.email ? `<div style="font-size:12px;color:rgba(255,255,255,0.35)">${escHtml(m.email)}</div>` : ''}
+            ${m.bio ? `<div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:4px;font-style:italic">${escHtml(m.bio)}</div>` : ''}
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <div style="font-size:11px;font-weight:700;color:${statutCol};background:${statutCol}22;border-radius:20px;padding:3px 10px;margin-bottom:6px">${statutLbl}</div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.3)">${date}</div>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function escHtml(str) {
+    return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
   // ===== DON =====
