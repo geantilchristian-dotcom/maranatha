@@ -1,138 +1,164 @@
-// flutter-audio.js — Pont natif Flutter/audioplayers (v20260617a)
-// Injecté par server.js dans chaque réponse GET /.
-//
-// v20260617a :
-//   • Retry si FlutterAudio n'est pas encore injecté (race condition WebView)
-//   • Vérification sermon actif au démarrage (sermon démarré avant chargement page)
-
+// Pont audio natif Maranatha — v3
+// Ce fichier ne fonctionne que dans l'application Flutter WebView.
 (function () {
-  var _inited = false;
+  'use strict';
+
+  var initialized = false;
+  var currentUrl = '';
+  var playing = false;
+
+  function bridgeAvailable() {
+    return typeof window.FlutterAudio !== 'undefined' &&
+      typeof window.FlutterAudio.postMessage === 'function';
+  }
+
+  function post(action, payload) {
+    if (!bridgeAvailable()) return false;
+
+    try {
+      window.FlutterAudio.postMessage(JSON.stringify(Object.assign({ action: action }, payload || {})));
+      return true;
+    } catch (error) {
+      console.error('[Maranatha/FlutterAudio]', error);
+      return false;
+    }
+  }
+
+  function titleFromUi() {
+    var element = document.getElementById('mp-title');
+    var title = element && element.textContent ? element.textContent.trim() : '';
+    return title || 'Prédication Maranatha';
+  }
+
+  function prepareNative(url, title) {
+    if (!url) return;
+
+    currentUrl = url;
+    window.activeAudioUrl = url;
+    window.userPaused = false;
+    try { activeAudioUrl = url; } catch (_) {}
+    try { userPaused = false; } catch (_) {}
+
+    var audio = document.getElementById('main-audio');
+    if (audio) {
+      audio.pause();
+      audio.removeAttribute('src');
+      audio.load();
+      audio.ontimeupdate = null;
+      audio.onended = null;
+    }
+
+    var player = document.getElementById('mini-player');
+    if (player) player.classList.add('visible');
+
+    if (typeof window.setPlayIcon === 'function') {
+      window.setPlayIcon(false);
+    }
+
+    post('autoplay', {
+      url: url,
+      titre: title || titleFromUi(),
+    });
+  }
 
   function init() {
-    if (_inited) return;
-    if (typeof FlutterAudio === 'undefined') return;
-    _inited = true;
+    if (initialized || !bridgeAvailable()) return false;
+    initialized = true;
+    window.__MARANATHA_NATIVE_APP__ = true;
 
-    // ── État interne ────────────────────────────────────────────────────
-    var _isPlaying   = false;
-    var _currentUrl  = '';
-
-    // ── Override preparerAudio ──────────────────────────────────────────
     window.preparerAudio = function (url) {
       if (!url) return;
-      if (url === _currentUrl && _isPlaying) return;
-      _currentUrl = url;
-
-      var audio = document.getElementById('main-audio');
-      if (audio) { audio.src = url; audio.ontimeupdate = null; audio.onended = null; }
-      window.activeAudioUrl = url;
-      window.userPaused     = false;
-
-      var mp = document.getElementById('mini-player');
-      if (mp) mp.classList.add('visible');
-
-      var titre = (document.getElementById('mp-title') || {}).textContent || 'Prédication';
-      if (typeof setPlayIcon === 'function') setPlayIcon(false);
-
-      FlutterAudio.postMessage(JSON.stringify({ action: 'autoplay', url: url, titre: titre }));
+      if (url === currentUrl && playing) return;
+      prepareNative(url, titleFromUi());
     };
 
-    // ── Override ouvrirAudio ────────────────────────────────────────────
     window.ouvrirAudio = function (url) {
       if (!url) return;
-      if (url === _currentUrl && _isPlaying) return;
-      _currentUrl = url;
-
-      var audio = document.getElementById('main-audio');
-      if (audio) { audio.src = url; audio.ontimeupdate = null; audio.onended = null; }
-      window.activeAudioUrl = url;
-      window.userPaused     = false;
-
-      var mp = document.getElementById('mini-player');
-      if (mp) mp.classList.add('visible');
-
-      var titre = (document.getElementById('mp-title') || {}).textContent || 'Prédication';
-      if (typeof setPlayIcon === 'function') setPlayIcon(false);
-      FlutterAudio.postMessage(JSON.stringify({ action: 'autoplay', url: url, titre: titre }));
-      window._pendingAutoplay = null;
+      if (url === currentUrl && playing) return;
+      prepareNative(url, titleFromUi());
     };
 
-    // ── Override demarrerOuToggle ───────────────────────────────────────
     window.demarrerOuToggle = function () {
-      FlutterAudio.postMessage(JSON.stringify({ action: 'toggle' }));
+      post('toggle', { url: currentUrl, titre: titleFromUi() });
     };
     window.togglePlay = window.demarrerOuToggle;
 
-    // ── Override seek / skip ────────────────────────────────────────────
-    window.seekAudio = function (e) {
+    window.seekAudio = function (event) {
       var track = document.getElementById('mp-progress');
-      if (!track) return;
-      FlutterAudio.postMessage(JSON.stringify({ action: 'seek', pct: e.offsetX / track.offsetWidth }));
+      if (!track || !track.offsetWidth) return;
+      post('seek', { pct: event.offsetX / track.offsetWidth });
     };
-    window.skipBack    = function () { FlutterAudio.postMessage(JSON.stringify({ action: 'skipBack' })); };
-    window.skipForward = function () { FlutterAudio.postMessage(JSON.stringify({ action: 'skipForward' })); };
 
-    // ── Récepteur progression Flutter → UI ─────────────────────────────
+    window.skipBack = function () { post('skipBack'); };
+    window.skipForward = function () { post('skipForward'); };
+
     window._flutterUpdate = function (data) {
-      var pos     = data.pos     || 0;
-      var dur     = data.dur     || 0;
-      var playing = data.playing || false;
+      data = data || {};
+      var position = Number(data.pos || 0);
+      var duration = Number(data.dur || 0);
+      playing = data.playing === true;
 
-      _isPlaying = playing;
-      if (typeof setPlayIcon === 'function') setPlayIcon(playing);
-
-      if (dur > 0) {
-        function fmt(s) {
-          return Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
-        }
-        var fill = document.getElementById('mp-fill');
-        var tc   = document.getElementById('time-current');
-        var tt   = document.getElementById('time-total');
-        if (fill) fill.style.width = ((pos / dur) * 100) + '%';
-        if (tc)   tc.textContent = fmt(pos);
-        if (tt)   tt.textContent = fmt(dur);
+      if (typeof window.setPlayIcon === 'function') {
+        window.setPlayIcon(playing);
       }
-    };
 
-    // ── Callback fin de sermon ──────────────────────────────────────────
-    window._sermonTermine = function () {
-      _isPlaying  = false;
-      _currentUrl = '';
-      window.activeAudioUrl = '';
-      if (typeof setPlayIcon === 'function') setPlayIcon(false);
+      function format(seconds) {
+        var safe = Math.max(0, Math.floor(seconds || 0));
+        return Math.floor(safe / 60) + ':' + String(safe % 60).padStart(2, '0');
+      }
+
       var fill = document.getElementById('mp-fill');
-      var tc   = document.getElementById('time-current');
-      if (fill) fill.style.width = '0%';
-      if (tc)   tc.textContent = '0:00';
-      if (typeof showToast === 'function') showToast('Sermon terminé — disponible dans la bibliothèque');
+      var current = document.getElementById('time-current');
+      var total = document.getElementById('time-total');
+
+      if (fill) {
+        fill.style.width = duration > 0 ? Math.min(100, (position / duration) * 100) + '%' : '0%';
+      }
+      if (current) current.textContent = format(position);
+      if (total) total.textContent = format(duration);
     };
 
-    // ── Vérifier si un sermon est déjà en cours au démarrage ───────────
-    // (cas : sermon démarré avant que la page soit chargée)
-    setTimeout(function() {
-      try {
-        fetch('/api/sermons')
-          .then(function(r){ return r.ok ? r.json() : []; })
-          .then(function(sermons) {
-            if (!Array.isArray(sermons)) return;
-            var live = sermons.find(function(s){ return s.statut === 'en_cours' && s.audioUrl; });
-            if (live && live.audioUrl && !_isPlaying) {
-              window.preparerAudio(live.audioUrl);
-            }
+    window._sermonTermine = function () {
+      playing = false;
+      currentUrl = '';
+      window.activeAudioUrl = '';
+      try { activeAudioUrl = ''; } catch (_) {}
+      if (typeof window.setPlayIcon === 'function') window.setPlayIcon(false);
+
+      var fill = document.getElementById('mp-fill');
+      var current = document.getElementById('time-current');
+      if (fill) fill.style.width = '0%';
+      if (current) current.textContent = '0:00';
+    };
+
+    // Rattrape un sermon déjà démarré avant l'ouverture de l'application.
+    setTimeout(function () {
+      fetch('/api/sermons', { cache: 'no-store' })
+        .then(function (response) { return response.ok ? response.json() : []; })
+        .then(function (items) {
+          if (!Array.isArray(items)) return;
+          var live = items.find(function (item) {
+            return item && item.statut === 'en_cours' && item.audioUrl;
           });
-      } catch(e) {}
-    }, 2000);
+          if (live && !playing) {
+            var title = document.getElementById('mp-title');
+            if (title) title.textContent = live.titre || 'Prédication Maranatha';
+            prepareNative(live.audioUrl, live.titre);
+          }
+        })
+        .catch(function () {});
+    }, 900);
 
-    console.log('[FlutterAudio] Pont natif v20260617a initialisé');
+    console.log('[Maranatha] Pont audio natif v3 actif');
+    return true;
   }
 
-  // ── Retry si FlutterAudio pas encore disponible ─────────────────────
-  function tryInit(n) {
-    if (_inited) return;
-    init();
-    if (!_inited && n > 0) setTimeout(function(){ tryInit(n - 1); }, 300);
-  }
+  var attempts = 0;
+  var timer = setInterval(function () {
+    attempts += 1;
+    if (init() || attempts >= 60) clearInterval(timer);
+  }, 200);
 
-  if (document.readyState === 'complete') { tryInit(10); }
-  else { window.addEventListener('load', function(){ tryInit(10); }); }
+  window.addEventListener('pageshow', init);
+  document.addEventListener('DOMContentLoaded', init);
 })();

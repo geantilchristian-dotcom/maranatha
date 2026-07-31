@@ -1,21 +1,18 @@
-import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'services/notification_service.dart';
-import 'screens/web_screen.dart';
-import 'firebase_options.dart';
+import 'dart:async';
 
-void main() async {
+import 'package:flutter/material.dart';
+
+import 'screens/intro_screen.dart';
+import 'services/notification_service.dart';
+
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  // Lancer les permissions système en arrière-plan (ne bloque PAS runApp).
-  // requestExactAlarmsPermission / requestFullScreenIntentPermission ouvrent
-  // des écrans système Android et n'ont pas besoin d'être awaités au démarrage.
-  NotificationService.instance.initialiser().catchError((_) {});
   runApp(const MaranathaApp());
+  unawaited(NotificationService.instance.initialiser());
 }
 
 class MaranathaApp extends StatelessWidget {
-  const MaranathaApp({Key? key}) : super(key: key);
+  const MaranathaApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -23,10 +20,13 @@ class MaranathaApp extends StatelessWidget {
       title: 'Maranatha',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF5C5CFF)),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFFC0001A),
+        ),
+        scaffoldBackgroundColor: const Color(0xFFF4F3F8),
         useMaterial3: true,
       ),
-      home: const WebScreen(),
+      home: const IntroScreen(),
     );
   }
 }

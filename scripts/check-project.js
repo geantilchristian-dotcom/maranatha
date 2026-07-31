@@ -44,6 +44,14 @@ const required = [
   'public/admin.html',
 ];
 
+if (fs.existsSync(path.join(root, 'maranatha-app'))) {
+  required.push(
+    'maranatha-app/pubspec.yaml',
+    'maranatha-app/lib/main.dart',
+    'maranatha-app/lib/screens/intro_screen.dart',
+    'maranatha-app/lib/screens/web_screen.dart',
+  );
+}
 
 for (const file of required) {
   if (!fs.existsSync(path.join(root, file))) errors.push(`${file}: fichier manquant`);

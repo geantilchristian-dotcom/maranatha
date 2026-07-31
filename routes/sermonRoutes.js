@@ -3,7 +3,6 @@ const mongoose = require('mongoose');
 const multer = require('multer');
 
 const Sermon = require('../models/Sermon');
-const User = require('../models/User');
 const adminOnly = require('../utils/adminAuth');
 const { uploadAudio } = require('../utils/cloudinary');
 const {
@@ -13,6 +12,7 @@ const {
   envoyerProgrammationMasse,
 } = require('../utils/firebase');
 const { broadcast, sseHandler } = require('../utils/sse');
+const { obtenirTokensActifs } = require('../utils/deviceTokens');
 
 const router = express.Router();
 
@@ -33,18 +33,6 @@ const upload = multer({
     );
   },
 });
-
-async function obtenirTokensActifs() {
-  const utilisateurs = await User.find({
-    modeMaranathaActif: true,
-    role: 'fidele',
-    fcmToken: { $type: 'string', $ne: '' },
-  })
-    .select({ fcmToken: 1 })
-    .lean();
-
-  return utilisateurs.map((utilisateur) => utilisateur.fcmToken).filter(Boolean);
-}
 
 async function notifierSansBloquer(operation, label) {
   try {

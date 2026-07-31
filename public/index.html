@@ -2862,7 +2862,7 @@
   // ============ CHARGEMENT ============
   async function chargerSermons() {
     try {
-      const res = await fetch(`${API}/sermons`);
+      const res = await fetch(`${API}/sermons`, { cache: 'no-store' });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       sermons = Array.isArray(data) ? data : [];
@@ -3718,20 +3718,31 @@
     document.getElementById('mini-player').scrollIntoView({ behavior: 'smooth' });
   }
 
-  // ── preparerAudio : charge l'URL SANS lancer la lecture ──────────────────
-  // Utilisé pour les sermons en_cours détectés au chargement de l'app.
-  // L'utilisateur doit appuyer lui-même sur ▶ pour écouter.
+  // ── preparerAudio ───────────────────────────────────────────────────────
+  // Dans l'application Android native, flutter-audio.js remplace cette fonction
+  // et démarre le lecteur natif sans toucher l'écran. Dans un navigateur/PWA,
+  // on tente la lecture, mais Chrome peut la bloquer tant qu'il n'y a pas eu de geste.
   function preparerAudio(url) {
     if (!url) return;
     const audio = document.getElementById('main-audio');
-    if (activeAudioUrl === url) return; // déjà préparé
+    if (activeAudioUrl === url && !audio.paused) return;
     activeAudioUrl = url;
     userPaused = false;
     audio.src = url;
     audio.load();
     audio.ontimeupdate = updatePlayer;
     audio.onended = () => { setPlayIcon(false); userPaused = false; };
-    setPlayIcon(false); // bouton ▶ affiché en état "prêt à jouer"
+
+    audio.play()
+      .then(() => setPlayIcon(true))
+      .catch(() => {
+        setPlayIcon(false);
+        const status = document.getElementById('mp-status');
+        if (status) {
+          status.style.display = 'block';
+          status.textContent = 'Appuyez sur ▶ dans le navigateur. Le démarrage sans toucher nécessite l’application Android Maranatha.';
+        }
+      });
   }
 
   // ── ouvrirAudio : charge ET lance la lecture (appel explicite par l'utilisateur) ──

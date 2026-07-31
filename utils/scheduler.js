@@ -1,21 +1,9 @@
 const cron = require('node-cron');
 
 const Sermon = require('../models/Sermon');
-const User = require('../models/User');
 const { envoyerDemarrageMasse } = require('./firebase');
 const { broadcast } = require('./sse');
-
-async function obtenirTokensActifs() {
-  const utilisateurs = await User.find({
-    modeMaranathaActif: true,
-    role: 'fidele',
-    fcmToken: { $type: 'string', $ne: '' },
-  })
-    .select({ fcmToken: 1 })
-    .lean();
-
-  return utilisateurs.map((utilisateur) => utilisateur.fcmToken).filter(Boolean);
-}
+const { obtenirTokensActifs } = require('./deviceTokens');
 
 async function demarrerPredicationsArrivees() {
   const maintenant = new Date();

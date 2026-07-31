@@ -17,11 +17,12 @@ const etudeRoutes = require('./routes/etudeRoutes');
 const livreRoutes = require('./routes/livreRoutes');
 const videoRoutes = require('./routes/videoRoutes');
 const bibleRoutes = require('./routes/bibleRoutes');
+const deviceRoutes = require('./routes/deviceRoutes');
 
 const app = express();
 const PORT = Number(process.env.PORT || 5000);
 const MONGO_URI = process.env.MONGO_URI;
-const VERSION = '20260731-reveil-auto';
+const VERSION = '20260731-reveil-auto-v3';
 
 app.disable('x-powered-by');
 app.set('trust proxy', 1);
@@ -76,6 +77,11 @@ app.get('/politique-confidentialite', (_req, res) => {
 </main></body></html>`);
 });
 
+app.get('/flutter-audio.js', (_req, res) => {
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.sendFile(path.join(__dirname, 'public', 'flutter-audio.js'));
+});
+
 app.get('/', (_req, res) => {
   try {
     const filePath = path.join(__dirname, 'public', 'index.html');
@@ -109,6 +115,7 @@ app.use('/api/etudes', etudeRoutes);
 app.use('/api/livres', livreRoutes);
 app.use('/api/videos', videoRoutes);
 app.use('/api/bible', bibleRoutes);
+app.use('/api/devices', deviceRoutes);
 
 app.get('/api/health', (_req, res) => {
   const states = {

@@ -5,7 +5,6 @@ import android.content.Intent
 import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
-import androidx.core.app.ServiceCompat
 
 /**
  * Foreground Service audio — maintient la lecture active quand :
@@ -63,7 +62,7 @@ class AudioForegroundService : Service() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.ic_media_play)
+            .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(titre)
             .setContentText("Communauté des Églises Missionnaires Maranatha")
             .setContentIntent(pi)

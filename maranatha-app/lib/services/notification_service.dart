@@ -1,170 +1,251 @@
-import 'dart:typed_data';
+import 'dart:async';
+import 'dart:convert';
+import 'dart:math';
 
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import '../firebase_options.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Handler appelé dans un isolate séparé quand l'app est FERMÉE ou TUÉE
-// @pragma obligatoire : empêche le tree-shaking en mode release
-// ─────────────────────────────────────────────────────────────────────────────
-@pragma('vm:entry-point')
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  // 1. Initialiser Firebase dans cet isolate (requis, contexte séparé)
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-
-  // 2. Initialiser flutter_local_notifications indépendamment
-  final localNotifications = FlutterLocalNotificationsPlugin();
-  const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
-  await localNotifications.initialize(
-    const InitializationSettings(android: androidSettings),
-  );
-
-  // 3. Créer le canal alarme s'il n'existe pas encore dans cet isolate
-  await localNotifications
-      .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-      ?.createNotificationChannel(NotificationService._channel);
-
-  // 4. Afficher la notification plein-écran (réveille l'écran même verrouillé)
-  await NotificationService._afficher(localNotifications, message);
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Canal de communication natif pour les permissions système Android
-// ─────────────────────────────────────────────────────────────────────────────
-const _sysChannel = MethodChannel('maranatha/system');
+import '../config/app_config.dart';
 
 class NotificationService {
   NotificationService._();
+
   static final NotificationService instance = NotificationService._();
+  static const MethodChannel _systemChannel = MethodChannel('maranatha/system');
+  static const String _installationIdKey = 'maranatha_installation_id';
+  static const String _appVersion = '1.2.0+7';
 
-  final _messaging           = FirebaseMessaging.instance;
-  final _localNotifications  = FlutterLocalNotificationsPlugin();
+  final StreamController<String> _tokenController =
+      StreamController<String>.broadcast();
 
-  // Canal partagé — utilisé ici ET dans le background handler (isolate)
-  static const _channel = AndroidNotificationChannel(
-    'maranatha_alarme',
-    'Alarmes Maranatha',
-    description: 'Sonne automatiquement à l\'heure de la prédication',
-    importance: Importance.max,
-    playSound: true,
-    enableVibration: true,
-    enableLights: true,
-  );
+  Timer? _syncTimer;
+  bool _initialized = false;
+  bool _syncing = false;
+  bool _registering = false;
 
-  // ── Initialisation complète ────────────────────────────────────────────────
+  Stream<String> get tokenChanges => _tokenController.stream;
+
   Future<void> initialiser() async {
+    if (_initialized) return;
+    _initialized = true;
 
-    // 1. Permissions Firebase (notifications)
-    await _messaging.requestPermission(
-      alert: true, badge: true, sound: true, announcement: true,
-    );
+    await _publierToken();
+    await enregistrerAppareil();
+    await synchroniserPredications();
 
-    // 2. Livrer les messages de données en foreground aussi
-    await _messaging.setForegroundNotificationPresentationOptions(
-      alert: true, badge: true, sound: true,
-    );
-
-    // 3. Préparer le plugin Android
-    final androidPlugin = _localNotifications
-        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
-
-    // Créer le canal d'alarme
-    await androidPlugin?.createNotificationChannel(_channel);
-
-    // Permission alarme exacte (Android 12+)
-    try {
-      await androidPlugin?.requestExactAlarmsPermission();
-    } catch (_) {}
-
-    // Permission fullScreenIntent (Android 14+ : doit être accordée manuellement)
-    // Ouvre une boîte de dialogue système si non encore accordée
-    try {
-      await androidPlugin?.requestFullScreenIntentPermission();
-    } catch (_) {}
-
-    // ── CRITIQUE : Exclusion optimisation batterie ──────────────────────────
-    // Sans ça, Android tue le service Firebase quand l'app est fermée ou que
-    // le téléphone est en veille → les messages FCM ne sont jamais reçus.
-    // Cette méthode affiche une boîte de dialogue système demandant à l'utilisateur
-    // d'autoriser l'app à fonctionner sans restriction de batterie.
-    try {
-      await _sysChannel.invokeMethod('requestIgnoreBatteryOptimizations');
-    } catch (_) {}
-
-    // 4. Enregistrer le handler background AVANT initialize()
-    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-
-    // 5. Initialiser flutter_local_notifications
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const iosSettings     = DarwinInitializationSettings();
-    await _localNotifications.initialize(
-      const InitializationSettings(android: androidSettings, iOS: iosSettings),
-    );
-
-    // 6. Écouter les messages en foreground
-    FirebaseMessaging.onMessage.listen(
-      (msg) => _afficher(_localNotifications, msg),
-    );
-
-    // 7. App en arrière-plan : utilisateur tape la notification
-    FirebaseMessaging.onMessageOpenedApp.listen(
-      (msg) => _afficher(_localNotifications, msg),
-    );
-
-    // 8. App était fermée : utilisateur tape la notification
-    final initialMessage = await _messaging.getInitialMessage();
-    if (initialMessage != null) _afficher(_localNotifications, initialMessage);
-  }
-
-  // ── Affichage notification (statique pour être appelée depuis l'isolate) ──
-  static Future<void> _afficher(
-    FlutterLocalNotificationsPlugin plugin,
-    RemoteMessage message,
-  ) async {
-    final titre = message.data['sermon_titre'] as String? ?? 'Prédication Maranatha';
-    const corps = '⛪ La prédication vient de commencer. Appuyez pour écouter.';
-
-    await plugin.show(
-      DateTime.now().millisecondsSinceEpoch ~/ 1000,
-      '🔔 $titre',
-      corps,
-      NotificationDetails(
-        android: AndroidNotificationDetails(
-          _channel.id,
-          _channel.name,
-          channelDescription: _channel.description,
-          importance:      Importance.max,
-          priority:        Priority.max,
-          playSound:       true,
-          enableVibration: true,
-          enableLights:    true,
-          // Réveille l'écran verrouillé (comme WhatsApp)
-          fullScreenIntent: true,
-          category:    AndroidNotificationCategory.alarm,
-          visibility:  NotificationVisibility.public,
-          showWhen:    true,
-          // Vibreur prolongé pour s'assurer que l'utilisateur entend
-          vibrationPattern: Int64List.fromList([0, 500, 200, 500, 200, 500]),
-        ),
-        iOS: const DarwinNotificationDetails(
-          presentAlert: true,
-          presentBadge: true,
-          presentSound: true,
-          interruptionLevel: InterruptionLevel.timeSensitive,
-        ),
-      ),
+    _syncTimer?.cancel();
+    _syncTimer = Timer.periodic(
+      const Duration(minutes: 15),
+      (_) async {
+        await enregistrerAppareil();
+        await synchroniserPredications();
+      },
     );
   }
-
-  // Alias d'instance (compatibilité)
-  Future<void> afficherNotification(RemoteMessage message) =>
-      _afficher(_localNotifications, message);
 
   Future<String?> obtenirTokenFCM() async {
-    try { return await _messaging.getToken(); }
-    catch (e) { return null; }
+    try {
+      final token = await _systemChannel.invokeMethod<String>('getFcmToken');
+      final cleaned = token?.trim();
+      return cleaned == null || cleaned.isEmpty ? null : cleaned;
+    } catch (error) {
+      debugPrint('Impossible d’obtenir le token FCM : $error');
+      return null;
+    }
+  }
+
+  Future<Map<String, bool>> obtenirEtatAutorisations() async {
+    try {
+      final raw = await _systemChannel.invokeMapMethod<String, dynamic>(
+        'getAlarmPermissions',
+      );
+
+      return <String, bool>{
+        'notifications': raw?['notifications'] == true,
+        'exactAlarms': raw?['exactAlarms'] == true,
+        'fullScreen': raw?['fullScreen'] == true,
+        'battery': raw?['battery'] == true,
+        'modeEnabled': raw?['modeEnabled'] == true,
+      };
+    } catch (error) {
+      debugPrint('Impossible de vérifier les autorisations : $error');
+      return <String, bool>{
+        'notifications': false,
+        'exactAlarms': false,
+        'fullScreen': false,
+        'battery': false,
+        'modeEnabled': false,
+      };
+    }
+  }
+
+  Future<void> demanderNotifications() async {
+    await _systemChannel.invokeMethod<void>('requestNotificationPermission');
+  }
+
+  Future<void> demanderAlarmesExactes() async {
+    await _systemChannel.invokeMethod<void>('requestExactAlarmPermission');
+  }
+
+  Future<void> demanderPleinEcran() async {
+    await _systemChannel.invokeMethod<void>(
+      'requestFullScreenIntentPermission',
+    );
+  }
+
+  Future<void> demanderExclusionBatterie() async {
+    await _systemChannel.invokeMethod<void>(
+      'requestIgnoreBatteryOptimizations',
+    );
+  }
+
+  Future<void> activerModeMaranatha() async {
+    await _systemChannel.invokeMethod<void>(
+      'setAlarmModeEnabled',
+      <String, Object?>{'enabled': true},
+    );
+    await enregistrerAppareil(enabledOverride: true);
+    await synchroniserPredications();
+  }
+
+  Future<void> desactiverModeMaranatha() async {
+    await _systemChannel.invokeMethod<void>(
+      'setAlarmModeEnabled',
+      <String, Object?>{'enabled': false},
+    );
+    await enregistrerAppareil(enabledOverride: false);
+  }
+
+  Future<bool> modeMaranathaActif() async {
+    try {
+      return await _systemChannel.invokeMethod<bool>('isAlarmModeEnabled') ??
+          false;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<void> enregistrerAppareil({bool? enabledOverride}) async {
+    if (_registering) return;
+    _registering = true;
+
+    try {
+      final token = await obtenirTokenFCM();
+      if (token == null) return;
+
+      final installationId = await _obtenirInstallationId();
+      final enabled = enabledOverride ?? await modeMaranathaActif();
+
+      final response = await http
+          .post(
+            Uri.parse('$API_URL/devices/register'),
+            headers: const <String, String>{
+              'Content-Type': 'application/json',
+            },
+            body: jsonEncode(<String, Object?>{
+              'installationId': installationId,
+              'fcmToken': token,
+              'platform': 'android',
+              'appVersion': _appVersion,
+              'modeMaranathaActif': enabled,
+            }),
+          )
+          .timeout(const Duration(seconds: 70));
+
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw StateError('Serveur ${response.statusCode}');
+      }
+
+      if (!_tokenController.isClosed) {
+        _tokenController.add(token);
+      }
+    } catch (error) {
+      debugPrint('Enregistrement de l’appareil impossible : $error');
+    } finally {
+      _registering = false;
+    }
+  }
+
+  Future<int> synchroniserPredications() async {
+    if (_syncing) return 0;
+    _syncing = true;
+
+    try {
+      final response = await http
+          .get(Uri.parse('$API_URL/sermons/upcoming?days=30'))
+          .timeout(const Duration(seconds: 70));
+
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw StateError('Serveur ${response.statusCode}');
+      }
+
+      final decoded = jsonDecode(response.body);
+      if (decoded is! List) {
+        throw const FormatException('Réponse des prédications invalide');
+      }
+
+      final schedules = <Map<String, Object?>>[];
+
+      for (final item in decoded) {
+        if (item is! Map) continue;
+
+        final id = item['_id']?.toString().trim() ?? '';
+        final title = item['titre']?.toString().trim() ?? '';
+        final audioUrl = item['audioUrl']?.toString().trim() ?? '';
+        final rawDate = item['dateDiffusion']?.toString();
+        final date = rawDate == null ? null : DateTime.tryParse(rawDate);
+
+        if (id.isEmpty || audioUrl.isEmpty || date == null) continue;
+
+        schedules.add(<String, Object?>{
+          'id': id,
+          'title': title.isEmpty ? 'Prédication Maranatha' : title,
+          'audioUrl': audioUrl,
+          'triggerAtMillis': date.millisecondsSinceEpoch,
+        });
+      }
+
+      await _systemChannel.invokeMethod<Object?>(
+        'syncSchedules',
+        schedules,
+      );
+
+      return schedules.length;
+    } catch (error) {
+      debugPrint('Synchronisation des alarmes impossible : $error');
+      return 0;
+    } finally {
+      _syncing = false;
+    }
+  }
+
+  Future<String> _obtenirInstallationId() async {
+    final preferences = await SharedPreferences.getInstance();
+    final existing = preferences.getString(_installationIdKey)?.trim();
+    if (existing != null && existing.isNotEmpty) return existing;
+
+    final random = Random.secure();
+    final bytes = List<int>.generate(24, (_) => random.nextInt(256));
+    final generated = bytes
+        .map((value) => value.toRadixString(16).padLeft(2, '0'))
+        .join();
+
+    await preferences.setString(_installationIdKey, generated);
+    return generated;
+  }
+
+  Future<void> _publierToken() async {
+    final token = await obtenirTokenFCM();
+    if (token != null && !_tokenController.isClosed) {
+      _tokenController.add(token);
+    }
+  }
+
+  Future<void> disposer() async {
+    _syncTimer?.cancel();
+    await _tokenController.close();
+    _initialized = false;
   }
 }
