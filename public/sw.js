@@ -1,5 +1,5 @@
-const CACHE = 'maranatha-v1';
-const STATIC = ['/', '/index.html', '/manifest.json'];
+const CACHE = 'maranatha-v20260730';
+const STATIC = ['/', '/index.html', '/manifest.json', '/logo.jpg', '/logo-192.png', '/logo-512.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(STATIC)).catch(() => {}));

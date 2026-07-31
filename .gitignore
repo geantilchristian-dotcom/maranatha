@@ -1,7 +1,24 @@
+# Node
 node_modules/
 .env
+*.log
+
+# Secrets
 *.json.key
+service-account*.json
+
+# Flutter
 maranatha-app/build/
 maranatha-app/.dart_tool/
 maranatha-app/.flutter-plugins
 maranatha-app/.flutter-plugins-dependencies
+maranatha-app/android/.gradle/
+maranatha-app/android/.kotlin/
+maranatha-app/android/local.properties
+maranatha-app/ios/Flutter/ephemeral/
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

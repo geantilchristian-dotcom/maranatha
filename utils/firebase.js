@@ -1,139 +1,174 @@
 let admin = null;
+
 try {
   admin = require('firebase-admin');
-} catch (e) {
-  console.warn('[Firebase] firebase-admin non disponible, notifications desactivees :', e.message);
+} catch (error) {
+  console.warn(
+    '[Firebase] firebase-admin non disponible, notifications désactivées :',
+    error.message,
+  );
 }
 
 let firebaseApp;
 
 function getFirebaseApp() {
-  if (!admin) throw new Error('firebase-admin non charge');
-  if (firebaseApp) return firebaseApp;
-
-  if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
-    throw new Error("FIREBASE_SERVICE_ACCOUNT manquant dans les variables d'environnement");
+  if (!admin) {
+    throw new Error('firebase-admin non chargé');
   }
 
-  const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+  if (firebaseApp) {
+    return firebaseApp;
+  }
+
+  const rawServiceAccount = process.env.FIREBASE_SERVICE_ACCOUNT;
+  if (!rawServiceAccount) {
+    throw new Error(
+      "FIREBASE_SERVICE_ACCOUNT manquant dans les variables d'environnement",
+    );
+  }
+
+  let serviceAccount;
+  try {
+    serviceAccount = JSON.parse(rawServiceAccount);
+  } catch (_error) {
+    throw new Error('FIREBASE_SERVICE_ACCOUNT contient un JSON invalide');
+  }
 
   firebaseApp = admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
-    storageBucket: 'invisible-light-c792e.firebasestorage.app',
   });
 
-  console.log("✅ Firebase Admin SDK initialisé (Messaging + Storage)");
+  console.log('[Firebase] Admin SDK initialisé');
   return firebaseApp;
 }
 
-/**
- * Upload un fichier audio vers Firebase Storage
- * @param {Buffer} buffer - Contenu binaire du fichier
- * @param {string} originalName - Nom original du fichier (ex: sermon.mp3)
- * @param {string} mimeType - Type MIME (audio/mpeg, audio/mp3…)
- * @returns {string} URL publique du fichier uploadé
- */
-async function uploadAudioVersStorage(buffer, originalName, mimeType) {
-  const app = getFirebaseApp();
-  const bucket = admin.storage(app).bucket();
-
-  // Nom unique horodaté pour éviter les collisions
-  const timestamp = Date.now();
-  const ext = originalName.split('.').pop() || 'mp3';
-  const nomFichier = `predications/${timestamp}_${originalName.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
-
-  const file = bucket.file(nomFichier);
-
-  await file.save(buffer, {
-    metadata: {
-      contentType: mimeType || 'audio/mpeg',
-      cacheControl: 'public, max-age=31536000',
-    },
-  });
-
-  // Rendre le fichier public
-  await file.makePublic();
-
-  // URL publique stable
-  const publicUrl = `https://storage.googleapis.com/${bucket.name}/${nomFichier}`;
-  console.log(`✅ Audio uploadé : ${publicUrl}`);
-  return publicUrl;
+function normaliserTokens(tokens) {
+  return [...new Set((tokens || []).map(String).map((token) => token.trim()))]
+    .filter(Boolean);
 }
 
-/**
- * Envoie une notification push à TOUS les fidèles
- */
-async function envoyerNotificationMasse(tokens, sermon) {
-  if (!tokens || tokens.length === 0) return { successCount: 0, failureCount: 0, tokensEchoues: [] };
+function decouper(tableau, taille) {
+  const morceaux = [];
+  for (let index = 0; index < tableau.length; index += taille) {
+    morceaux.push(tableau.slice(index, index + taille));
+  }
+  return morceaux;
+}
+
+function transformerDonnees(data) {
+  return Object.fromEntries(
+    Object.entries(data).map(([cle, valeur]) => [
+      cle,
+      valeur === null || valeur === undefined ? '' : String(valeur),
+    ]),
+  );
+}
+
+async function envoyerDonneesMasse(tokens, data, options = {}) {
+  const tokensUniques = normaliserTokens(tokens);
+
+  if (tokensUniques.length === 0) {
+    return {
+      successCount: 0,
+      failureCount: 0,
+      tokensEchoues: [],
+    };
+  }
 
   const app = getFirebaseApp();
   const messaging = admin.messaging(app);
+  const lots = decouper(tokensUniques, 500);
 
-  // MESSAGE HYBRIDE (notification + data) :
-  //
-  // Stratégie à deux niveaux :
-  //   1. Le champ "notification" garantit qu'Android affiche la notif NATIVEMENT
-  //      même si l'app est tuée ET que le background handler ne tourne pas
-  //      (Samsung, Xiaomi, Huawei avec battery killer agressif).
-  //      Le canal "maranatha_alarme" (importance MAX) sonne et vibre fort.
-  //
-  //   2. Le champ "data" permet au background handler Flutter (app en arrière-plan)
-  //      de montrer en PLUS une notification fullScreenIntent qui réveille l'écran
-  //      verrouillé (comportement WhatsApp).
-  //
-  // Résultat : dans TOUS les cas l'utilisateur reçoit l'alerte.
-  const titreNotif = sermon.titre;
-  const corpsNotif = 'La predication vient de commencer. Appuyez pour ecouter.';
+  let successCount = 0;
+  let failureCount = 0;
+  const tokensEchoues = [];
 
-  const message = {
-    tokens,
-    // ── Données métier (disponibles dans tous les handlers Flutter) ──
-    data: {
-      sermon_id:    sermon._id.toString(),
-      sermon_titre: sermon.titre,
-      audio_url:    sermon.audioUrl || '',
-      type:         'PREDICATION_DIRECTE',
-    },
-    // ── Notification native (affiché par Android même app tuée) ──
-    notification: {
-      title: titreNotif,
-      body:  corpsNotif,
-    },
-    android: {
-      priority: 'high',
-      ttl:      '600s', // 10 min — temps de délivrer même en mode Doze
-      notification: {
-        channel_id:            'maranatha_alarme', // canal importance MAX → sonne fort
-        notification_priority: 'PRIORITY_MAX',
-        visibility:            'PUBLIC',           // visible sur écran verrouillé
-        sound:                 'default',
-        default_vibrate_timings: true,
-        default_sound:         true,
-        default_light_settings: true,
+  for (const lot of lots) {
+    const response = await messaging.sendEachForMulticast({
+      tokens: lot,
+      data: transformerDonnees(data),
+      android: {
+        priority: 'high',
+        ttl: options.ttl || 28 * 24 * 60 * 60 * 1000,
       },
-    },
-    apns: {
-      payload: {
-        aps: {
-          alert: { title: titreNotif, body: corpsNotif },
-          sound: 'default',
-          badge: 1,
-          'interruption-level': 'time-sensitive',
+      apns: {
+        headers: {
+          'apns-priority': '10',
+          'apns-push-type': 'background',
+        },
+        payload: {
+          aps: {
+            'content-available': 1,
+          },
         },
       },
-      headers: { 'apns-priority': '10', 'apns-push-type': 'alert' },
-    },
+    });
+
+    successCount += response.successCount;
+    failureCount += response.failureCount;
+
+    response.responses.forEach((item, index) => {
+      if (!item.success) {
+        tokensEchoues.push({
+          token: lot[index],
+          erreur: item.error?.code || 'firebase/inconnu',
+        });
+      }
+    });
+  }
+
+  return {
+    successCount,
+    failureCount,
+    tokensEchoues,
   };
-
-  const response = await messaging.sendEachForMulticast(message);
-  console.log(`📊 Résultat : ${response.successCount} succès, ${response.failureCount} échecs`);
-
-  const tokensEchoues = [];
-  response.responses.forEach((resp, index) => {
-    if (!resp.success) tokensEchoues.push({ token: tokens[index], erreur: resp.error?.code });
-  });
-
-  return { successCount: response.successCount, failureCount: response.failureCount, tokensEchoues };
 }
 
-module.exports = { envoyerNotificationMasse, uploadAudioVersStorage };
+async function envoyerProgrammationMasse(tokens, sermon) {
+  return envoyerDonneesMasse(tokens, {
+    type: 'PROGRAMMER_PREDICATION',
+    sermon_id: sermon._id.toString(),
+    sermon_titre: sermon.titre,
+    audio_url: sermon.audioUrl,
+    scheduled_at_ms: new Date(sermon.dateDiffusion).getTime(),
+  });
+}
+
+async function envoyerAnnulationMasse(tokens, sermonId) {
+  return envoyerDonneesMasse(tokens, {
+    type: 'ANNULER_PREDICATION',
+    sermon_id: sermonId.toString(),
+  });
+}
+
+async function envoyerDemarrageMasse(tokens, sermon) {
+  return envoyerDonneesMasse(
+    tokens,
+    {
+      type: 'DEMARRER_PREDICATION',
+      sermon_id: sermon._id.toString(),
+      sermon_titre: sermon.titre,
+      audio_url: sermon.audioUrl,
+      scheduled_at_ms: new Date(sermon.dateDiffusion).getTime(),
+    },
+    { ttl: 3 * 60 * 60 * 1000 },
+  );
+}
+
+async function envoyerArretMasse(tokens, sermonId) {
+  return envoyerDonneesMasse(
+    tokens,
+    {
+      type: 'ARRETER_PREDICATION',
+      sermon_id: sermonId.toString(),
+    },
+    { ttl: 15 * 60 * 1000 },
+  );
+}
+
+module.exports = {
+  envoyerProgrammationMasse,
+  envoyerAnnulationMasse,
+  envoyerArretMasse,
+  envoyerDemarrageMasse,
+};

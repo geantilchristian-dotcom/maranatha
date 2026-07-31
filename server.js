@@ -1,146 +1,178 @@
-// Maranatha Server — v20260616d
+// Serveur Maranatha — v20260731-reveil-auto
 const express = require('express');
 const mongoose = require('mongoose');
-const cors    = require('cors');
-const path    = require('path');
-const fs      = require('fs');
+const cors = require('cors');
+const path = require('path');
+const fs = require('fs');
 require('dotenv').config();
 
-const userRoutes     = require('./routes/userRoutes');
-const sermonRoutes   = require('./routes/sermonRoutes');
+const adminOnly = require('./utils/adminAuth');
+const userRoutes = require('./routes/userRoutes');
+const sermonRoutes = require('./routes/sermonRoutes');
 const settingsRoutes = require('./routes/settingsRoutes');
-const commentRoutes  = require('./routes/commentRoutes');
-const membreRoutes   = require('./routes/membreRoutes');
-const priereRoutes   = require('./routes/priereRoutes');
-const etudeRoutes    = require('./routes/etudeRoutes');
-const livreRoutes    = require('./routes/livreRoutes');
-const videoRoutes    = require('./routes/videoRoutes');
-const bibleRoutes    = require('./routes/bibleRoutes');
+const commentRoutes = require('./routes/commentRoutes');
+const membreRoutes = require('./routes/membreRoutes');
+const priereRoutes = require('./routes/priereRoutes');
+const etudeRoutes = require('./routes/etudeRoutes');
+const livreRoutes = require('./routes/livreRoutes');
+const videoRoutes = require('./routes/videoRoutes');
+const bibleRoutes = require('./routes/bibleRoutes');
 
 const app = express();
+const PORT = Number(process.env.PORT || 5000);
+const MONGO_URI = process.env.MONGO_URI;
+const VERSION = '20260731-reveil-auto';
 
-app.use(cors());
+app.disable('x-powered-by');
+app.set('trust proxy', 1);
+
+const allowedOrigins = String(process.env.ALLOWED_ORIGINS || '')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error('Origine non autorisée'));
+    },
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'x-admin-password'],
+  }),
+);
 app.use(express.json({ limit: '5mb' }));
 app.use(express.urlencoded({ extended: true, limit: '5mb' }));
 
-// ── Politique de confidentialité ────────────────────────────────────────
-app.get('/politique-confidentialite', (req, res) => {
-  res.setHeader('Content-Type', 'text/html; charset=utf-8');
-  res.send(`<!DOCTYPE html>
+app.get('/politique-confidentialite', (_req, res) => {
+  res.type('html').send(`<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Politique de confidentialité — Maranatha</title>
   <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:Georgia,serif;background:#0a0a0a;color:#e8e0d5;max-width:720px;margin:0 auto;padding:40px 24px 80px}
-    h1{font-size:1.8rem;color:#c8a96e;margin-bottom:8px}
-    .sub{color:#888;font-size:.9rem;margin-bottom:40px}
-    h2{font-size:1.1rem;color:#c8a96e;margin:32px 0 10px;text-transform:uppercase;letter-spacing:.05em}
-    p,li{line-height:1.8;color:#ccc;margin-bottom:10px}
-    li{margin-left:20px}
-    a{color:#c8a96e}
-    .footer{margin-top:60px;padding-top:20px;border-top:1px solid #333;color:#666;font-size:.85rem;text-align:center}
+    *{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:#071522;color:#e9edf3}main{max-width:760px;margin:auto;padding:42px 22px 80px}h1{color:#d5ae32;font-size:30px;margin:0 0 8px}.sub{color:#94a0af;margin-bottom:34px}h2{font-size:17px;color:#d5ae32;margin-top:30px}p,li{line-height:1.7;color:#c9d0da}a{color:#f2cf66}.card{background:#0d2637;border:1px solid rgba(213,174,50,.18);border-radius:16px;padding:18px;margin:14px 0}.footer{margin-top:44px;padding-top:18px;border-top:1px solid rgba(255,255,255,.1);color:#7f8b99;font-size:13px}
   </style>
 </head>
-<body>
+<body><main>
   <h1>Politique de confidentialité</h1>
-  <p class="sub">Application mobile Maranatha — Église CEMM &nbsp;|&nbsp; En vigueur depuis le 16 juin 2026</p>
-
-  <h2>1. Qui sommes-nous ?</h2>
-  <p>Cette application est publiée par l'Église du Centre d'Évangélisation Maranatha Ministère (CEMM). Pour toute question : <a href="mailto:contact@cemm-eglisemaranatha.site">contact@cemm-eglisemaranatha.site</a></p>
-
-  <h2>2. Données collectées</h2>
-  <p>L'application Maranatha <strong>ne collecte aucune donnée personnelle</strong> directement. Elle affiche le contenu de notre site web (sermons, prières, études bibliques) via un navigateur intégré.</p>
-  <p>Notre site web peut utiliser des cookies techniques nécessaires à son fonctionnement (session, préférences). Aucun cookie publicitaire ou de traçage tiers n'est utilisé.</p>
-
-  <h2>3. Permissions demandées</h2>
-  <ul>
-    <li><strong>Internet</strong> — pour charger les sermons et le contenu du ministère.</li>
-    <li><strong>Notifications</strong> — pour vous alerter lors d'un culte ou sermon en direct (optionnel, vous pouvez refuser).</li>
-    <li><strong>Service en arrière-plan</strong> — pour continuer la lecture audio d'un sermon même lorsque l'écran est éteint.</li>
-  </ul>
-  <p>Aucune permission d'accès à vos contacts, photos, localisation ou microphone n'est demandée.</p>
-
-  <h2>4. Partage des données</h2>
-  <p>Nous ne vendons, ne louons et ne partageons aucune donnée avec des tiers. Aucune régie publicitaire n'est intégrée dans l'application.</p>
-
-  <h2>5. Stockage et sécurité</h2>
-  <p>Les données de navigation (contenu des pages) transitent entre votre appareil et nos serveurs via une connexion chiffrée HTTPS. Nous ne stockons aucune information personnelle vous concernant.</p>
-
-  <h2>6. Enfants</h2>
-  <p>Notre application est destinée à un public général. Nous ne collectons sciemment aucune donnée d'enfants de moins de 13 ans.</p>
-
-  <h2>7. Vos droits</h2>
-  <p>Conformément au Règlement Général sur la Protection des Données (RGPD), vous avez le droit d'accès, de rectification et de suppression de vos données. Contactez-nous à <a href="mailto:contact@cemm-eglisemaranatha.site">contact@cemm-eglisemaranatha.site</a> pour toute demande.</p>
-
-  <h2>8. Modifications</h2>
-  <p>Cette politique peut être mise à jour. Toute modification sera publiée sur cette page avec une nouvelle date d'entrée en vigueur.</p>
-
-  <div class="footer">© 2026 Église CEMM — Maranatha &nbsp;|&nbsp; www.cemm-eglisemaranatha.site</div>
-</body>
-</html>`);
+  <p class="sub">Application Maranatha — mise à jour du 30 juillet 2026</p>
+  <h2>Responsable</h2>
+  <p>L'application est gérée par la Communauté des Églises Missionnaires Maranatha.</p>
+  <h2>Données utilisées</h2>
+  <div class="card"><p>Selon les fonctions utilisées, l'application peut enregistrer un nom, un numéro de téléphone, un pays, une adresse e-mail facultative, un token de notification et les contenus envoyés volontairement, par exemple les commentaires ou demandes de prière.</p></div>
+  <h2>Finalités</h2>
+  <ul><li>gérer les membres et leurs préférences;</li><li>envoyer les notifications de prédication;</li><li>afficher les programmes et contenus de l'église;</li><li>répondre aux commentaires et demandes.</li></ul>
+  <h2>Permissions mobiles</h2>
+  <p>Internet, notifications, vibration, réveil de l'écran pour les alertes importantes et lecture audio en arrière-plan. L'application ne demande pas l'accès aux contacts, à la localisation ou au microphone.</p>
+  <h2>Conservation et sécurité</h2>
+  <p>Les échanges utilisent HTTPS. Les secrets d'administration sont conservés sur le serveur. Les notes personnelles sauvegardées localement restent sur l'appareil.</p>
+  <h2>Suppression ou correction</h2>
+  <p>Pour demander la correction ou la suppression de vos données, contactez l'administration de l'église.</p>
+  <div class="footer">© 2026 Communauté des Églises Missionnaires Maranatha</div>
+</main></body></html>`);
 });
 
-// ── Route racine : injecte flutter-audio.js dans index.html ────────────
-app.get('/', (req, res) => {
+app.get('/', (_req, res) => {
   try {
     const filePath = path.join(__dirname, 'public', 'index.html');
     let html = fs.readFileSync(filePath, 'utf8');
     html = html.replace(
       '</body>',
-      '<script src="/flutter-audio.js?v=20260616d"></script></body>'
+      `<script src="/flutter-audio.js?v=${VERSION}"></script></body>`,
     );
-    res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-    res.send(html);
-  } catch (e) {
-    res.status(500).send('Erreur serveur : ' + e.message);
+    return res.type('html').send(html);
+  } catch (error) {
+    console.error('[root]', error.message);
+    return res.status(500).send('Interface temporairement indisponible');
   }
 });
 
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public'), { maxAge: '1h' }));
 
-const adminAuth = (req, res, next) => {
-  const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'maranatha2026';
-  const pwd = req.headers['x-admin-password'];
-  if (pwd !== ADMIN_PASSWORD) return res.status(401).json({ error: 'Non autorisé' });
-  next();
-};
-
-app.get('/api/admin/verify', adminAuth, (req, res) => res.json({ ok: true }));
-
-app.use('/api/users',    userRoutes);
-app.use('/api/sermons',  sermonRoutes);
-app.use('/api/settings', settingsRoutes);
-app.use('/api/comments', commentRoutes);
-app.use('/api/membres',  membreRoutes);
-app.use('/api/prieres',  priereRoutes);
-app.use('/api/etudes',   etudeRoutes);
-app.use('/api/livres',   livreRoutes);
-app.use('/api/videos',   videoRoutes);
-app.use('/api/bible',    bibleRoutes);
-
-require('./utils/scheduler');
-
-app.get('/admin', (req, res) => {
+app.get('/admin', (_req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
+app.get('/api/admin/verify', adminOnly, (_req, res) => res.json({ ok: true }));
 
-app.get('/api/health', (req, res) => {
-  const states = { 0: 'disconnected', 1: 'connected', 2: 'connecting', 3: 'disconnecting' };
-  res.json({ status: 'ok', version: '20260616d', mongo: states[mongoose.connection.readyState] || 'unknown' });
+app.use('/api/users', userRoutes);
+app.use('/api/sermons', sermonRoutes);
+app.use('/api/settings', settingsRoutes);
+app.use('/api/comments', commentRoutes);
+app.use('/api/membres', membreRoutes);
+app.use('/api/prieres', priereRoutes);
+app.use('/api/etudes', etudeRoutes);
+app.use('/api/livres', livreRoutes);
+app.use('/api/videos', videoRoutes);
+app.use('/api/bible', bibleRoutes);
+
+app.get('/api/health', (_req, res) => {
+  const states = {
+    0: 'disconnected',
+    1: 'connected',
+    2: 'connecting',
+    3: 'disconnecting',
+  };
+  res.json({
+    status: mongoose.connection.readyState === 1 ? 'ok' : 'degraded',
+    version: VERSION,
+    database: states[mongoose.connection.readyState] || 'unknown',
+  });
 });
 
-const PORT = process.env.PORT || 5000;
-const MONGO_URI = process.env.MONGO_URI;
+app.use('/api', (_req, res) => {
+  res.status(404).json({ error: 'Route API introuvable' });
+});
 
-if (!MONGO_URI) { console.error('ERREUR FATALE : MONGO_URI non definie !'); process.exit(1); }
+app.use((error, _req, res, _next) => {
+  console.error('[server]', error.message);
+  res.status(error.message === 'Origine non autorisée' ? 403 : 500).json({
+    error: error.message === 'Origine non autorisée'
+      ? error.message
+      : 'Erreur interne du serveur',
+  });
+});
 
-mongoose.connect(MONGO_URI, { serverSelectionTimeoutMS: 10000, socketTimeoutMS: 45000 })
-  .then(() => {
-    console.log('MongoDB connecte');
-    app.listen(PORT, () => console.log('Serveur Maranatha v20260616d sur port ' + PORT));
-  })
-  .catch(err => { console.error('Erreur MongoDB :', err.message); process.exit(1); });
+async function start() {
+  if (!MONGO_URI) {
+    console.error('ERREUR FATALE : MONGO_URI non définie');
+    process.exit(1);
+  }
+
+  try {
+    mongoose.set('strictQuery', true);
+    await mongoose.connect(MONGO_URI, {
+      serverSelectionTimeoutMS: 15000,
+      socketTimeoutMS: 45000,
+      maxPoolSize: 10,
+    });
+
+    console.log('MongoDB connecté');
+    require('./utils/scheduler');
+
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`Serveur Maranatha v${VERSION} sur le port ${PORT}`);
+    });
+  } catch (error) {
+    console.error('Erreur MongoDB :', error.message);
+    process.exit(1);
+  }
+}
+
+async function shutdown(signal) {
+  console.log(`${signal} reçu, arrêt du serveur…`);
+  try {
+    await mongoose.connection.close();
+  } finally {
+    process.exit(0);
+  }
+}
+
+process.once('SIGTERM', () => shutdown('SIGTERM'));
+process.once('SIGINT', () => shutdown('SIGINT'));
+
+start();

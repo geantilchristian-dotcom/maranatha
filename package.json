@@ -1,7 +1,16 @@
 {
+  "name": "maranatha-server",
+  "version": "1.0.1",
+  "private": true,
+  "description": "Serveur et interface de la Communauté des Églises Missionnaires Maranatha",
+  "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "node --watch server.js",
+    "check": "node --check server.js && node scripts/check-project.js"
+  },
+  "engines": {
+    "node": ">=20 <23"
   },
   "dependencies": {
     "cloudinary": "^2.5.1",

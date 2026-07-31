@@ -2,11 +2,7 @@ const express = require('express');
 const router  = express.Router();
 const Membre  = require('../models/Membre');
 
-function adminOnly(req, res, next) {
-  if (req.headers['x-admin-password'] !== process.env.ADMIN_PASSWORD)
-    return res.status(401).json({ error: 'Non autorisé' });
-  next();
-}
+const adminOnly = require('../utils/adminAuth');
 
 // GET /api/membres/phone/:tel — connexion par numéro
 router.get('/phone/:tel', async (req, res) => {

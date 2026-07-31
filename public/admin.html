@@ -450,6 +450,9 @@
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
         Planifier une nouvelle prédication
       </div>
+      <div style="background:rgba(212,175,55,.08);border:1px solid rgba(212,175,55,.22);border-radius:14px;padding:14px 16px;margin-bottom:14px;color:rgba(255,255,255,.76);font-size:13px;line-height:1.55">
+        L’administrateur choisit la date et l’heure. Dès la validation, chaque téléphone autorisé enregistre une alarme locale. À l’heure prévue, la prédication démarre automatiquement, même si l’application est fermée.
+      </div>
       <div class="card">
         <div class="form-grid">
           <div class="form-group full">
@@ -954,13 +957,25 @@
   function initDateAuto() {
     const champ = document.getElementById('f-date');
     if (!champ) return;
-    champ.value = dateLocaleISO(new Date());
+
+    const actualiserDate = () => {
+      const maintenant = Date.now();
+      champ.min = dateLocaleISO(new Date(maintenant + 60 * 1000));
+      if (!_dateManuelle) {
+        champ.value = dateLocaleISO(new Date(maintenant + 5 * 60 * 1000));
+      }
+    };
+
+    actualiserDate();
     champ.addEventListener('input', () => { _dateManuelle = true; });
-    setInterval(() => { if (!_dateManuelle) champ.value = dateLocaleISO(new Date()); }, 60000);
+    setInterval(actualiserDate, 60000);
   }
   function resetDateAuto() {
     _dateManuelle = false;
-    document.getElementById('f-date').value = dateLocaleISO(new Date());
+    const champ = document.getElementById('f-date');
+    const maintenant = Date.now();
+    champ.min = dateLocaleISO(new Date(maintenant + 60 * 1000));
+    champ.value = dateLocaleISO(new Date(maintenant + 5 * 60 * 1000));
   }
 
   // ===== LOGIN =====
@@ -1326,7 +1341,7 @@
       if (res.ok) {
         document.getElementById('progress-fill').style.width = '100%';
         document.getElementById('progress-text').textContent = 'Upload terminé !';
-        toast('Prédication planifiée !', 'success');
+        toast('Prédication programmée et envoyée aux téléphones !', 'success');
         document.getElementById('f-titre').value = '';
         document.getElementById('f-desc').value = '';
         retirerFichier(); resetDateAuto(); chargerTout();

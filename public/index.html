@@ -14,20 +14,20 @@
     * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
     :root {
-      --primary:    #5C5CFF;
-      --primary-lt: #EEEEFF;
+      --primary:    #C0001A;
+      --primary-lt: #FFF0F2;
       --green:      #22A87A;
       --green-lt:   #E5F6EF;
       --red:        #E84040;
       --red-lt:     #FDEAEA;
       --orange:     #F5A623;
       --orange-lt:  #FEF5E6;
-      --bg:         #F4F4FB;
+      --bg:         #F6F5F9;
       --card:       #FFFFFF;
-      --text:       #1A1A2E;
-      --text-sub:   #6B6B8A;
-      --text-muted: #AEAEC2;
-      --border:     #EBEBF5;
+      --text:       #172033;
+      --text-sub:   #687084;
+      --text-muted: #A4A9B8;
+      --border:     #E9E7EF;
       --nav-h:      76px;
       --radius:     16px;
       --safe-top:   env(safe-area-inset-top, 0px);
@@ -38,8 +38,11 @@
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
-      max-width: 430px;
+      max-width: 480px;
       margin: 0 auto;
+      position: relative;
+      overflow-x: hidden;
+      box-shadow: 0 0 42px rgba(23,32,51,0.12);
     }
 
 
@@ -249,6 +252,8 @@
     }
     .hdr-logo {
       width: 46px; height: 46px; flex-shrink: 0; overflow: hidden;
+      background: #fff; border-radius: 11px; padding: 3px;
+      box-shadow: 0 4px 12px rgba(50,0,8,.2);
     }
     .hdr-logo img { width: 100%; height: 100%; object-fit: contain; }
     .hdr-church-name {
@@ -532,7 +537,7 @@
     .membre-quick-btn {
       grid-column: 1 / -1;
       display: flex; align-items: center; gap: 12px;
-      background: linear-gradient(135deg, #1a1040, #2d1b6e);
+      background: linear-gradient(135deg, #7A0015, #C0001A);
       border-radius: 14px; padding: 12px 16px; cursor: pointer;
       box-shadow: 0 2px 10px rgba(26,16,64,0.18);
       transition: opacity .15s;
@@ -626,7 +631,7 @@
     }
     .prog-detail-overlay.open { display: flex; }
     .prog-detail-sheet {
-      width: 100%; max-width: 430px;
+      width: 100%; max-width: 480px;
       background: #fff; border-radius: 24px 24px 0 0;
       max-height: 88vh; overflow-y: auto;
       animation: slideUp .28s ease;
@@ -830,7 +835,7 @@
     .bottom-nav {
       position: fixed; bottom: 0;
       left: 50%; transform: translateX(-50%);
-      width: 100%; max-width: 430px;
+      width: 100%; max-width: 480px;
       height: var(--nav-h);
       background: #C0001A;
       border-top: none;
@@ -891,7 +896,7 @@
     }
     .modal-overlay.open { opacity: 1; pointer-events: all; }
     .modal-sheet {
-      width: 100%; max-width: 430px;
+      width: 100%; max-width: 480px;
       background: #fff; border-radius: 24px 24px 0 0;
       padding: 20px 20px 36px;
       transform: translateY(40px); transition: transform .3s;
@@ -2263,11 +2268,11 @@
       splash.classList.add('fade-out');
       setTimeout(() => {
         if (splash.parentNode) splash.remove();
-        if (!localStorage.getItem('maranatha_auth_done')) afficherAuthScreen();
       }, 500);
     }
 
-    let duree = 2500;
+    const mobileShell = navigator.userAgent.includes('MaranathaMobile');
+    let duree = mobileShell ? 120 : 1200;
     let hideTimer = setTimeout(_cacheSplash, duree); // fallback garanti
 
     // ── Fetch config avec timeout 3s ────────────────────────────────────────
@@ -2279,7 +2284,7 @@
       if (res.ok) {
         const cfg = await res.json();
         if (cfg.logoUrl) document.getElementById('splash-logo').src = cfg.logoUrl;
-        if (cfg.dureeSplash && cfg.dureeSplash * 1000 !== duree) {
+        if (!mobileShell && cfg.dureeSplash && cfg.dureeSplash * 1000 !== duree) {
           clearTimeout(hideTimer);
           duree = cfg.dureeSplash * 1000;
           hideTimer = setTimeout(_cacheSplash, duree);
@@ -2858,9 +2863,12 @@
   async function chargerSermons() {
     try {
       const res = await fetch(`${API}/sermons`);
-      sermons = await res.json();
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      sermons = Array.isArray(data) ? data : [];
       afficherAccueil();
     } catch(e) {
+      sermons = [];
       document.getElementById('home-sermons').innerHTML =
         `<div class="empty-state"><p>Vérifiez votre connexion</p></div>`;
     }
