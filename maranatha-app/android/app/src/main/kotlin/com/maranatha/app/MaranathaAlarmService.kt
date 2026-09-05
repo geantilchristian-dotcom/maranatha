@@ -1,5 +1,4 @@
 package com.maranatha.app
-
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -16,343 +15,649 @@ import android.os.Build
 import android.os.IBinder
 import android.os.PowerManager
 import android.util.Log
-
 class MaranathaAlarmService : Service() {
     companion object {
         const val CHANNEL_ID = "maranatha_reveil_spirituel"
         const val NOTIFICATION_ID = 5101
-        const val ACTION_START = "com.maranatha.app.REVEIL_START"
-        const val ACTION_STOP = "com.maranatha.app.REVEIL_STOP"
-        const val ACTION_SNOOZE = "com.maranatha.app.REVEIL_SNOOZE"
-        private const val TAG = "MaranathaAlarm"
+        const val ACTION_START =
+            "com.maranatha.app.REVEIL_START"
+        const val ACTION_STOP =
+            "com.maranatha.app.REVEIL_STOP"
+        const val ACTION_SNOOZE =
+            "com.maranatha.app.REVEIL_SNOOZE"
+        private const val TAG =
+            "MaranathaAlarm"
     }
-
     private var mediaPlayer: MediaPlayer? = null
     private var wakeLock: PowerManager.WakeLock? = null
     private var currentAlarm: SermonAlarm? = null
     private var audioManager: AudioManager? = null
     private var currentSource: String = ""
-
-    private val focusListener = AudioManager.OnAudioFocusChangeListener { change ->
-        if (change == AudioManager.AUDIOFOCUS_LOSS) {
-            stopAlarm()
+    private val focusListener =
+        AudioManager.OnAudioFocusChangeListener { change ->
+            Log.i(
+                TAG,
+                "AUDIO_FOCUS_CHANGE change=$change"
+            )
+            if (
+                change ==
+                AudioManager.AUDIOFOCUS_LOSS
+            ) {
+                stopAlarm()
+            }
         }
-    }
-
     override fun onCreate() {
         super.onCreate()
         createNotificationChannel()
-        audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        // IMPORTANT :
+        // le service devient foreground immédiatement.
+        enterForegroundImmediately()
+        audioManager =
+            getSystemService(
+                Context.AUDIO_SERVICE
+            ) as AudioManager
     }
-
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+    override fun onStartCommand(
+        intent: Intent?,
+        flags: Int,
+        startId: Int
+    ): Int {
         when (intent?.action) {
             ACTION_STOP -> {
                 stopAlarm()
                 return START_NOT_STICKY
             }
-
             ACTION_START -> {
-                val alarm = with(AlarmScheduler) { intent.readAlarm() }
-                    ?: return START_NOT_STICKY
+                val alarm =
+                    with(AlarmScheduler) {
+                        intent.readAlarm()
+                    }
+                if (alarm == null) {
+                    stopAlarm()
+                    return START_NOT_STICKY
+                }
                 startAlarm(alarm)
+                return START_NOT_STICKY
+            }
+            else -> {
+                stopAlarm()
+                return START_NOT_STICKY
             }
         }
-
-        return START_NOT_STICKY
     }
-
-    private fun startAlarm(alarm: SermonAlarm) {
-        if (!AlarmStore.isModeEnabled(this)) {
-            stopSelf()
-            return
-        }
-
+    private fun startAlarm(
+        alarm: SermonAlarm
+    ) {
+        Log.i(
+            TAG,
+            "AUDIO_START_ALARM id=${alarm.id} title=${alarm.title}"
+        )
         if (
-            currentAlarm?.id == alarm.id ||
-            AlarmStore.wasStartedRecently(this, alarm.id, 20 * 60 * 1000L)
+            !AlarmStore.isModeEnabled(this)
         ) {
+            Log.w(
+                TAG,
+                "AUDIO_START_ABORTED mode_disabled id=${alarm.id}"
+            )
+            stopAlarm()
             return
         }
-
+        if (
+            currentAlarm?.id == alarm.id
+        ) {
+            Log.i(
+                TAG,
+                "AUDIO_START_IGNORED already_current id=${alarm.id}"
+            )
+            return
+        }
+        if (
+            AlarmStore.wasStartedRecently(
+                this,
+                alarm.id,
+                20 * 60 * 1000L
+            )
+        ) {
+            Log.i(
+                TAG,
+                "AUDIO_START_IGNORED recently_started id=${alarm.id}"
+            )
+            stopAlarm()
+            return
+        }
         releasePlayer()
         currentAlarm = alarm
         acquireWakeLock()
-
-        val notification = buildNotification(
-            alarm,
-            "La prédication commence automatiquement",
-        )
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        val notification =
+            buildNotification(
+                alarm,
+                "La prédication commence automatiquement"
+            )
+        if (
+            Build.VERSION.SDK_INT >=
+            Build.VERSION_CODES.Q
+        ) {
             startForeground(
                 NOTIFICATION_ID,
                 notification,
-                ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK,
+                ServiceInfo
+                    .FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
             )
         } else {
-            startForeground(NOTIFICATION_ID, notification)
+            startForeground(
+                NOTIFICATION_ID,
+                notification
+            )
         }
-
         @Suppress("DEPRECATION")
-        audioManager?.requestAudioFocus(
-            focusListener,
-            AudioManager.STREAM_ALARM,
-            AudioManager.AUDIOFOCUS_GAIN_TRANSIENT,
+        val focusResult =
+            audioManager?.requestAudioFocus(
+                focusListener,
+                AudioManager.STREAM_ALARM,
+                AudioManager.AUDIOFOCUS_GAIN_TRANSIENT
+            )
+        Log.i(
+            TAG,
+            "AUDIO_FOCUS_REQUEST result=$focusResult granted=${focusResult == AudioManager.AUDIOFOCUS_REQUEST_GRANTED}"
         )
-
-        val source = AudioCache.sourceFor(applicationContext, alarm)
-        preparePlayer(alarm, source, allowRemoteFallback = source != alarm.audioUrl)
+        val source =
+            AudioCache.sourceFor(
+                applicationContext,
+                alarm
+            )
+        Log.i(
+            TAG,
+            "AUDIO_SOURCE id=${alarm.id} source=$source local=${source != alarm.audioUrl}"
+        )
+        preparePlayer(
+            alarm,
+            source,
+            allowRemoteFallback =
+                source != alarm.audioUrl
+        )
     }
-
     private fun preparePlayer(
         alarm: SermonAlarm,
         source: String,
-        allowRemoteFallback: Boolean,
+        allowRemoteFallback: Boolean
     ) {
         releasePlayer()
         currentSource = source
-
+        Log.i(
+            TAG,
+            "AUDIO_PREPARING id=${alarm.id} source=$source remoteFallback=$allowRemoteFallback"
+        )
         try {
-            mediaPlayer = MediaPlayer().apply {
-                setAudioAttributes(
-                    AudioAttributes.Builder()
-                        .setUsage(AudioAttributes.USAGE_ALARM)
-                        .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
-                        .build(),
-                )
-                setWakeMode(applicationContext, PowerManager.PARTIAL_WAKE_LOCK)
-                setDataSource(source)
-
-                setOnPreparedListener { player ->
-                    AlarmStore.markStarted(applicationContext, alarm.id)
-                    player.start()
-                    updateNotification(alarm, "Prédication en cours")
-                }
-
-                setOnCompletionListener {
-                    stopAlarm()
-                }
-
-                setOnErrorListener { _, what, extra ->
-                    Log.e(TAG, "Lecture impossible what=$what extra=$extra source=$currentSource")
-
-                    if (allowRemoteFallback && alarm.audioUrl.isNotBlank()) {
-                        AudioCache.remove(applicationContext, alarm.id)
-                        preparePlayer(
-                            alarm,
-                            alarm.audioUrl,
-                            allowRemoteFallback = false,
+            mediaPlayer =
+                MediaPlayer().apply {
+                    setAudioAttributes(
+                        AudioAttributes.Builder()
+                            .setUsage(
+                                AudioAttributes.USAGE_ALARM
+                            )
+                            .setContentType(
+                                AudioAttributes.CONTENT_TYPE_SPEECH
+                            )
+                            .build()
+                    )
+                    setWakeMode(
+                        applicationContext,
+                        PowerManager.PARTIAL_WAKE_LOCK
+                    )
+                    setDataSource(source)
+                    setOnPreparedListener { player ->
+                        Log.i(
+                            TAG,
+                            "AUDIO_ON_PREPARED id=${alarm.id} durationMs=${player.duration} source=$currentSource"
                         )
-                    } else {
-                        updateNotification(
-                            alarm,
-                            "Impossible de charger l’audio. Vérifiez la connexion Internet.",
-                        )
+                        try {
+                            player.start()
+                            Log.i(
+                                TAG,
+                                "AUDIO_PLAYER_START id=${alarm.id}"
+                            )
+                            Log.i(
+                                TAG,
+                                "AUDIO_IS_PLAYING id=${alarm.id} playing=${player.isPlaying}"
+                            )
+                            AlarmStore.markStarted(
+                                applicationContext,
+                                alarm.id
+                            )
+                            updateNotification(
+                                alarm,
+                                "Prédication en cours"
+                            )
+                        } catch (
+                            error: Exception
+                        ) {
+                            Log.e(
+                                TAG,
+                                "AUDIO_ERROR player.start source=$currentSource",
+                                error
+                            )
+                            updateNotification(
+                                alarm,
+                                "Impossible de démarrer l’audio"
+                            )
+                        }
                     }
-                    true
+                    setOnCompletionListener {
+                        Log.i(
+                            TAG,
+                            "AUDIO_COMPLETION id=${alarm.id} source=$currentSource"
+                        )
+                        stopAlarm()
+                    }
+                    setOnErrorListener {
+                            _,
+                            what,
+                            extra ->
+                        Log.e(
+                            TAG,
+                            "AUDIO_ERROR what=$what extra=$extra source=$currentSource"
+                        )
+                        if (
+                            allowRemoteFallback &&
+                            alarm.audioUrl.isNotBlank()
+                        ) {
+                            AudioCache.remove(
+                                applicationContext,
+                                alarm.id
+                            )
+                            preparePlayer(
+                                alarm,
+                                alarm.audioUrl,
+                                false
+                            )
+                        } else {
+                            updateNotification(
+                                alarm,
+                                "Impossible de charger l’audio. Vérifiez la connexion Internet."
+                            )
+                        }
+                        true
+                    }
+                    prepareAsync()
                 }
-
-                prepareAsync()
-            }
-        } catch (error: Exception) {
-            Log.e(TAG, "Erreur de préparation audio", error)
-
-            if (allowRemoteFallback && alarm.audioUrl.isNotBlank()) {
-                AudioCache.remove(applicationContext, alarm.id)
+        } catch (
+            error: Exception
+        ) {
+            Log.e(
+                TAG,
+                "AUDIO_ERROR preparation source=$currentSource",
+                error
+            )
+            if (
+                allowRemoteFallback &&
+                alarm.audioUrl.isNotBlank()
+            ) {
+                AudioCache.remove(
+                    applicationContext,
+                    alarm.id
+                )
                 preparePlayer(
                     alarm,
                     alarm.audioUrl,
-                    allowRemoteFallback = false,
+                    false
                 )
             } else {
                 updateNotification(
                     alarm,
-                    "Impossible de charger l’audio. Vérifiez la connexion Internet.",
+                    "Impossible de charger l’audio. Vérifiez la connexion Internet."
                 )
             }
         }
     }
-
-    private fun buildNotification(alarm: SermonAlarm, text: String): Notification {
-        val activityIntent = Intent(this, AlarmActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or
-                Intent.FLAG_ACTIVITY_CLEAR_TOP or
-                Intent.FLAG_ACTIVITY_SINGLE_TOP
-            with(AlarmScheduler) { putAlarm(alarm) }
-        }
-        val activityPendingIntent = PendingIntent.getActivity(
-            this,
-            alarm.id.hashCode(),
-            activityIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-        )
-
-        val stopPendingIntent = actionPendingIntent(alarm, ACTION_STOP, 1)
-        val snoozePendingIntent = actionPendingIntent(alarm, ACTION_SNOOZE, 2)
-
-        val builder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            Notification.Builder(this, CHANNEL_ID)
-        } else {
-            @Suppress("DEPRECATION")
-            Notification.Builder(this)
-        }
-
+    private fun buildNotification(
+        alarm: SermonAlarm,
+        text: String
+    ): Notification {
+        val activityIntent =
+            Intent(
+                this,
+                AlarmActivity::class.java
+            ).apply {
+                flags =
+                    Intent.FLAG_ACTIVITY_NEW_TASK or
+                    Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                    Intent.FLAG_ACTIVITY_SINGLE_TOP
+                with(AlarmScheduler) {
+                    putAlarm(alarm)
+                }
+            }
+        val activityPendingIntent =
+            PendingIntent.getActivity(
+                this,
+                alarm.id.hashCode(),
+                activityIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or
+                    PendingIntent.FLAG_IMMUTABLE
+            )
+        val stopPendingIntent =
+            actionPendingIntent(
+                alarm,
+                ACTION_STOP,
+                1
+            )
+        val snoozePendingIntent =
+            actionPendingIntent(
+                alarm,
+                ACTION_SNOOZE,
+                2
+            )
+        val builder =
+            if (
+                Build.VERSION.SDK_INT >=
+                Build.VERSION_CODES.O
+            ) {
+                Notification.Builder(
+                    this,
+                    CHANNEL_ID
+                )
+            } else {
+                @Suppress("DEPRECATION")
+                Notification.Builder(this)
+            }
         return builder
-            .setSmallIcon(R.drawable.ic_notification)
+            .setSmallIcon(
+                R.drawable.ic_notification
+            )
             .setContentTitle(alarm.title)
             .setContentText(text)
-            .setContentIntent(activityPendingIntent)
-            .setFullScreenIntent(activityPendingIntent, true)
-            .setCategory(Notification.CATEGORY_ALARM)
-            .setPriority(Notification.PRIORITY_MAX)
-            .setVisibility(Notification.VISIBILITY_PUBLIC)
+            .setContentIntent(
+                activityPendingIntent
+            )
+            .setFullScreenIntent(
+                activityPendingIntent,
+                true
+            )
+            .setCategory(
+                Notification.CATEGORY_ALARM
+            )
+            .setPriority(
+                Notification.PRIORITY_MAX
+            )
+            .setVisibility(
+                Notification.VISIBILITY_PUBLIC
+            )
             .setOngoing(true)
             .setAutoCancel(false)
-            .setColor(Color.rgb(213, 174, 50))
+            .setColor(
+                Color.rgb(
+                    213,
+                    174,
+                    50
+                )
+            )
             .addAction(
                 Notification.Action.Builder(
                     R.drawable.ic_notification,
                     "Rappeler dans 5 min",
-                    snoozePendingIntent,
-                ).build(),
+                    snoozePendingIntent
+                ).build()
             )
             .addAction(
                 Notification.Action.Builder(
                     R.drawable.ic_notification,
                     "Arrêter",
-                    stopPendingIntent,
-                ).build(),
+                    stopPendingIntent
+                ).build()
             )
             .build()
     }
-
     private fun actionPendingIntent(
         alarm: SermonAlarm,
         action: String,
-        suffix: Int,
+        suffix: Int
     ): PendingIntent {
-        val intent = Intent(this, AlarmActionReceiver::class.java).apply {
-            this.action = action
-            with(AlarmScheduler) { putAlarm(alarm) }
-        }
-
+        val intent =
+            Intent(
+                this,
+                AlarmActionReceiver::class.java
+            ).apply {
+                this.action = action
+                with(AlarmScheduler) {
+                    putAlarm(alarm)
+                }
+            }
         return PendingIntent.getBroadcast(
             this,
             alarm.id.hashCode() xor suffix,
             intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+            PendingIntent.FLAG_UPDATE_CURRENT or
+                PendingIntent.FLAG_IMMUTABLE
         )
     }
-
-    private fun updateNotification(alarm: SermonAlarm, text: String) {
-        val manager = getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
-        manager?.notify(NOTIFICATION_ID, buildNotification(alarm, text))
+    private fun updateNotification(
+        alarm: SermonAlarm,
+        text: String
+    ) {
+        val manager =
+            getSystemService(
+                Context.NOTIFICATION_SERVICE
+            ) as? NotificationManager
+        manager?.notify(
+            NOTIFICATION_ID,
+            buildNotification(
+                alarm,
+                text
+            )
+        )
     }
-
+    private fun enterForegroundImmediately() {
+        val builder =
+            if (
+                Build.VERSION.SDK_INT >=
+                Build.VERSION_CODES.O
+            ) {
+                Notification.Builder(
+                    this,
+                    CHANNEL_ID
+                )
+            } else {
+                @Suppress("DEPRECATION")
+                Notification.Builder(this)
+            }
+        val notification =
+            builder
+                .setSmallIcon(
+                    R.drawable.ic_notification
+                )
+                .setContentTitle(
+                    "Maranatha"
+                )
+                .setContentText(
+                    "Préparation de la prédication"
+                )
+                .setCategory(
+                    Notification.CATEGORY_SERVICE
+                )
+                .setOngoing(true)
+                .build()
+        if (
+            Build.VERSION.SDK_INT >=
+            Build.VERSION_CODES.Q
+        ) {
+            startForeground(
+                NOTIFICATION_ID,
+                notification,
+                ServiceInfo
+                    .FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
+            )
+        } else {
+            startForeground(
+                NOTIFICATION_ID,
+                notification
+            )
+        }
+    }
     private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
-
-        val channel = NotificationChannel(
-            CHANNEL_ID,
-            "Réveil spirituel Maranatha",
-            NotificationManager.IMPORTANCE_HIGH,
-        ).apply {
-            description = "Démarre automatiquement les prédications programmées"
-            lockscreenVisibility = Notification.VISIBILITY_PUBLIC
-            setSound(null, null)
-            enableVibration(true)
-            vibrationPattern = longArrayOf(0L, 500L, 200L, 500L)
+        if (
+            Build.VERSION.SDK_INT <
+            Build.VERSION_CODES.O
+        ) {
+            return
         }
-
-        (getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager)
-            ?.createNotificationChannel(channel)
+        val channel =
+            NotificationChannel(
+                CHANNEL_ID,
+                "Réveil spirituel Maranatha",
+                NotificationManager
+                    .IMPORTANCE_HIGH
+            ).apply {
+                description =
+                    "Démarre automatiquement les prédications programmées"
+                lockscreenVisibility =
+                    Notification.VISIBILITY_PUBLIC
+                setSound(
+                    null,
+                    null
+                )
+                enableVibration(true)
+                vibrationPattern =
+                    longArrayOf(
+                        0L,
+                        500L,
+                        200L,
+                        500L
+                    )
+            }
+        (
+            getSystemService(
+                Context.NOTIFICATION_SERVICE
+            ) as? NotificationManager
+        )?.createNotificationChannel(
+            channel
+        )
     }
-
     private fun acquireWakeLock() {
-        if (wakeLock?.isHeld == true) return
-
-        val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
-        wakeLock = powerManager.newWakeLock(
-            PowerManager.PARTIAL_WAKE_LOCK,
-            "Maranatha:PredicationWakeLock",
-        ).apply {
-            setReferenceCounted(false)
-            acquire(4 * 60 * 60 * 1000L)
+        if (
+            wakeLock?.isHeld == true
+        ) {
+            return
         }
+        val powerManager =
+            getSystemService(
+                Context.POWER_SERVICE
+            ) as PowerManager
+        wakeLock =
+            powerManager.newWakeLock(
+                PowerManager.PARTIAL_WAKE_LOCK,
+                "Maranatha:PredicationWakeLock"
+            ).apply {
+                setReferenceCounted(false)
+                acquire(
+                    4 * 60 * 60 * 1000L
+                )
+            }
     }
-
     private fun releasePlayer() {
         val player = mediaPlayer
         mediaPlayer = null
         currentSource = ""
-
         if (player != null) {
             try {
-                player.setOnPreparedListener(null)
-                player.setOnCompletionListener(null)
-                player.setOnErrorListener(null)
+                player.setOnPreparedListener(
+                    null
+                )
+                player.setOnCompletionListener(
+                    null
+                )
+                player.setOnErrorListener(
+                    null
+                )
                 player.stop()
-            } catch (_error: Exception) {
-                // Le lecteur n’était pas encore prêt.
+            } catch (
+                _error: Exception
+            ) {
             }
-
             try {
                 player.reset()
-            } catch (_error: Exception) {
-                // Le lecteur était déjà libéré.
+            } catch (
+                _error: Exception
+            ) {
             }
-
             try {
                 player.release()
-            } catch (_error: Exception) {
-                // Rien d’autre à faire pendant l’arrêt.
+            } catch (
+                _error: Exception
+            ) {
             }
         }
     }
-
     private fun stopAlarm() {
-        val alarmToClean = currentAlarm
+        val alarmToClean =
+            currentAlarm
         releasePlayer()
         currentAlarm = null
-        if (alarmToClean != null) {
-            AudioCache.remove(this, alarmToClean.id)
+        if (
+            alarmToClean != null
+        ) {
+            AudioCache.remove(
+                this,
+                alarmToClean.id
+            )
         }
-
         @Suppress("DEPRECATION")
-        audioManager?.abandonAudioFocus(focusListener)
-
-        if (wakeLock?.isHeld == true) {
-            wakeLock?.release()
+        audioManager?.abandonAudioFocus(
+            focusListener
+        )
+        if (
+            wakeLock?.isHeld == true
+        ) {
+            try {
+                wakeLock?.release()
+            } catch (
+                _error: Exception
+            ) {
+            }
         }
         wakeLock = null
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            stopForeground(STOP_FOREGROUND_REMOVE)
+        if (
+            Build.VERSION.SDK_INT >=
+            Build.VERSION_CODES.N
+        ) {
+            stopForeground(
+                STOP_FOREGROUND_REMOVE
+            )
         } else {
             @Suppress("DEPRECATION")
             stopForeground(true)
         }
         stopSelf()
     }
-
     override fun onDestroy() {
-        val alarmToClean = currentAlarm
+        val alarmToClean =
+            currentAlarm
         releasePlayer()
         currentAlarm = null
-        if (alarmToClean != null) {
-            AudioCache.remove(this, alarmToClean.id)
+        if (
+            alarmToClean != null
+        ) {
+            AudioCache.remove(
+                this,
+                alarmToClean.id
+            )
         }
-
         @Suppress("DEPRECATION")
-        audioManager?.abandonAudioFocus(focusListener)
-
-        if (wakeLock?.isHeld == true) {
-            wakeLock?.release()
+        audioManager?.abandonAudioFocus(
+            focusListener
+        )
+        if (
+            wakeLock?.isHeld == true
+        ) {
+            try {
+                wakeLock?.release()
+            } catch (
+                _error: Exception
+            ) {
+            }
         }
         wakeLock = null
-
         super.onDestroy()
     }
-
-    override fun onBind(intent: Intent?): IBinder? = null
+    override fun onBind(
+        intent: Intent?
+    ): IBinder? = null
 }
