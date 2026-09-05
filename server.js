@@ -20,6 +20,18 @@ const bibleRoutes = require('./routes/bibleRoutes');
 const deviceRoutes = require('./routes/deviceRoutes');
 
 const app = express();
+// MARANATHA_DONS_PUBLIC_FIRST
+app.use(
+  "/api/dons",
+  express.json({ limit: "1mb" }),
+  require("./routes/donRoutes")
+);
+// MARANATHA_ADMIN_INBOX_PUBLIC_FIRST
+app.use(
+  "/api/admin-inbox",
+  express.json({ limit: "1mb" }),
+  require("./routes/adminInboxRoutes")
+);
 const PORT = Number(process.env.PORT || 5000);
 const MONGO_URI = process.env.MONGO_URI;
 const VERSION = '20260731-reveil-auto-v3';
@@ -45,6 +57,9 @@ app.use(
   }),
 );
 app.use(express.json({ limit: '5mb' }));
+
+// MARANATHA_ADMIN_INBOX_CAPTURE
+app.use(require('./utils/adminInboxCapture'));
 app.use(express.urlencoded({ extended: true, limit: '5mb' }));
 
 app.get('/politique-confidentialite', (_req, res) => {
@@ -77,6 +92,7 @@ app.get('/politique-confidentialite', (_req, res) => {
 </main></body></html>`);
 });
 
+
 app.get('/flutter-audio.js', (_req, res) => {
   res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
   res.sendFile(path.join(__dirname, 'public', 'flutter-audio.js'));
@@ -97,6 +113,8 @@ app.get('/', (_req, res) => {
     return res.status(500).send('Interface temporairement indisponible');
   }
 });
+
+// MARANATHA_KPAY_DONS
 
 app.use(express.static(path.join(__dirname, 'public'), { maxAge: '1h' }));
 

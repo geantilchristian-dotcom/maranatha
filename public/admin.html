@@ -1971,5 +1971,894 @@
   _now.setMinutes(_now.getMinutes() - _now.getTimezoneOffset());
   document.getElementById('f-date').min = _now.toISOString().slice(0, 16);
 </script>
+
+<!-- MARANATHA ADMIN INBOX START -->
+<style>
+#mai-bell {
+    position: fixed;
+    top: 15px;
+    right: 16px;
+    z-index: 99998;
+    width: 48px;
+    height: 48px;
+    border: 0;
+    border-radius: 50%;
+    background:
+        linear-gradient(
+            135deg,
+            #850018,
+            #d9163a
+        );
+    color: white;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    box-shadow:
+        0 8px 25px
+        rgba(116,0,20,.28);
+}
+#mai-bell svg {
+    width: 23px;
+    height: 23px;
+}
+#mai-badge {
+    position: absolute;
+    top: -3px;
+    right: -3px;
+    min-width: 21px;
+    height: 21px;
+    padding: 0 5px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    border-radius: 20px;
+    border: 2px solid white;
+    background: #ff2349;
+    color: white;
+    font-size: 10px;
+    font-weight: 900;
+}
+#mai-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 99997;
+    display: none;
+    background:
+        rgba(10,14,22,.48);
+    backdrop-filter:
+        blur(5px);
+}
+#mai-overlay.open {
+    display: block;
+}
+#mai-panel {
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    z-index: 99999;
+    width:
+        min(
+            430px,
+            calc(100vw - 24px)
+        );
+    height:
+        calc(100vh - 24px);
+    display: none;
+    overflow: hidden;
+    border-radius: 23px;
+    background: #f5f7fa;
+    box-shadow:
+        0 20px 70px
+        rgba(0,0,0,.30);
+}
+#mai-panel.open {
+    display: flex;
+    flex-direction: column;
+}
+.mai-header {
+    padding:
+        17px
+        17px
+        14px;
+    color: white;
+    background:
+        linear-gradient(
+            135deg,
+            #730014,
+            #b80026
+        );
+}
+.mai-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+.mai-title {
+    margin: 0;
+    font-size: 21px;
+    font-weight: 900;
+}
+.mai-subtitle {
+    margin-top: 3px;
+    font-size: 10px;
+    opacity: .78;
+}
+.mai-close {
+    width: 39px;
+    height: 39px;
+    border:
+        1px solid
+        rgba(255,255,255,.22);
+    border-radius: 50%;
+    background:
+        rgba(255,255,255,.10);
+    color: white;
+    font-size: 24px;
+}
+.mai-tools {
+    padding:
+        9px
+        12px;
+    display: flex;
+    gap: 7px;
+    background: white;
+    border-bottom:
+        1px solid #e6e9ee;
+}
+.mai-tool {
+    min-height: 35px;
+    padding:
+        0
+        11px;
+    border:
+        1px solid #e1e5eb;
+    border-radius: 11px;
+    background: white;
+    color: #5b6575;
+    font-size: 10px;
+    font-weight: 800;
+    cursor: pointer;
+}
+#mai-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+}
+.mai-empty {
+    margin-top: 35px;
+    padding: 25px;
+    text-align: center;
+    color: #8b95a5;
+    font-size: 12px;
+}
+.mai-card {
+    position: relative;
+    margin-bottom: 8px;
+    padding: 13px;
+    border:
+        1px solid #e4e8ee;
+    border-radius: 16px;
+    background: white;
+    box-shadow:
+        0 3px 12px
+        rgba(15,23,42,.035);
+}
+.mai-card.unread {
+    border-left:
+        4px solid #c60029;
+    background:
+        linear-gradient(
+            90deg,
+            #fff5f7,
+            white 18%
+        );
+}
+.mai-card-title {
+    padding-right: 45px;
+    color: #760016;
+    font-size: 13px;
+    font-weight: 900;
+}
+.mai-time {
+    margin-top: 3px;
+    color: #98a1ae;
+    font-size: 9px;
+}
+.mai-info {
+    margin-top: 8px;
+    display: grid;
+    gap: 4px;
+    color: #526074;
+    font-size: 11px;
+    line-height: 1.4;
+}
+.mai-info strong {
+    color: #252d3a;
+}
+.mai-message {
+    margin-top: 9px;
+    padding: 10px;
+    border-radius: 11px;
+    background: #f7f8fa;
+    color: #475469;
+    white-space: pre-wrap;
+    font-size: 11px;
+    line-height: 1.45;
+}
+.mai-read {
+    position: absolute;
+    top: 12px;
+    right: 11px;
+    border: 0;
+    border-radius: 9px;
+    padding:
+        5px
+        8px;
+    background: #f0f2f5;
+    color: #5e6877;
+    font-size: 8px;
+    font-weight: 800;
+    cursor: pointer;
+}
+.mai-amount {
+    margin-top: 8px;
+    color: #a00020;
+    font-size: 17px;
+    font-weight: 900;
+}
+@media (max-width: 600px) {
+    #mai-panel {
+        top: 0;
+        right: 0;
+        width: 100vw;
+        height: 100vh;
+        border-radius: 0;
+    }
+    #mai-bell {
+        top: 10px;
+        right: 10px;
+    }
+}
+</style>
+<button
+    id="mai-bell"
+    type="button"
+    title="Notifications des fideles"
+>
+    <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+    >
+        <path
+            d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"
+        ></path>
+        <path
+            d="M13.7 21a2 2 0 0 1-3.4 0"
+        ></path>
+    </svg>
+    <span id="mai-badge"></span>
+</button>
+<div id="mai-overlay"></div>
+<section id="mai-panel">
+    <header class="mai-header">
+        <div class="mai-top">
+            <div>
+                <h2 class="mai-title">
+                    Notifications
+                </h2>
+                <div class="mai-subtitle">
+                    Messages et demandes des fideles
+                </div>
+            </div>
+            <button
+                id="mai-close"
+                class="mai-close"
+                type="button"
+            >
+                &times;
+            </button>
+        </div>
+    </header>
+    <div class="mai-tools">
+        <button
+            id="mai-refresh"
+            class="mai-tool"
+            type="button"
+        >
+            Actualiser
+        </button>
+        <button
+            id="mai-read-all"
+            class="mai-tool"
+            type="button"
+        >
+            Tout marquer lu
+        </button>
+        <button
+            id="mai-alerts"
+            class="mai-tool"
+            type="button"
+        >
+            Alertes
+        </button>
+    </div>
+    <div id="mai-list">
+        <div class="mai-empty">
+            Chargement...
+        </div>
+    </div>
+</section>
+<script>
+(function () {
+    "use strict";
+    const bell =
+        document.getElementById(
+            "mai-bell"
+        );
+    const badge =
+        document.getElementById(
+            "mai-badge"
+        );
+    const panel =
+        document.getElementById(
+            "mai-panel"
+        );
+    const overlay =
+        document.getElementById(
+            "mai-overlay"
+        );
+    const list =
+        document.getElementById(
+            "mai-list"
+        );
+    const closeButton =
+        document.getElementById(
+            "mai-close"
+        );
+    const refreshButton =
+        document.getElementById(
+            "mai-refresh"
+        );
+    const readAllButton =
+        document.getElementById(
+            "mai-read-all"
+        );
+    const alertsButton =
+        document.getElementById(
+            "mai-alerts"
+        );
+    let password =
+        sessionStorage.getItem(
+            "maranatha_admin_inbox_password"
+        ) || "";
+    let firstLoad =
+        true;
+    let knownIds =
+        new Set();
+    function escapeHtml(value) {
+        return String(
+            value == null
+                ? ""
+                : value
+        )
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+        .replace(
+            /</g,
+            "&lt;"
+        )
+        .replace(
+            />/g,
+            "&gt;"
+        )
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+    }
+    function typeName(type) {
+        const names = {
+            temoignage:
+                "Nouveau temoignage",
+            commentaire:
+                "Nouveau commentaire",
+            membre:
+                "Nouvelle demande de membre",
+            priere:
+                "Nouvelle demande de priere",
+            don_initie:
+                "Don K-PAY initie",
+            don_confirme:
+                "Don K-PAY confirme",
+            offrande:
+                "Nouvelle offrande",
+            dime:
+                "Nouvelle dime",
+            don_mensuel:
+                "Don mensuel",
+            don_volontaire:
+                "Don volontaire"
+        };
+        return (
+            names[type] ||
+            "Nouvelle notification"
+        );
+    }
+    async function ensurePassword() {
+        if (password) {
+            return true;
+        }
+        const entered =
+            window.prompt(
+                "Mot de passe administrateur Maranatha"
+            );
+        if (!entered) {
+            return false;
+        }
+        password =
+            entered;
+        sessionStorage.setItem(
+            "maranatha_admin_inbox_password",
+            password
+        );
+        return true;
+    }
+    function headers() {
+        return {
+            "x-admin-password":
+                password
+        };
+    }
+    function updateBadge(number) {
+        const count =
+            Number(number) || 0;
+        if (count <= 0) {
+            badge.style.display =
+                "none";
+            badge.textContent =
+                "";
+            return;
+        }
+        badge.style.display =
+            "flex";
+        badge.textContent =
+            count > 99
+                ? "99+"
+                : String(count);
+    }
+    function showBrowserAlert(item) {
+        if (
+            !("Notification" in window)
+        ) {
+            return;
+        }
+        if (
+            Notification.permission !==
+            "granted"
+        ) {
+            return;
+        }
+        const title =
+            item.title ||
+            typeName(
+                item.type
+            );
+        let body =
+            item.nom
+                ? item.nom
+                : "Maranatha";
+        if (
+            item.message
+        ) {
+            body +=
+                " - " +
+                String(
+                    item.message
+                ).slice(
+                    0,
+                    100
+                );
+        }
+        try {
+            new Notification(
+                title,
+                {
+                    body
+                }
+            );
+        } catch (_) {}
+    }
+    function formatDate(value) {
+        if (!value) {
+            return "";
+        }
+        const date =
+            new Date(value);
+        if (
+            Number.isNaN(
+                date.getTime()
+            )
+        ) {
+            return "";
+        }
+        return date.toLocaleString(
+            "fr-FR"
+        );
+    }
+    function render(items) {
+        if (
+            !Array.isArray(items) ||
+            items.length === 0
+        ) {
+            list.innerHTML =
+                '<div class="mai-empty">' +
+                'Aucune notification pour le moment.' +
+                '</div>';
+            return;
+        }
+        list.innerHTML =
+            items.map(
+                function (item) {
+                    const information = [];
+                    if (item.nom) {
+                        information.push(
+                            '<div><strong>Nom :</strong> ' +
+                            escapeHtml(
+                                item.nom
+                            ) +
+                            '</div>'
+                        );
+                    }
+                    if (item.adresse) {
+                        information.push(
+                            '<div><strong>Adresse :</strong> ' +
+                            escapeHtml(
+                                item.adresse
+                            ) +
+                            '</div>'
+                        );
+                    }
+                    if (item.telephone) {
+                        information.push(
+                            '<div><strong>Telephone :</strong> ' +
+                            escapeHtml(
+                                item.telephone
+                            ) +
+                            '</div>'
+                        );
+                    }
+                    if (item.email) {
+                        information.push(
+                            '<div><strong>Email :</strong> ' +
+                            escapeHtml(
+                                item.email
+                            ) +
+                            '</div>'
+                        );
+                    }
+                    if (
+                        item.donationCategory
+                    ) {
+                        information.push(
+                            '<div><strong>Type de don :</strong> ' +
+                            escapeHtml(
+                                item.donationCategory
+                            ) +
+                            '</div>'
+                        );
+                    }
+                    const amount =
+                        Number(
+                            item.amount
+                        );
+                    const amountHtml =
+                        Number.isFinite(
+                            amount
+                        ) &&
+                        amount > 0
+                        ?
+                        '<div class="mai-amount">' +
+                            amount.toLocaleString(
+                                "fr-FR"
+                            ) +
+                            ' ' +
+                            escapeHtml(
+                                item.currency ||
+                                "CDF"
+                            ) +
+                        '</div>'
+                        :
+                        '';
+                    const messageHtml =
+                        item.message
+                        ?
+                        '<div class="mai-message">' +
+                            escapeHtml(
+                                item.message
+                            ) +
+                        '</div>'
+                        :
+                        '';
+                    const readButton =
+                        item.read
+                        ?
+                        ''
+                        :
+                        '<button ' +
+                            'class="mai-read" ' +
+                            'data-read-id="' +
+                            escapeHtml(
+                                item._id
+                            ) +
+                            '">' +
+                            'Marquer lu' +
+                        '</button>';
+                    return (
+                        '<article class="mai-card ' +
+                            (
+                                item.read
+                                    ?
+                                    ''
+                                    :
+                                    'unread'
+                            ) +
+                        '">' +
+                            readButton +
+                            '<div class="mai-card-title">' +
+                                escapeHtml(
+                                    item.title ||
+                                    typeName(
+                                        item.type
+                                    )
+                                ) +
+                            '</div>' +
+                            '<div class="mai-time">' +
+                                escapeHtml(
+                                    formatDate(
+                                        item.createdAt
+                                    )
+                                ) +
+                            '</div>' +
+                            (
+                                information.length
+                                    ?
+                                    '<div class="mai-info">' +
+                                        information.join(
+                                            ""
+                                        ) +
+                                    '</div>'
+                                    :
+                                    ''
+                            ) +
+                            amountHtml +
+                            messageHtml +
+                        '</article>'
+                    );
+                }
+            ).join("");
+        list
+            .querySelectorAll(
+                "[data-read-id]"
+            )
+            .forEach(
+                function (button) {
+                    button.addEventListener(
+                        "click",
+                        async function () {
+                            const id =
+                                button.getAttribute(
+                                    "data-read-id"
+                                );
+                            await fetch(
+                                "/api/admin-inbox/" +
+                                encodeURIComponent(
+                                    id
+                                ) +
+                                "/read",
+                                {
+                                    method:
+                                        "PATCH",
+                                    headers:
+                                        headers()
+                                }
+                            );
+                            await loadInbox();
+                        }
+                    );
+                }
+            );
+    }
+    async function loadInbox() {
+        if (!password) {
+            return;
+        }
+        try {
+            const response =
+                await fetch(
+                    "/api/admin-inbox?limit=100",
+                    {
+                        cache:
+                            "no-store",
+                        headers:
+                            headers()
+                    }
+                );
+            if (
+                response.status === 401
+            ) {
+                password =
+                    "";
+                sessionStorage.removeItem(
+                    "maranatha_admin_inbox_password"
+                );
+                updateBadge(
+                    0
+                );
+                return;
+            }
+            const result =
+                await response.json();
+            if (
+                !response.ok ||
+                !result.success
+            ) {
+                return;
+            }
+            updateBadge(
+                result.unread
+            );
+            const items =
+                Array.isArray(
+                    result.notifications
+                )
+                ?
+                result.notifications
+                :
+                [];
+            if (!firstLoad) {
+                items.forEach(
+                    function (item) {
+                        if (
+                            !item.read &&
+                            !knownIds.has(
+                                item._id
+                            )
+                        ) {
+                            showBrowserAlert(
+                                item
+                            );
+                        }
+                    }
+                );
+            }
+            knownIds =
+                new Set(
+                    items.map(
+                        function (item) {
+                            return item._id;
+                        }
+                    )
+                );
+            firstLoad =
+                false;
+            render(
+                items
+            );
+        }
+        catch (_) {}
+    }
+    function openPanel() {
+        panel.classList.add(
+            "open"
+        );
+        overlay.classList.add(
+            "open"
+        );
+    }
+    function closePanel() {
+        panel.classList.remove(
+            "open"
+        );
+        overlay.classList.remove(
+            "open"
+        );
+    }
+    bell.addEventListener(
+        "click",
+        async function () {
+            const ok =
+                await ensurePassword();
+            if (!ok) {
+                return;
+            }
+            openPanel();
+            await loadInbox();
+        }
+    );
+    closeButton.addEventListener(
+        "click",
+        closePanel
+    );
+    overlay.addEventListener(
+        "click",
+        closePanel
+    );
+    refreshButton.addEventListener(
+        "click",
+        loadInbox
+    );
+    readAllButton.addEventListener(
+        "click",
+        async function () {
+            if (!password) {
+                return;
+            }
+            await fetch(
+                "/api/admin-inbox/read-all",
+                {
+                    method:
+                        "PATCH",
+                    headers:
+                        headers()
+                }
+            );
+            await loadInbox();
+        }
+    );
+    alertsButton.addEventListener(
+        "click",
+        async function () {
+            if (
+                !("Notification" in window)
+            ) {
+                window.alert(
+                    "Les notifications navigateur ne sont pas disponibles."
+                );
+                return;
+            }
+            const permission =
+                await Notification
+                    .requestPermission();
+            if (
+                permission ===
+                "granted"
+            ) {
+                window.alert(
+                    "Alertes administrateur activees."
+                );
+            }
+        }
+    );
+    /*
+     * Actualisation automatique.
+     */
+    setInterval(
+        function () {
+            if (password) {
+                loadInbox();
+            }
+        },
+        5000
+    );
+    /*
+     * Si le mot de passe existe deja
+     * dans cette session, charger le compteur.
+     */
+    if (password) {
+        loadInbox();
+    }
+})();
+</script>
+<!-- MARANATHA ADMIN INBOX END -->
+
 </body>
 </html>
