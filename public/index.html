@@ -3615,6 +3615,11 @@ async function loadBroadcast() {
                 'EN DIRECT';
             duration.textContent =
                 'En direct';
+
+            // Application MARANATHA : lancer l'audio natif
+            if (typeof window.preparerAudio === 'function' && selected.audioUrl) {
+                window.preparerAudio(selected.audioUrl);
+            }
         }
         else {
             liveStatus.textContent =
