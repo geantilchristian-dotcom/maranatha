@@ -146,6 +146,9 @@ class _WebScreenState extends State<WebScreen> {
           if (_player.state == PlayerState.playing) {
             await _player.pause();
             await _systemChannel.invokeMethod<void>('pauseAudioService');
+            await _runJavaScriptSafely(
+              'if(window._flutterUpdate)window._flutterUpdate({playing:false});',
+            );
           } else if (_currentAudioUrl.isNotEmpty) {
             await _player.resume();
             if (_player.state != PlayerState.playing) {
@@ -153,8 +156,22 @@ class _WebScreenState extends State<WebScreen> {
             } else {
               await _startNativeAudioService(_currentTitle);
               _startProgressTimer();
+              await _runJavaScriptSafely(
+                'if(window._flutterUpdate)window._flutterUpdate({playing:true});',
+              );
             }
           }
+          break;
+        case 'volume':
+          final rawVolume = decoded['value'];
+          final volumeValue =
+              rawVolume is num ? rawVolume.toDouble() : 1.0;
+          final safeVolume =
+              volumeValue.clamp(0.0, 1.0).toDouble();
+          await _player.setVolume(safeVolume);
+          await _runJavaScriptSafely(
+            'if(window._flutterUpdate)window._flutterUpdate({volume:$safeVolume});',
+          );
           break;
         case 'seek':
           final percentage = (decoded['pct'] as num?)?.toDouble() ?? 0;
@@ -200,7 +217,6 @@ class _WebScreenState extends State<WebScreen> {
   Future<void> _playUrl(String url) async {
     _currentAudioUrl = url;
     await _player.stop();
-    await _player.setVolume(1);
     await _player.play(
       UrlSource(url),
       mode: PlayerMode.mediaPlayer,

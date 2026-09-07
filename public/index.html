@@ -2754,6 +2754,12 @@ svg {
   }
 </style>
 
+<style id="maranatha-history-disabled">
+#memberHistorySection,
+.member-history-card {
+    display: none !important;
+}
+</style>
 </head>
 <body>
 <div class="app">
@@ -6353,6 +6359,7 @@ function showMessageForm(
     }).join("");
   }
   function injectHistorySection() {
+      return;
     if (document.getElementById("memberHistorySection")) return;
     var section = document.createElement("section");
     section.id = "memberHistorySection";
