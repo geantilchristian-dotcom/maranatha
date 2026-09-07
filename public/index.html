@@ -6703,5 +6703,362 @@ function showMessageForm(
 </script>
 <!-- === PAYMENT SAFE LOGOS END === -->
 
+<!-- === MARANATHA APK + PARTAGE AUDIO DIRECT V1 START === -->
+<style>
+  #maranatha-app-suggest,
+  #maranatha-shared-audio {
+    position: fixed;
+    left: 14px;
+    right: 14px;
+    z-index: 2147483000;
+    font-family: Arial, Helvetica, sans-serif;
+  }
+
+  #maranatha-app-suggest {
+    bottom: 18px;
+    background: #071b2b;
+    color: #fff;
+    border: 1px solid rgba(224,181,47,.45);
+    border-radius: 20px;
+    box-shadow: 0 18px 55px rgba(0,0,0,.35);
+    padding: 16px;
+  }
+
+  #maranatha-app-suggest .ma-title,
+  #maranatha-shared-audio .ma-title {
+    font-size: 17px;
+    font-weight: 800;
+    margin-bottom: 6px;
+  }
+
+  #maranatha-app-suggest .ma-text,
+  #maranatha-shared-audio .ma-text {
+    font-size: 13px;
+    line-height: 1.45;
+    opacity: .82;
+  }
+
+  .ma-actions {
+    display: flex;
+    gap: 9px;
+    margin-top: 13px;
+  }
+
+  .ma-primary,
+  .ma-secondary {
+    min-height: 46px;
+    border-radius: 14px;
+    border: 0;
+    padding: 0 16px;
+    font-size: 14px;
+    font-weight: 800;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+  }
+
+  .ma-primary {
+    flex: 1;
+    background: #dfb62f;
+    color: #071b2b;
+  }
+
+  .ma-secondary {
+    background: rgba(255,255,255,.10);
+    color: #fff;
+  }
+
+  #maranatha-shared-audio {
+    top: 50%;
+    transform: translateY(-50%);
+    max-width: 480px;
+    margin: 0 auto;
+    background: #071b2b;
+    color: #fff;
+    border: 1px solid rgba(224,181,47,.55);
+    border-radius: 24px;
+    box-shadow: 0 25px 80px rgba(0,0,0,.55);
+    padding: 21px;
+  }
+
+  #maranatha-shared-audio .ma-live {
+    display: inline-block;
+    color: #fff;
+    background: #e9163f;
+    padding: 5px 9px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: .08em;
+    margin-bottom: 10px;
+  }
+</style>
+
+<script>
+(function () {
+  "use strict";
+
+  var APK_URL = "/downloads/MARANATHA.apk";
+  var SUGGEST_KEY = "maranatha-apk-suggestion-v1";
+
+  function isNativeApp() {
+    return !!(
+      window.__MARANATHA_NATIVE_APP__ ||
+      (
+        window.FlutterAudio &&
+        typeof window.FlutterAudio.postMessage === "function"
+      )
+    );
+  }
+
+  function isAndroidBrowser() {
+    return /Android/i.test(navigator.userAgent || "") && !isNativeApp();
+  }
+
+  function safeText(value, fallback) {
+    var text = String(value || "").trim();
+    return text || fallback;
+  }
+
+  async function getSermons() {
+    var response = await fetch("/api/sermons", { cache: "no-store" });
+    if (!response.ok) {
+      throw new Error("HTTP " + response.status);
+    }
+    var data = await response.json();
+    return Array.isArray(data) ? data : [];
+  }
+
+  function sermonId(sermon) {
+    return sermon && (sermon._id || sermon.id || sermon.sermonId || "");
+  }
+
+  function pickLive(list) {
+    return list.find(function (item) {
+      return item && item.statut === "en_cours" && item.audioUrl;
+    }) || list.find(function (item) {
+      return item && item.audioUrl;
+    }) || null;
+  }
+
+  function buildListenUrl(sermon) {
+    var url = new URL("/", location.origin);
+    url.searchParams.set("ecouter", "1");
+    var id = sermonId(sermon);
+    if (id) {
+      url.searchParams.set("sermon", id);
+    }
+    return url.toString();
+  }
+
+  function showApkSuggestion() {
+    if (!isAndroidBrowser()) return;
+
+    try {
+      if (localStorage.getItem(SUGGEST_KEY) === "1") return;
+      localStorage.setItem(SUGGEST_KEY, "1");
+    } catch (_) {}
+
+    if (document.getElementById("maranatha-app-suggest")) return;
+
+    var box = document.createElement("div");
+    box.id = "maranatha-app-suggest";
+    box.innerHTML =
+      '<div class="ma-title">Installer l’application MARANATHA</div>' +
+      '<div class="ma-text">Recevez les prédications et le réveil Maranatha directement sur votre téléphone.</div>' +
+      '<div class="ma-actions">' +
+        '<a class="ma-primary" href="' + APK_URL + '" download>Télécharger l’application</a>' +
+        '<button class="ma-secondary" type="button">Plus tard</button>' +
+      '</div>';
+
+    var close = box.querySelector(".ma-secondary");
+    if (close) {
+      close.addEventListener("click", function () {
+        box.remove();
+      });
+    }
+
+    document.body.appendChild(box);
+  }
+
+  async function overrideShare() {
+    var button = document.getElementById("share-button");
+    if (!button || button.dataset.maranathaShareV1 === "1") return;
+
+    button.dataset.maranathaShareV1 = "1";
+
+    button.addEventListener("click", async function (event) {
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+
+      var sermon = null;
+      try {
+        sermon = pickLive(await getSermons());
+      } catch (error) {
+        console.error("[Maranatha/share]", error);
+      }
+
+      var title = safeText(
+        sermon && sermon.titre,
+        "Prédication Maranatha"
+      );
+
+      var shareData = {
+        title: title,
+        text: 'Écoutez "' + title + '" sur Maranatha.',
+        url: buildListenUrl(sermon)
+      };
+
+      try {
+        if (navigator.share) {
+          await navigator.share(shareData);
+          return;
+        }
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(shareData.url);
+          alert("Lien d’écoute copié.");
+          return;
+        }
+
+        window.prompt("Copiez ce lien d’écoute :", shareData.url);
+      } catch (error) {
+        if (error && error.name !== "AbortError") {
+          console.error("[Maranatha/share]", error);
+        }
+      }
+    }, true);
+  }
+
+  function updatePlayerForWeb(sermon) {
+    var audio = document.getElementById("main-audio");
+    if (audio && sermon && sermon.audioUrl && !isNativeApp()) {
+      audio.src = sermon.audioUrl;
+      audio.load();
+    }
+
+    var title = document.getElementById("audio-title");
+    if (title && sermon) {
+      title.textContent = safeText(sermon.titre, "Prédication Maranatha");
+    }
+
+    var status = document.getElementById("live-status");
+    if (status && sermon && sermon.statut === "en_cours") {
+      status.textContent = "EN DIRECT";
+    }
+  }
+
+  async function openSharedAudioIfNeeded() {
+    var params = new URLSearchParams(location.search);
+    if (params.get("ecouter") !== "1") return;
+
+    var requestedId = params.get("sermon") || "";
+    var sermons;
+
+    try {
+      sermons = await getSermons();
+    } catch (error) {
+      console.error("[Maranatha/shared-audio]", error);
+      return;
+    }
+
+    var sermon = null;
+
+    if (requestedId) {
+      sermon = sermons.find(function (item) {
+        return String(sermonId(item)) === String(requestedId) && item.audioUrl;
+      }) || null;
+    }
+
+    if (!sermon) {
+      sermon = pickLive(sermons);
+    }
+
+    if (!sermon || !sermon.audioUrl) return;
+
+    updatePlayerForWeb(sermon);
+
+    var player = document.getElementById("premium-player");
+    if (player) {
+      setTimeout(function () {
+        player.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 300);
+    }
+
+    if (document.getElementById("maranatha-shared-audio")) return;
+
+    var panel = document.createElement("div");
+    panel.id = "maranatha-shared-audio";
+    panel.innerHTML =
+      '<div class="ma-live">' +
+        (sermon.statut === "en_cours" ? "EN DIRECT" : "PRÉDICATION") +
+      '</div>' +
+      '<div class="ma-title">' +
+        safeText(sermon.titre, "Prédication Maranatha") +
+      '</div>' +
+      '<div class="ma-text">Touchez le bouton pour démarrer le son. Les navigateurs bloquent la lecture automatique avec son tant que l’utilisateur n’a pas touché la page.</div>' +
+      '<div class="ma-actions">' +
+        '<button class="ma-primary" id="maranatha-listen-now" type="button">Écouter maintenant</button>' +
+      '</div>';
+
+    if (isAndroidBrowser()) {
+      var actions = panel.querySelector(".ma-actions");
+      var appLink = document.createElement("a");
+      appLink.className = "ma-secondary";
+      appLink.href = APK_URL;
+      appLink.setAttribute("download", "");
+      appLink.textContent = "Installer l’app";
+      actions.appendChild(appLink);
+    }
+
+    document.body.appendChild(panel);
+
+    var listen = document.getElementById("maranatha-listen-now");
+    if (!listen) return;
+
+    listen.addEventListener("click", async function () {
+      try {
+        if (isNativeApp() && typeof window.preparerAudio === "function") {
+          window.preparerAudio(sermon.audioUrl);
+        } else {
+          var audio = document.getElementById("main-audio");
+          if (!audio) throw new Error("Lecteur audio introuvable");
+          if (!audio.src) {
+            audio.src = sermon.audioUrl;
+            audio.load();
+          }
+          await audio.play();
+        }
+
+        panel.remove();
+
+        var p = document.getElementById("premium-player");
+        if (p) {
+          p.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      } catch (error) {
+        console.error("[Maranatha/listen]", error);
+        listen.textContent = "Réessayer";
+      }
+    });
+  }
+
+  function init() {
+    overrideShare();
+    openSharedAudioIfNeeded();
+    setTimeout(showApkSuggestion, 1200);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init, { once: true });
+  } else {
+    init();
+  }
+})();
+</script>
+<!-- === MARANATHA APK + PARTAGE AUDIO DIRECT V1 END === -->
 </body>
 </html>

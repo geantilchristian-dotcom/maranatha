@@ -96,7 +96,7 @@
 
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"
-            android:value="maranatha_reveil_spirituel" />
+            android:value="maranatha_reveil_spirituel_v2" />
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
             android:resource="@drawable/ic_notification" />

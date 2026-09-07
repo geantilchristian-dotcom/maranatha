@@ -73,7 +73,7 @@ object AlarmStore {
     }
 
     fun isModeEnabled(context: Context): Boolean {
-        return preferences(context).getBoolean(KEY_MODE_ENABLED, false)
+        return preferences(context).getBoolean(KEY_MODE_ENABLED, true)
     }
 
     fun setModeEnabled(context: Context, enabled: Boolean) {

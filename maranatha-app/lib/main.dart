@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import 'screens/intro_screen.dart';
 import 'services/notification_service.dart';
 
+import 'screens/web_screen.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(const MaranathaApp());
@@ -26,7 +26,7 @@ class MaranathaApp extends StatelessWidget {
         scaffoldBackgroundColor: const Color(0xFFF4F3F8),
         useMaterial3: true,
       ),
-      home: const IntroScreen(),
+      home: const WebScreen(),
     );
   }
 }

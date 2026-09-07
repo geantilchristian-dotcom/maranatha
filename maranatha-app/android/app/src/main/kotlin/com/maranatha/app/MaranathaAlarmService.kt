@@ -17,7 +17,7 @@ import android.os.PowerManager
 import android.util.Log
 class MaranathaAlarmService : Service() {
     companion object {
-        const val CHANNEL_ID = "maranatha_reveil_spirituel"
+        const val CHANNEL_ID = "maranatha_reveil_spirituel_v2"
         const val NOTIFICATION_ID = 5101
         const val ACTION_START =
             "com.maranatha.app.REVEIL_START"
