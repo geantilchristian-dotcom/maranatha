@@ -22,3 +22,5 @@ maranatha-app/ios/Flutter/ephemeral/
 .idea/
 .DS_Store
 Thumbs.db
+.env.example.backup-*
+*-firebase-adminsdk-*.json

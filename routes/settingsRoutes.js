@@ -4,6 +4,30 @@ const Settings = require('../models/Settings');
 
 const adminOnly = require('../utils/adminAuth');
 
+
+// GET /api/settings — public summary (compatibility for older interfaces)
+router.get('/', async (_req, res) => {
+  try {
+    const [home, don, programme] = await Promise.all([
+      Settings.findOne({ key: 'home' }).lean(),
+      Settings.findOne({ key: 'don' }).lean(),
+      Settings.findOne({ key: 'programme' }).lean(),
+    ]);
+
+    res.json({
+      home: home || {},
+      don: don || {},
+      programme: programme?.programme || [],
+      facebookUrl: home?.facebookUrl || '',
+      youtubeChannelUrl: home?.youtubeChannelUrl || '',
+      tiktokUrl: home?.tiktokUrl || '',
+      youtubeLinks: home?.youtubeLinks || [],
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // GET /api/settings/splash — public
 router.get('/splash', async (req, res) => {
   try {

@@ -56,6 +56,15 @@ function normalizeStatus(value) {
   }
   return "PENDING";
 }
+
+function firstHttpUrl(...values) {
+  for (const value of values) {
+    const text = String(value || "").trim();
+    if (/^https?:\/\//i.test(text)) return text;
+  }
+  return "";
+}
+
 function unwrapKpay(payload) {
   if (
     payload &&
@@ -185,6 +194,7 @@ router.post(
                   "CDF",
               },
             }),
+            signal: AbortSignal.timeout(20000),
           }
         );
       const raw =
@@ -215,8 +225,18 @@ router.post(
           });
       }
       const gatewayUrl =
-        kpay.gatewayUrl ||
-        payload.gatewayUrl;
+        firstHttpUrl(
+          kpay.gatewayUrl,
+          kpay.paymentUrl,
+          kpay.checkoutUrl,
+          kpay.redirectUrl,
+          kpay.url,
+          payload.gatewayUrl,
+          payload.paymentUrl,
+          payload.checkoutUrl,
+          payload.redirectUrl,
+          payload.url
+        );
       if (!gatewayUrl) {
         donation.status =
           "FAILED";
@@ -257,7 +277,9 @@ router.post(
       return res.status(500).json({
         success: false,
         message:
-          "Impossible d'initialiser le don.",
+          error && error.name === "TimeoutError"
+            ? "K-PAY ne répond pas pour le moment."
+            : "Impossible d'initialiser le don.",
       });
     }
   }
@@ -332,6 +354,7 @@ router.get(
               Accept:
                 "application/json",
             },
+            signal: AbortSignal.timeout(15000),
           }
         );
       const raw =

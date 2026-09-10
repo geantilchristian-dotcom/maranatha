@@ -4309,9 +4309,7 @@ setInterval(
             "/api/admin-inbox/public"
         ],
         settings: [
-            "/api/settings",
-            "/api/setting",
-            "/api/parametres"
+            "/api/settings/home"
         ],
         sermons: [
             "/api/sermons"
@@ -5063,22 +5061,54 @@ async function showDon() {
                                 })
                         }
                     );
-                const result =
-                    await response.json();
+                const raw =
+                    await response.text();
+                let result = {};
+                try {
+                    result = raw
+                        ? JSON.parse(raw)
+                        : {};
+                } catch (_) {
+                    result = {};
+                }
+
+                if (!response.ok) {
+                    const previewMessage =
+                        response.status === 404
+                            ? "K-PAY n’est pas disponible avec le serveur statique. Utilisez npm run preview pour l’interface ou npm start avec MongoDB pour un paiement réel."
+                            : "Impossible d’ouvrir K-PAY.";
+
+                    throw new Error(
+                        result.message ||
+                        result.error ||
+                        previewMessage
+                    );
+                }
+
+                const gatewayUrl =
+                    String(
+                        result.gatewayUrl ||
+                        result.paymentUrl ||
+                        result.checkoutUrl ||
+                        result.redirectUrl ||
+                        ""
+                    ).trim();
+
                 if (
-                    !response.ok ||
                     !result.success ||
-                    !result.gatewayUrl
+                    !/^https?:\/\//i.test(gatewayUrl)
                 ) {
                     throw new Error(
                         result.message ||
-                        "Impossible d\u2019ouvrir K-PAY."
+                        "K-PAY n’a pas retourné de page de paiement valide."
                     );
                 }
+
                 button.textContent =
                     "Redirection...";
-                window.location.href =
-                    result.gatewayUrl;
+                window.location.assign(
+                    gatewayUrl
+                );
             }
             catch (error) {
                 button.disabled =
@@ -5577,89 +5607,29 @@ function showMessageForm(
        PROFILE
        ===================================================== */
     function showProfile() {
-        let profile =
-            {};
-        try {
-            profile =
-                JSON.parse(
-                    localStorage.getItem(
-                        "maranatha_profile"
-                    ) || "{}"
-                );
+        closeSheet();
+
+        if (typeof window.ouvrirProfilFinal === "function") {
+            window.ouvrirProfilFinal();
+            return;
         }
-        catch (_) {}
+
+        let profile = {};
+        try {
+            profile = JSON.parse(
+                localStorage.getItem("maranatha_profile") || "{}"
+            );
+        } catch (_) {}
+
         openSheet(
             "Profil",
-            (
-                '<form ' +
-                    'id="maranatha-profile-form" ' +
-                    'class="m-form">' +
-                    '<div class="m-field">' +
-                        '<label>Nom</label>' +
-                        '<input ' +
-                            'id="profile-name" ' +
-                            'class="m-input" ' +
-                            'type="text" ' +
-                            'value="' +
-                            escapeHtml(
-                                profile.nom || ""
-                            ) +
-                            '">' +
-                    '</div>' +
-                    '<div class="m-field">' +
-                        '<label>Telephone</label>' +
-                        '<input ' +
-                            'id="profile-phone" ' +
-                            'class="m-input" ' +
-                            'type="tel" ' +
-                            'value="' +
-                            escapeHtml(
-                                profile.telephone || ""
-                            ) +
-                            '">' +
-                    '</div>' +
-                    '<button ' +
-                        'class="m-primary" ' +
-                        'type="submit">' +
-                        'Enregistrer' +
-                    '</button>' +
-                '</form>'
-            )
+            '<div class="m-card">' +
+                '<h3 class="m-card-title">Mon profil</h3>' +
+                '<div class="m-card-text">' +
+                    escapeHtml(profile.nom || "Fidèle") +
+                '</div>' +
+            '</div>'
         );
-        document
-            .getElementById(
-                "maranatha-profile-form"
-            )
-            .addEventListener(
-                "submit",
-                function (event) {
-                    event.preventDefault();
-                    localStorage.setItem(
-                        "maranatha_profile",
-                        JSON.stringify(
-                            {
-                                nom:
-                                    document
-                                        .getElementById(
-                                            "profile-name"
-                                        )
-                                        .value
-                                        .trim(),
-                                telephone:
-                                    document
-                                        .getElementById(
-                                            "profile-phone"
-                                        )
-                                        .value
-                                        .trim()
-                            }
-                        )
-                    );
-                    toast(
-                        "Profil enregistre."
-                    );
-                }
-            );
     }
     /* =====================================================
        LIBRARY
@@ -5825,35 +5795,26 @@ function showMessageForm(
     /* =====================================================
        SETTINGS
        ===================================================== */
-    async function showSettings() {
-        openSheet(
-            "Param\u00e8tres",
-            loading()
-        );
-        const result =
-            await apiGetFirst(
-                API.settings
-            );
+    function showSettings() {
         if (
-            result.ok
+            window.MaranathaSettings &&
+            typeof window.MaranathaSettings.render === "function"
         ) {
-            sheetBody.innerHTML =
-                renderCards(
-                    result.data
-                );
+            openSheet(
+                "Paramètres",
+                window.MaranathaSettings.render()
+            );
+            window.MaranathaSettings.bind();
             return;
         }
-        sheetBody.innerHTML =
-            (
-                '<div class="m-card">' +
-                    '<h3 class="m-card-title">' +
-                        'Maranatha' +
-                    '</h3>' +
-                    '<div class="m-card-text">' +
-                        'Les parametres publics de l application seront affiches ici.' +
-                    '</div>' +
-                '</div>'
-            );
+
+        openSheet(
+            "Paramètres",
+            '<div class="m-card">' +
+                '<h3 class="m-card-title">Maranatha</h3>' +
+                '<div class="m-card-text">Les paramètres sont en cours de chargement.</div>' +
+            '</div>'
+        );
     }
     /* =====================================================
        HERO
@@ -7060,5 +7021,7 @@ function showMessageForm(
 })();
 </script>
 <!-- === MARANATHA APK + PARTAGE AUDIO DIRECT V1 END === -->
+<script src="/profile-final.js?v=20260910-final"></script>
+<script src="/settings-final.js?v=20260910-final"></script>
 </body>
 </html>
