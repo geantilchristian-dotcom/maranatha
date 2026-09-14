@@ -91,4 +91,66 @@ async function uploadAudio(buffer, originalName, options = {}) {
   });
 }
 
-module.exports = { uploadAudio };
+async function uploadImage(buffer, originalName) {
+  if (!Buffer.isBuffer(buffer) || buffer.length === 0) {
+    throw new Error('Le fichier image est vide');
+  }
+
+  const cld = getCloudinary();
+
+  const publicId =
+    `maranatha/banners/${Date.now()}_${nettoyerNom(originalName || 'banniere')}`;
+
+  return new Promise((resolve, reject) => {
+    const stream = cld.uploader.upload_stream(
+      {
+        resource_type: 'image',
+        type: 'upload',
+        public_id: publicId,
+        overwrite: false,
+      },
+      (error, result) => {
+        if (error) {
+          console.error(
+            '[Cloudinary/image]',
+            error.message || error,
+          );
+
+          reject(
+            new Error(
+              `Échec upload image Cloudinary : ${
+                error.message || 'erreur inconnue'
+              }`,
+            ),
+          );
+
+          return;
+        }
+
+        if (!result?.secure_url) {
+          reject(
+            new Error(
+              'Cloudinary n’a pas retourné une adresse image',
+            ),
+          );
+
+          return;
+        }
+
+        resolve({
+          url: result.secure_url,
+          publicId: result.public_id || '',
+          width: Number(result.width) || 0,
+          height: Number(result.height) || 0,
+        });
+      },
+    );
+
+    stream.end(buffer);
+  });
+}
+
+module.exports = {
+  uploadAudio,
+  uploadImage,
+};

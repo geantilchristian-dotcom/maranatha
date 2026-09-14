@@ -962,6 +962,12 @@
               </div>
             </div>
             <div id="banner-preview" class="cover-preview"></div>
+            <div id="banner-upload-progress" style="display:none;margin-top:10px">
+              <div style="height:8px;background:rgba(255,255,255,.10);border-radius:999px;overflow:hidden">
+                <div id="banner-upload-progress-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#D4AF37,#F0D060);transition:width .2s ease"></div>
+              </div>
+              <div id="banner-upload-progress-text" style="margin-top:6px;font-size:11px;color:rgba(255,255,255,.70);text-align:center">0%</div>
+            </div>
           </div>
 
           <div class="form-group full">
@@ -986,8 +992,8 @@
         </div>
 
         <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap">
-          <button class="btn-submit" type="button" onclick="ajouterBanniereAccueil()">Ajouter la bannière</button>
-          <button class="btn-secondary-admin" type="button" onclick="sauvegarderBannieres()">Sauvegarder l'ordre</button>
+          <button id="banner-add-btn" class="btn-submit" type="button" onclick="ajouterBanniereAccueil()">Ajouter la bannière</button>
+          <button id="banner-save-btn" class="btn-secondary-admin" type="button" onclick="sauvegarderBannieres()">Sauvegarder l'ordre</button>
         </div>
       </div>
 
@@ -3117,171 +3123,166 @@
      BANNIERES ACCUEIL
      ============================================================ */
 
-  window.selectionnerBanniere = async function (input) {
-    const file =
-      input &&
-      input.files &&
-      input.files[0];
+  let bannerUploadInProgressV2 = false;
 
-    if (!file) {
-      return;
-    }
+  function setBannerUploadProgressV2(percent, label, visible) {
+    const wrap = document.getElementById("banner-upload-progress");
+    const bar = document.getElementById("banner-upload-progress-bar");
+    const text = document.getElementById("banner-upload-progress-text");
 
-    if (
-      !file.type ||
-      !file.type.startsWith("image/")
-    ) {
-      if (typeof window.toast === "function") {
-        window.toast(
-          "Choisissez une image JPG, PNG ou WEBP",
-          "error"
+    if (wrap) wrap.style.display = visible ? "block" : "none";
+    if (bar) bar.style.width = Math.max(0, Math.min(100, Number(percent) || 0)) + "%";
+    if (text) text.textContent = label || (Math.round(Number(percent) || 0) + "%");
+  }
+
+  function setBannerButtonsStateV2(disabled) {
+    const addBtn = document.getElementById("banner-add-btn");
+    const saveBtn = document.getElementById("banner-save-btn");
+
+    if (addBtn) addBtn.disabled = !!disabled;
+    if (saveBtn) saveBtn.disabled = !!disabled;
+  }
+
+  function uploadBannerFileV2(file) {
+    return new Promise(function (resolve, reject) {
+      const formData = new FormData();
+      formData.append("image", file, file.name);
+
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", API + "/settings/home/banner-upload", true);
+      xhr.responseType = "text";
+
+      const headers = authHeaders();
+      Object.keys(headers || {}).forEach(function (key) {
+        const value = headers[key];
+        if (value !== undefined && value !== null && String(value) !== "") {
+          xhr.setRequestHeader(key, String(value));
+        }
+      });
+
+      xhr.upload.onprogress = function (event) {
+        if (!event.lengthComputable) return;
+
+        const realPercent = (event.loaded / event.total) * 100;
+        const shownPercent = Math.min(95, Math.max(1, Math.round(realPercent * 0.95)));
+
+        setBannerUploadProgressV2(
+          shownPercent,
+          "Envoi de l'image… " + Math.round(realPercent) + "%",
+          true
         );
-      }
+      };
 
+      xhr.onload = function () {
+        let result = {};
+        try {
+          result = JSON.parse(xhr.responseText || "{}");
+        } catch (_) {}
+
+        if (xhr.status >= 200 && xhr.status < 300 && result.url) {
+          setBannerUploadProgressV2(100, "Image envoyée — 100%", true);
+          resolve(result);
+          return;
+        }
+
+        reject(new Error(
+          result.error ||
+          ("Téléversement impossible (HTTP " + xhr.status + ")")
+        ));
+      };
+
+      xhr.onerror = function () {
+        reject(new Error("Connexion interrompue pendant le téléversement"));
+      };
+
+      xhr.onabort = function () {
+        reject(new Error("Téléversement annulé"));
+      };
+
+      xhr.send(formData);
+    });
+  }
+
+  window.selectionnerBanniere = async function (input) {
+    const file = input && input.files && input.files[0];
+    if (!file) return;
+
+    if (!file.type || !file.type.startsWith("image/")) {
+      if (typeof window.toast === "function") {
+        window.toast("Choisissez une image JPG, PNG ou WEBP", "error");
+      }
       input.value = "";
       return;
     }
 
     if (file.size > 15 * 1024 * 1024) {
       if (typeof window.toast === "function") {
-        window.toast(
-          "Image trop lourde. Maximum 15 Mo.",
-          "error"
-        );
+        window.toast("Image trop lourde. Maximum 15 Mo.", "error");
       }
-
       input.value = "";
       return;
     }
 
-    const preview =
-      document.getElementById(
-        "banner-preview"
-      );
+    const preview = document.getElementById("banner-preview");
+    const localUrl = URL.createObjectURL(file);
 
-    const localUrl =
-      URL.createObjectURL(file);
+    bannerImageDataV2 = "";
+    bannerUploadInProgressV2 = true;
+    setBannerButtonsStateV2(true);
+    setBannerUploadProgressV2(1, "Préparation de l'image…", true);
 
     if (preview) {
-      preview.classList.add(
-        "visible"
-      );
-
+      preview.classList.add("visible");
       preview.innerHTML =
-        '<img src="' +
-        safe(localUrl) +
-        '" alt="Aperçu bannière">' +
-        '<div style="' +
-          'margin-top:8px;' +
-          'font-size:11px;' +
-          'color:#D4AF37;' +
-          'font-weight:700' +
-        '">' +
-          'Envoi de la photo...' +
+        '<img src="' + safe(localUrl) + '" alt="Aperçu bannière">' +
+        '<div style="margin-top:8px;font-size:11px;color:#D4AF37;font-weight:700">' +
+        'Envoi de la photo…' +
         '</div>';
     }
 
-    bannerImageDataV2 = "";
-
     try {
-      const formData =
-        new FormData();
-
-      formData.append(
-        "image",
-        file,
-        file.name
-      );
-
-      const response =
-        await fetch(
-          API +
-          "/settings/home/banner-upload",
-          {
-            method: "POST",
-            headers:
-              authHeaders(),
-            body:
-              formData
-          }
-        );
-
-      const result =
-        await response
-          .json()
-          .catch(
-            function () {
-              return {};
-            }
-          );
-
-      if (
-        !response.ok ||
-        !result.url
-      ) {
-        throw new Error(
-          result.error ||
-          "Upload impossible"
-        );
-      }
-
-      bannerImageDataV2 =
-        result.url;
+      const result = await uploadBannerFileV2(file);
+      bannerImageDataV2 = result.url;
 
       if (preview) {
         preview.innerHTML =
-          '<img src="' +
-          safe(result.url) +
-          '" alt="Aperçu bannière">' +
-          '<div style="' +
-            'margin-top:8px;' +
-            'font-size:11px;' +
-            'color:#16A34A;' +
-            'font-weight:700' +
-          '">' +
-            'Photo prête sur le serveur' +
+          '<img src="' + safe(result.url) + '" alt="Aperçu bannière">' +
+          '<div style="margin-top:8px;font-size:11px;color:#16A34A;font-weight:700">' +
+          'Photo prête sur le serveur' +
           '</div>';
       }
 
-      if (
-        typeof window.toast ===
-        "function"
-      ) {
-        window.toast(
-          "Photo de bannière envoyée",
-          "success"
-        );
+      if (typeof window.toast === "function") {
+        window.toast("Photo de bannière envoyée", "success");
       }
-    }
-    catch (error) {
+
+      window.setTimeout(function () {
+        setBannerUploadProgressV2(100, "Image prête — 100%", true);
+      }, 150);
+    } catch (error) {
       bannerImageDataV2 = "";
 
       if (preview) {
-        preview.innerHTML = "";
-        preview.classList.remove(
-          "visible"
-        );
+        preview.innerHTML =
+          '<img src="' + safe(localUrl) + '" alt="Aperçu bannière">' +
+          '<div style="margin-top:8px;font-size:11px;color:#ff6b6b;font-weight:700">' +
+          safe(error.message || "Impossible d'envoyer la photo") +
+          '</div>';
       }
 
+      setBannerUploadProgressV2(0, "Échec du téléversement", true);
       input.value = "";
 
-      if (
-        typeof window.toast ===
-        "function"
-      ) {
-        window.toast(
-          error.message ||
-          "Impossible d'envoyer la photo",
-          "error"
-        );
+      if (typeof window.toast === "function") {
+        window.toast(error.message || "Impossible d'envoyer la photo", "error");
       }
-    }
-    finally {
-      URL.revokeObjectURL(
-        localUrl
-      );
+    } finally {
+      bannerUploadInProgressV2 = false;
+      setBannerButtonsStateV2(false);
+      URL.revokeObjectURL(localUrl);
     }
   };
+
   function renderBannersV2() {
     const container = document.getElementById("hero-banners-admin-list");
     if (!container) return;
@@ -3321,6 +3322,13 @@
     const reference = (document.getElementById("banner-reference") || {}).value?.trim() || "";
     const button = (document.getElementById("banner-button") || {}).value?.trim() || "";
 
+    if (bannerUploadInProgressV2) {
+      if (typeof window.toast === "function") {
+        window.toast("Attendez la fin du téléversement de l'image", "error");
+      }
+      return;
+    }
+
     if (!bannerImageDataV2) {
       if (typeof window.toast === "function") {
         window.toast("Choisissez d'abord une photo de bannière", "error");
@@ -3352,6 +3360,7 @@
       preview.innerHTML = "";
     }
 
+    setBannerUploadProgressV2(0, "0%", false);
     renderBannersV2();
 
     if (typeof window.toast === "function") {
@@ -3375,9 +3384,13 @@
   };
 
   window.sauvegarderBannieres = async function () {
-    writeStorage(BANNER_STORAGE, heroBannersV2);
+    if (bannerUploadInProgressV2) {
+      if (typeof window.toast === "function") {
+        window.toast("Attendez la fin du téléversement de l'image", "error");
+      }
+      return;
+    }
 
-    let serverSaved = false;
     try {
       const response = await fetch(API + "/settings/home", {
         method: "PUT",
@@ -3388,19 +3401,35 @@
         body: JSON.stringify({ heroBanners: heroBannersV2 })
       });
 
-      if (response.ok) {
-        const result = await response.json().catch(function () { return {}; });
-        serverSaved = Array.isArray(result.heroBanners);
-      }
-    } catch (_) {}
+      const result = await response.json().catch(function () { return {}; });
 
-    if (typeof window.toast === "function") {
-      window.toast(
-        serverSaved
-          ? "Bannières enregistrées"
-          : "Bannières sauvegardées pour le test admin; connexion serveur à finaliser",
-        serverSaved ? "success" : "error"
-      );
+      if (!response.ok) {
+        throw new Error(result.error || "Impossible d'enregistrer les bannières");
+      }
+
+      if (!Array.isArray(result.heroBanners)) {
+        throw new Error("Le serveur n'a pas confirmé la liste des bannières");
+      }
+
+      heroBannersV2 = result.heroBanners;
+      writeStorage(BANNER_STORAGE, heroBannersV2);
+      renderBannersV2();
+
+      if (typeof window.toast === "function") {
+        window.toast(
+          heroBannersV2.length > 1
+            ? heroBannersV2.length + " bannières enregistrées — elles défileront chez les fidèles"
+            : "Bannière enregistrée",
+          "success"
+        );
+      }
+    } catch (error) {
+      if (typeof window.toast === "function") {
+        window.toast(
+          error.message || "Impossible d'enregistrer les bannières",
+          "error"
+        );
+      }
     }
   };
 

@@ -18,6 +18,35 @@ const settingsSchema = new mongoose.Schema({
     }],
     default: [],
   },
+  heroBanners: {
+    type: [{
+      id: {
+        type: String,
+        default: '',
+      },
+      imageUrl: {
+        type: String,
+        default: '',
+      },
+      title: {
+        type: String,
+        default: '',
+      },
+      text: {
+        type: String,
+        default: '',
+      },
+      reference: {
+        type: String,
+        default: '',
+      },
+      buttonLabel: {
+        type: String,
+        default: '',
+      },
+    }],
+    default: [],
+  },
   programme: {
     type: [{
       id:          { type: String, default: '' },
