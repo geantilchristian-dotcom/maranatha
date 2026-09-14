@@ -1,4 +1,4 @@
-const CACHE = "maranatha-v20260910-final";
+﻿const CACHE = "maranatha-v20260914-v2";
 const STATIC = [
   "/manifest.json",
   "/logo.jpg",
@@ -57,3 +57,4 @@ self.addEventListener("message", event => {
     event.ports[0].postMessage({ alive: true });
   }
 });
+
