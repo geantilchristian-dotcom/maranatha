@@ -4720,29 +4720,323 @@ setInterval(
     /* =====================================================
        BIBLE
        ===================================================== */
-    async function showBible() {
-        openSheet(
-            "Bible",
-            loading()
-        );
-        const result =
-            await apiGetFirst(
-                API.bible
+
+    const BIBLE_BOOKS = [
+        ["Gen\u00e8se",50],["Exode",40],["L\u00e9vitique",27],["Nombres",36],["Deut\u00e9ronome",34],
+        ["Josu\u00e9",24],["Juges",21],["Ruth",4],["1 Samuel",31],["2 Samuel",24],
+        ["1 Rois",22],["2 Rois",25],["1 Chroniques",29],["2 Chroniques",36],
+        ["Esdras",10],["N\u00e9h\u00e9mie",13],["Esther",10],["Job",42],["Psaumes",150],
+        ["Proverbes",31],["Eccl\u00e9siaste",12],["Cantique des cantiques",8],
+        ["\u00c9sa\u00efe",66],["J\u00e9r\u00e9mie",52],["Lamentations",5],["\u00c9z\u00e9chiel",48],["Daniel",12],
+        ["Os\u00e9e",14],["Jo\u00ebl",3],["Amos",9],["Abdias",1],["Jonas",4],["Mich\u00e9e",7],
+        ["Nahum",3],["Habacuc",3],["Sophonie",3],["Agg\u00e9e",2],["Zacharie",14],
+        ["Malachie",4],["Matthieu",28],["Marc",16],["Luc",24],["Jean",21],
+        ["Actes",28],["Romains",16],["1 Corinthiens",16],["2 Corinthiens",13],
+        ["Galates",6],["\u00c9ph\u00e9siens",6],["Philippiens",4],["Colossiens",4],
+        ["1 Thessaloniciens",5],["2 Thessaloniciens",3],["1 Timoth\u00e9e",6],
+        ["2 Timoth\u00e9e",4],["Tite",3],["Phil\u00e9mon",1],["H\u00e9breux",13],["Jacques",5],
+        ["1 Pierre",5],["2 Pierre",3],["1 Jean",5],["2 Jean",1],["3 Jean",1],
+        ["Jude",1],["Apocalypse",22]
+    ];
+
+    let bibleBook = 0;
+    let bibleChapter = 1;
+
+    function bibleStyles() {
+        if (document.getElementById("maranatha-bible-style")) return;
+
+        const style = document.createElement("style");
+        style.id = "maranatha-bible-style";
+        style.textContent =
+            ".bible-tabs{display:flex;gap:8px;margin-bottom:14px}" +
+            ".bible-tab{flex:1;padding:11px;border-radius:12px;background:#f1f3f6;color:#5c6470;font-weight:800}" +
+            ".bible-tab.active{background:#850018;color:#fff}" +
+            ".bible-search{width:100%;padding:12px 14px;border:1px solid #e2e6ec;border-radius:14px;outline:none;margin-bottom:12px}" +
+            ".bible-books{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}" +
+            ".bible-book{padding:12px 9px;border-radius:13px;background:#fff;border:1px solid #e6e9ef;color:#182033;font-weight:700;text-align:left}" +
+            ".bible-chapters{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}" +
+            ".bible-chapter{min-height:43px;border-radius:11px;background:#f3f5f8;color:#850018;font-weight:800}" +
+            ".bible-top{display:flex;align-items:center;gap:9px;margin-bottom:14px}" +
+            ".bible-back{width:42px;height:42px;border-radius:50%;background:#f1f3f6;color:#850018;font-size:20px}" +
+            ".bible-title{font-weight:900;font-size:18px;color:#182033}" +
+            ".bible-subtitle{font-size:11px;color:#748094;margin-top:2px}" +
+            ".bible-verses{display:flex;flex-direction:column;gap:10px}" +
+            ".bible-verse{padding:13px 14px;border-radius:14px;background:#fff;border:1px solid #e6e9ef;line-height:1.55;color:#263044}" +
+            ".bible-num{display:inline-grid;place-items:center;width:25px;height:25px;margin-right:7px;border-radius:50%;background:#850018;color:#fff;font-size:11px;font-weight:900}" +
+            ".bible-nav{display:flex;gap:8px;margin:15px 0}" +
+            ".bible-nav button{flex:1;padding:11px;border-radius:12px;background:#850018;color:#fff;font-weight:800}" +
+            ".bible-nav button:disabled{opacity:.35}" +
+            ".bible-status{text-align:center;padding:25px 10px;color:#748094}";
+
+        document.head.appendChild(style);
+    }
+
+    function bibleBooksView(testament) {
+        bibleStyles();
+
+        const startBook = testament === "new" ? 39 : 0;
+        const endBook = testament === "new" ? 66 : 39;
+
+        let books = "";
+
+        for (let i = startBook; i < endBook; i++) {
+            books +=
+                '<button class="bible-book" data-bible-book="' + i + '">' +
+                    escapeHtml(BIBLE_BOOKS[i][0]) +
+                '</button>';
+        }
+
+        sheetBody.innerHTML =
+            '<div class="bible-tabs">' +
+                '<button class="bible-tab ' + (testament === "old" ? "active" : "") + '" data-bible-testament="old">Ancien Testament</button>' +
+                '<button class="bible-tab ' + (testament === "new" ? "active" : "") + '" data-bible-testament="new">Nouveau Testament</button>' +
+            '</div>' +
+            '<input class="bible-search" id="bible-book-search" placeholder="Rechercher un livre...">' +
+            '<div class="bible-books" id="bible-books-list">' +
+                books +
+            '</div>';
+
+        document.querySelectorAll("[data-bible-testament]").forEach(function (button) {
+            button.addEventListener("click", function () {
+                bibleBooksView(button.dataset.bibleTestament);
+            });
+        });
+
+        document.querySelectorAll("[data-bible-book]").forEach(function (button) {
+            button.addEventListener("click", function () {
+                bibleBook = Number(button.dataset.bibleBook);
+                bibleChaptersView();
+            });
+        });
+
+        const search = document.getElementById("bible-book-search");
+
+        search.addEventListener("input", function () {
+            const value = search.value.toLowerCase().trim();
+
+            document.querySelectorAll("[data-bible-book]").forEach(function (button) {
+                button.style.display =
+                    button.textContent.toLowerCase().includes(value)
+                        ? ""
+                        : "none";
+            });
+        });
+    }
+
+    function bibleChaptersView() {
+        const book = BIBLE_BOOKS[bibleBook];
+        let chapters = "";
+
+        for (let i = 1; i <= book[1]; i++) {
+            chapters +=
+                '<button class="bible-chapter" data-bible-chapter="' + i + '">' +
+                    i +
+                '</button>';
+        }
+
+        sheetBody.innerHTML =
+            '<div class="bible-top">' +
+                '<button class="bible-back" id="bible-back-books"></button>' +
+                '<div>' +
+                    '<div class="bible-title">' + escapeHtml(book[0]) + '</div>' +
+                    '<div class="bible-subtitle">' + book[1] + ' chapitre' + (book[1] > 1 ? "s" : "") + '</div>' +
+                '</div>' +
+            '</div>' +
+            '<div class="bible-chapters">' +
+                chapters +
+            '</div>';
+
+        document.getElementById("bible-back-books")
+            .addEventListener("click", function () {
+                bibleBooksView(bibleBook >= 39 ? "new" : "old");
+            });
+
+        document.querySelectorAll("[data-bible-chapter]").forEach(function (button) {
+            button.addEventListener("click", function () {
+                bibleChapter = Number(button.dataset.bibleChapter);
+                bibleLoadChapter();
+            });
+        });
+    }
+
+    async function bibleLoadChapter() {
+        const book = BIBLE_BOOKS[bibleBook];
+        const cacheKey =
+            "maranatha_bible_" +
+            (bibleBook + 1) +
+            "_" +
+            bibleChapter;
+
+        sheetBody.innerHTML =
+            '<div class="bible-top">' +
+                '<button class="bible-back" id="bible-back-chapters"></button>' +
+                '<div>' +
+                    '<div class="bible-title">' +
+                        escapeHtml(book[0]) +
+                        " " +
+                        bibleChapter +
+                    '</div>' +
+                    '<div class="bible-subtitle">Bible Maranatha</div>' +
+                '</div>' +
+            '</div>' +
+            '<div class="bible-status">Chargement...</div>';
+
+        document.getElementById("bible-back-chapters")
+            .addEventListener("click", bibleChaptersView);
+
+        let data = null;
+
+        try {
+            const bibleApiBase =
+                location.hostname === "localhost" ||
+                location.hostname === "127.0.0.1"
+                    ? "https://maranatha-1-k6ro.onrender.com"
+                    : "";
+
+            const response = await fetch(
+                bibleApiBase +
+                "/api/bible/" +
+                (bibleBook + 1) +
+                "/" +
+                bibleChapter,
+                { cache: "no-store" }
             );
-        if (
-            result.ok
-        ) {
-            sheetBody.innerHTML =
-                renderCards(
-                    result.data
+
+            if (!response.ok) {
+                throw new Error("HTTP " + response.status);
+            }
+
+            data = await response.json();
+
+            if (data && Array.isArray(data.verses)) {
+                localStorage.setItem(
+                    cacheKey,
+                    JSON.stringify(data)
                 );
+            }
+        } catch (error) {
+            try {
+                const saved = localStorage.getItem(cacheKey);
+                if (saved) data = JSON.parse(saved);
+            } catch (_) {}
+        }
+
+        if (!data || !Array.isArray(data.verses) || !data.verses.length) {
+            sheetBody.innerHTML =
+                '<div class="bible-top">' +
+                    '<button class="bible-back" id="bible-back-chapters"></button>' +
+                    '<div class="bible-title">' +
+                        escapeHtml(book[0]) +
+                        " " +
+                        bibleChapter +
+                    '</div>' +
+                '</div>' +
+                '<div class="bible-status">Chapitre indisponible. V?rifiez votre connexion.</div>';
+
+            document.getElementById("bible-back-chapters")
+                .addEventListener("click", bibleChaptersView);
+
             return;
         }
+
+        let verses = "";
+
+        data.verses.forEach(function (verse) {
+            verses +=
+                '<div class="bible-verse">' +
+                    '<span class="bible-num">' +
+                        escapeHtml(String(verse.verse)) +
+                    '</span>' +
+                    escapeHtml(String(verse.text || "")) +
+                '</div>';
+        });
+
         sheetBody.innerHTML =
-            empty(
-                "Le module Bible est disponible dans Maranatha, mais aucun contenu public n'est encore charge."
-            );
+            '<div class="bible-top">' +
+                '<button class="bible-back" id="bible-back-chapters"></button>' +
+                '<div>' +
+                    '<div class="bible-title">' +
+                        escapeHtml(book[0]) +
+                        " " +
+                        bibleChapter +
+                    '</div>' +
+                    '<div class="bible-subtitle">' +
+                        data.verses.length +
+                        " versets" +
+                    '</div>' +
+                '</div>' +
+            '</div>' +
+
+            '<input class="bible-search" id="bible-verse-search" placeholder="Rechercher dans ce chapitre...">' +
+
+            '<div class="bible-nav">' +
+                '<button id="bible-prev" ' +
+                    ((bibleChapter <= 1 && bibleBook <= 0) ? "disabled" : "") +
+                '>Pr?c?dent</button>' +
+                '<button id="bible-next" ' +
+                    ((bibleChapter >= book[1] && bibleBook >= BIBLE_BOOKS.length - 1) ? "disabled" : "") +
+                '>Suivant</button>' +
+            '</div>' +
+
+            '<div class="bible-verses" id="bible-verses-list">' +
+                verses +
+            '</div>';
+
+        document.getElementById("bible-back-chapters")
+            .addEventListener("click", bibleChaptersView);
+
+        document.getElementById("bible-verse-search")
+            .addEventListener("input", function (event) {
+                const value =
+                    event.target.value.toLowerCase().trim();
+
+                document.querySelectorAll(".bible-verse")
+                    .forEach(function (verse) {
+                        verse.style.display =
+                            verse.textContent.toLowerCase().includes(value)
+                                ? ""
+                                : "none";
+                    });
+            });
+
+        document.getElementById("bible-prev")
+            .addEventListener("click", function () {
+                if (bibleChapter > 1) {
+                    bibleChapter--;
+                } else if (bibleBook > 0) {
+                    bibleBook--;
+                    bibleChapter = BIBLE_BOOKS[bibleBook][1];
+                } else {
+                    return;
+                }
+
+                bibleLoadChapter();
+            });
+
+        document.getElementById("bible-next")
+            .addEventListener("click", function () {
+                if (bibleChapter < BIBLE_BOOKS[bibleBook][1]) {
+                    bibleChapter++;
+                } else if (bibleBook < BIBLE_BOOKS.length - 1) {
+                    bibleBook++;
+                    bibleChapter = 1;
+                } else {
+                    return;
+                }
+
+                bibleLoadChapter();
+            });
     }
+
+    function showBible() {
+        openSheet(
+            "Bible",
+            '<div class="bible-status">Ouverture...</div>'
+        );
+
+        bibleBooksView("old");
+    }
+
     /* =====================================================
        BLOC-NOTE
        ===================================================== */
