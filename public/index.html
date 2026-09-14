@@ -4757,7 +4757,16 @@ setInterval(
             ".bible-chapters{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}" +
             ".bible-chapter{min-height:43px;border-radius:11px;background:#f3f5f8;color:#850018;font-weight:800}" +
             ".bible-top{display:flex;align-items:center;gap:9px;margin-bottom:14px}" +
-            ".bible-back{width:42px;height:42px;border-radius:50%;background:#f1f3f6;color:#850018;font-size:20px}" +
+            ".bible-back{
+    min-width:88px;
+    height:40px;
+    padding:0 12px;
+    border-radius:12px;
+    background:#f1f3f6;
+    color:#850018;
+    font-size:13px;
+    font-weight:800;
+  }" +
             ".bible-title{font-weight:900;font-size:18px;color:#182033}" +
             ".bible-subtitle{font-size:11px;color:#748094;margin-top:2px}" +
             ".bible-verses{display:flex;flex-direction:column;gap:10px}" +
@@ -4836,7 +4845,7 @@ setInterval(
 
         sheetBody.innerHTML =
             '<div class="bible-top">' +
-                '<button class="bible-back" id="bible-back-books"></button>' +
+                '<button class="bible-back" id="bible-back-books">&#8592; Retour</button>' +
                 '<div>' +
                     '<div class="bible-title">' + escapeHtml(book[0]) + '</div>' +
                     '<div class="bible-subtitle">' + book[1] + ' chapitre' + (book[1] > 1 ? "s" : "") + '</div>' +
@@ -4869,7 +4878,7 @@ setInterval(
 
         sheetBody.innerHTML =
             '<div class="bible-top">' +
-                '<button class="bible-back" id="bible-back-chapters"></button>' +
+                '<button class="bible-back" id="bible-back-chapters">&#8592; Retour</button>' +
                 '<div>' +
                     '<div class="bible-title">' +
                         escapeHtml(book[0]) +
@@ -4924,14 +4933,14 @@ setInterval(
         if (!data || !Array.isArray(data.verses) || !data.verses.length) {
             sheetBody.innerHTML =
                 '<div class="bible-top">' +
-                    '<button class="bible-back" id="bible-back-chapters"></button>' +
+                    '<button class="bible-back" id="bible-back-chapters">&#8592; Retour</button>' +
                     '<div class="bible-title">' +
                         escapeHtml(book[0]) +
                         " " +
                         bibleChapter +
                     '</div>' +
                 '</div>' +
-                '<div class="bible-status">Chapitre indisponible. V?rifiez votre connexion.</div>';
+                '<div class="bible-status">Chapitre indisponible. V&eacute;rifiez votre connexion.</div>';
 
             document.getElementById("bible-back-chapters")
                 .addEventListener("click", bibleChaptersView);
@@ -4953,7 +4962,7 @@ setInterval(
 
         sheetBody.innerHTML =
             '<div class="bible-top">' +
-                '<button class="bible-back" id="bible-back-chapters"></button>' +
+                '<button class="bible-back" id="bible-back-chapters">&#8592; Retour</button>' +
                 '<div>' +
                     '<div class="bible-title">' +
                         escapeHtml(book[0]) +
@@ -4972,7 +4981,7 @@ setInterval(
             '<div class="bible-nav">' +
                 '<button id="bible-prev" ' +
                     ((bibleChapter <= 1 && bibleBook <= 0) ? "disabled" : "") +
-                '>Pr?c?dent</button>' +
+                '>Pr&eacute;c&eacute;dent</button>' +
                 '<button id="bible-next" ' +
                     ((bibleChapter >= book[1] && bibleBook >= BIBLE_BOOKS.length - 1) ? "disabled" : "") +
                 '>Suivant</button>' +
