@@ -41,7 +41,7 @@ function nettoyerNom(originalName) {
   );
 }
 
-async function uploadAudio(buffer, originalName) {
+async function uploadAudio(buffer, originalName, options = {}) {
   if (!Buffer.isBuffer(buffer) || buffer.length === 0) {
     throw new Error('Le fichier audio est vide');
   }
@@ -75,7 +75,15 @@ async function uploadAudio(buffer, originalName) {
         }
 
         console.log('[Cloudinary/audio prêt]', result.secure_url);
-        resolve(result.secure_url);
+        const payload = {
+          url: result.secure_url,
+          durationSeconds: Math.max(
+            0,
+            Math.ceil(Number(result.duration) || 0),
+          ),
+        };
+
+        resolve(options.withMetadata ? payload : payload.url);
       },
     );
 

@@ -217,10 +217,24 @@
       .then(function (items) {
         if (!Array.isArray(items)) return;
 
+        var maintenant = Date.now();
+
         var live = items.find(function (item) {
-          return item &&
-            item.statut === 'en_cours' &&
-            item.audioUrl;
+          if (!item ||
+              item.statut !== 'en_cours' ||
+              !item.audioUrl) {
+            return false;
+          }
+
+          if (item.dateFin) {
+            var fin = new Date(item.dateFin).getTime();
+
+            if (Number.isFinite(fin) && fin <= maintenant) {
+              return false;
+            }
+          }
+
+          return true;
         });
 
         if (!live) return;

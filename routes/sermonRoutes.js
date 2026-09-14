@@ -110,8 +110,17 @@ router.post('/schedule', adminOnly, upload.single('audio'), async (req, res) => 
     }
 
     let audioUrl = String(req.body.audioUrl || '').trim();
+    let dureeSecondes = 0;
+
     if (req.file) {
-      audioUrl = await uploadAudio(req.file.buffer, req.file.originalname);
+      const resultatUpload = await uploadAudio(
+        req.file.buffer,
+        req.file.originalname,
+        { withMetadata: true },
+      );
+
+      audioUrl = resultatUpload.url;
+      dureeSecondes = resultatUpload.durationSeconds;
     }
 
     if (!audioUrl) {
@@ -123,6 +132,11 @@ router.post('/schedule', adminOnly, upload.single('audio'), async (req, res) => 
       description,
       audioUrl,
       dateDiffusion,
+      dureeSecondes,
+      dateFin:
+        dureeSecondes > 0
+          ? new Date(dateDiffusion.getTime() + dureeSecondes * 1000)
+          : null,
       statut: 'planifie',
     });
 

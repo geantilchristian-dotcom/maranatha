@@ -18,6 +18,15 @@ const sermonSchema = new mongoose.Schema({
     type: Date,
     required: true
   },
+  dureeSecondes: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
+  dateFin: {
+    type: Date,
+    default: null
+  },
   statut: {
     type: String,
     enum: ['planifie', 'en_cours', 'termine'],

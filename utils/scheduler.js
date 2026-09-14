@@ -57,6 +57,33 @@ cron.schedule('* * * * *', async () => {
   }
 });
 
+
+// Fin automatique selon la dur?e r?elle de l'audio.
+cron.schedule('* * * * *', async () => {
+  try {
+    const maintenant = new Date();
+
+    const sermonsTermines = await Sermon.find({
+      statut: 'en_cours',
+      dateFin: { $ne: null, $lte: maintenant },
+    });
+
+    for (const sermon of sermonsTermines) {
+      sermon.statut = 'termine';
+      await sermon.save();
+
+      console.log(`[FIN AUDIO] "${sermon.titre}" termin? automatiquement`);
+
+      broadcast('sermon_update', {
+        action: 'finished',
+        sermon,
+      });
+    }
+  } catch (error) {
+    console.error('[FIN AUDIO]', error.message);
+  }
+});
+
 cron.schedule('*/5 * * * *', async () => {
   try {
     const limite = new Date(Date.now() - 3 * 60 * 60 * 1000);
