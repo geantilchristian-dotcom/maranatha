@@ -2017,76 +2017,43 @@
 
 
   async function choisirImage(i, input) {
-    const file =
-      input.files &&
-      input.files[0];
+    const file = input.files && input.files[0];
+    if (!file) return;
 
-    if (!file) {
+    if (!file.type || !file.type.startsWith('image/')) {
+      toast('Choisissez une image JPG, PNG ou WEBP.', 'error');
+      input.value = '';
       return;
     }
 
-    if (!file.type.startsWith('image/')) {
-      toast(
-        'Choisissez une image JPG, PNG ou WEBP.',
-        'error'
-      );
-      return;
-    }
-
-    const info =
-      document.getElementById(
-        'prog-compress-info-' + i
-      );
-
-    if (info) {
-      info.textContent =
-        'Préparation de la photo...';
-    }
+    const info = document.getElementById('prog-compress-info-' + i);
+    if (info) info.textContent = 'Envoi de la photo...';
 
     try {
-      const result =
-        await compresserImage(
-          file,
-          900,
-          1200,
-          0.78
-        );
+      const formData = new FormData();
+      formData.append('file', file, file.name);
 
-      const imageInput =
-        document.getElementById(
-          'prog-img-' + i
-        );
-
-      if (imageInput) {
-        imageInput.value =
-          result.dataUrl;
+      const response = await fetch(API + '/uploads/image', {
+        method: 'POST',
+        headers: authHeaders(),
+        body: formData
+      });
+      const result = await response.json().catch(function () { return {}; });
+      if (!response.ok || !result.url) {
+        throw new Error(result.error || 'Upload impossible');
       }
 
-      _progItems[i].imageUrl =
-        result.dataUrl;
+      const imageInput = document.getElementById('prog-img-' + i);
+      if (imageInput) imageInput.value = result.url;
+      _progItems[i].imageUrl = result.url;
 
-      if (info) {
-        info.textContent =
-          'Photo prête — ' +
-          result.w +
-          ' × ' +
-          result.h +
-          ' px';
-      }
-
+      if (info) info.textContent = 'Photo prête sur le serveur';
       renderProgItems();
-    }
-    catch (e) {
+    } catch (e) {
       console.error(e);
-
-      if (info) {
-        info.textContent = '';
-      }
-
-      toast(
-        'Impossible de préparer cette photo.',
-        'error'
-      );
+      if (info) info.textContent = '';
+      input.value = '';
+      toast(e.message || 'Impossible d’envoyer cette photo.', 'error');
     }
   }
 
@@ -3130,29 +3097,191 @@
     });
   }
 
+  async function uploadAdminFileV2(file, endpoint) {
+    const formData = new FormData();
+    formData.append("file", file, file.name);
+
+    const response = await fetch(API + endpoint, {
+      method: "POST",
+      headers: authHeaders(),
+      body: formData
+    });
+    const result = await response.json().catch(function () { return {}; });
+    if (!response.ok || !result.url) {
+      throw new Error(result.error || "Téléversement impossible");
+    }
+    return result;
+  }
+
   /* ============================================================
      BANNIERES ACCUEIL
      ============================================================ */
 
   window.selectionnerBanniere = async function (input) {
-    const file = input && input.files && input.files[0];
-    if (!file) return;
+    const file =
+      input &&
+      input.files &&
+      input.files[0];
+
+    if (!file) {
+      return;
+    }
+
+    if (
+      !file.type ||
+      !file.type.startsWith("image/")
+    ) {
+      if (typeof window.toast === "function") {
+        window.toast(
+          "Choisissez une image JPG, PNG ou WEBP",
+          "error"
+        );
+      }
+
+      input.value = "";
+      return;
+    }
+
+    if (file.size > 15 * 1024 * 1024) {
+      if (typeof window.toast === "function") {
+        window.toast(
+          "Image trop lourde. Maximum 15 Mo.",
+          "error"
+        );
+      }
+
+      input.value = "";
+      return;
+    }
+
+    const preview =
+      document.getElementById(
+        "banner-preview"
+      );
+
+    const localUrl =
+      URL.createObjectURL(file);
+
+    if (preview) {
+      preview.classList.add(
+        "visible"
+      );
+
+      preview.innerHTML =
+        '<img src="' +
+        safe(localUrl) +
+        '" alt="Aperçu bannière">' +
+        '<div style="' +
+          'margin-top:8px;' +
+          'font-size:11px;' +
+          'color:#D4AF37;' +
+          'font-weight:700' +
+        '">' +
+          'Envoi de la photo...' +
+        '</div>';
+    }
+
+    bannerImageDataV2 = "";
 
     try {
-      bannerImageDataV2 = await imageToDataUrl(file, 1400, 900, 0.82);
-      const preview = document.getElementById("banner-preview");
-      if (preview) {
-        preview.classList.add("visible");
-        preview.innerHTML =
-          '<img src="' + safe(bannerImageDataV2) + '" alt="Aperçu bannière">';
+      const formData =
+        new FormData();
+
+      formData.append(
+        "image",
+        file,
+        file.name
+      );
+
+      const response =
+        await fetch(
+          API +
+          "/settings/home/banner-upload",
+          {
+            method: "POST",
+            headers:
+              authHeaders(),
+            body:
+              formData
+          }
+        );
+
+      const result =
+        await response
+          .json()
+          .catch(
+            function () {
+              return {};
+            }
+          );
+
+      if (
+        !response.ok ||
+        !result.url
+      ) {
+        throw new Error(
+          result.error ||
+          "Upload impossible"
+        );
       }
-    } catch (error) {
-      if (typeof window.toast === "function") {
-        window.toast("Impossible de lire cette image", "error");
+
+      bannerImageDataV2 =
+        result.url;
+
+      if (preview) {
+        preview.innerHTML =
+          '<img src="' +
+          safe(result.url) +
+          '" alt="Aperçu bannière">' +
+          '<div style="' +
+            'margin-top:8px;' +
+            'font-size:11px;' +
+            'color:#16A34A;' +
+            'font-weight:700' +
+          '">' +
+            'Photo prête sur le serveur' +
+          '</div>';
+      }
+
+      if (
+        typeof window.toast ===
+        "function"
+      ) {
+        window.toast(
+          "Photo de bannière envoyée",
+          "success"
+        );
       }
     }
-  };
+    catch (error) {
+      bannerImageDataV2 = "";
 
+      if (preview) {
+        preview.innerHTML = "";
+        preview.classList.remove(
+          "visible"
+        );
+      }
+
+      input.value = "";
+
+      if (
+        typeof window.toast ===
+        "function"
+      ) {
+        window.toast(
+          error.message ||
+          "Impossible d'envoyer la photo",
+          "error"
+        );
+      }
+    }
+    finally {
+      URL.revokeObjectURL(
+        localUrl
+      );
+    }
+  };
   function renderBannersV2() {
     const container = document.getElementById("hero-banners-admin-list");
     if (!container) return;
@@ -3282,7 +3411,7 @@
       const response = await fetch(API + "/settings/home", { cache: "no-store" });
       if (response.ok) {
         const data = await response.json();
-        if (Array.isArray(data.heroBanners) && data.heroBanners.length) {
+        if (Array.isArray(data.heroBanners)) {
           heroBannersV2 = data.heroBanners;
           writeStorage(BANNER_STORAGE, heroBannersV2);
         }
@@ -3347,47 +3476,60 @@
     const file = input && input.files && input.files[0];
     if (!file) return;
 
+    const preview = document.getElementById("library-cover-preview");
     try {
-      libraryCoverDataV2 = await imageToDataUrl(file, 900, 900, 0.78);
-      const preview = document.getElementById("library-cover-preview");
+      libraryCoverDataV2 = "";
       if (preview) {
         preview.classList.add("visible");
-        preview.innerHTML =
-          '<img src="' + safe(libraryCoverDataV2) + '" alt="Couverture">';
+        preview.innerHTML = '<div style="padding:18px;color:#D4AF37;font-weight:800">Envoi de la couverture...</div>';
       }
-    } catch (_) {}
-  };
-
-  window.selectionnerFichierBibliotheque = function (input) {
-    const file = input && input.files && input.files[0];
-    if (!file) return;
-
-    libraryFileMetaV2 = {
-      name: file.name,
-      size: file.size,
-      type: file.type
-    };
-
-    const label = document.getElementById("library-file-name");
-    if (label) {
-      label.textContent =
-        file.name + " — " +
-        (file.size < 1048576
-          ? Math.round(file.size / 1024) + " Ko"
-          : (file.size / 1048576).toFixed(1) + " Mo");
+      const result = await uploadAdminFileV2(file, "/uploads/image");
+      libraryCoverDataV2 = result.url;
+      if (preview) {
+        preview.innerHTML = '<img src="' + safe(result.url) + '" alt="Couverture">';
+      }
+      window.toast && window.toast("Couverture envoyée", "success");
+    } catch (error) {
+      libraryCoverDataV2 = "";
+      input.value = "";
+      if (preview) {
+        preview.classList.remove("visible");
+        preview.innerHTML = "";
+      }
+      window.toast && window.toast(error.message || "Impossible d'envoyer la couverture", "error");
     }
   };
 
-  function localLibraryDrafts() {
-    const value = readStorage(LIBRARY_DRAFT_STORAGE, []);
-    return Array.isArray(value) ? value : [];
-  }
+  window.selectionnerFichierBibliotheque = async function (input) {
+    const file = input && input.files && input.files[0];
+    if (!file) return;
 
-  function saveLibraryDraft(item) {
-    const list = localLibraryDrafts();
-    list.unshift(item);
-    writeStorage(LIBRARY_DRAFT_STORAGE, list.slice(0, 30));
-  }
+    const type = (document.getElementById("library-type") || {}).value || "video";
+    const label = document.getElementById("library-file-name");
+    libraryFileMetaV2 = null;
+
+    if (label) label.textContent = "Envoi de " + file.name + "...";
+
+    try {
+      const result = await uploadAdminFileV2(
+        file,
+        "/uploads/asset?kind=" + encodeURIComponent(type)
+      );
+      libraryFileMetaV2 = {
+        name: result.originalName || file.name,
+        size: result.bytes || file.size,
+        type: file.type,
+        url: result.url
+      };
+      if (label) label.textContent = (libraryFileMetaV2.name || file.name) + " — prêt sur le serveur";
+      window.toast && window.toast("Fichier envoyé", "success");
+    } catch (error) {
+      input.value = "";
+      libraryFileMetaV2 = null;
+      if (label) label.textContent = "Aucun fichier sélectionné";
+      window.toast && window.toast(error.message || "Impossible d'envoyer ce fichier", "error");
+    }
+  };
 
   window.publierBibliotheque = async function () {
     const type = (document.getElementById("library-type") || {}).value || "video";
@@ -3395,185 +3537,136 @@
     const author = (document.getElementById("library-author") || {}).value?.trim() || "";
     const category = (document.getElementById("library-category") || {}).value?.trim() || "Général";
     const description = (document.getElementById("library-description") || {}).value?.trim() || "";
-    const url = (document.getElementById("library-url") || {}).value?.trim() || "";
-    const downloadable =
-      ((document.getElementById("library-downloadable") || {}).value || "true") === "true";
+    const typedUrl = (document.getElementById("library-url") || {}).value?.trim() || "";
+    const downloadable = ((document.getElementById("library-downloadable") || {}).value || "true") === "true";
 
     if (!title) {
       window.toast && window.toast("Ajoutez un titre", "error");
       return;
     }
-
     if (!libraryCoverDataV2) {
       window.toast && window.toast("Ajoutez une photo de couverture", "error");
       return;
     }
 
-    if (!url && !libraryFileMetaV2) {
+    const uploadedUrl = libraryFileMetaV2 && libraryFileMetaV2.url
+      ? libraryFileMetaV2.url
+      : "";
+    if (!uploadedUrl && !typedUrl) {
       window.toast && window.toast("Joignez un fichier ou indiquez un lien", "error");
       return;
     }
 
-    let published = false;
-
     try {
-      if (type === "video" && url) {
-        const response = await fetch(API + "/videos", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...authHeaders()
-          },
-          body: JSON.stringify({
-            titre: title,
-            categorie: category,
-            description: description,
-            youtubeUrl: url,
-            couvertureUrl: libraryCoverDataV2,
-            telechargeable: downloadable
-          })
-        });
-        published = response.ok;
-      }
-
-      if (type === "book" && url) {
-        const response = await fetch(API + "/livres", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...authHeaders()
-          },
-          body: JSON.stringify({
-            titre: title,
-            auteur: author,
-            categorie: category,
-            description: description,
-            fichierUrl: url,
-            couvertureUrl: libraryCoverDataV2,
-            telechargeable: downloadable
-          })
-        });
-        published = response.ok;
-      }
-    } catch (_) {}
-
-    if (!published) {
-      saveLibraryDraft({
-        id: "draft-" + Date.now(),
-        type: type,
-        titre: title,
-        auteur: author,
-        categorie: category,
-        description: description,
-        couvertureUrl: libraryCoverDataV2,
-        fichierUrl: url,
-        fileName: libraryFileMetaV2 ? libraryFileMetaV2.name : "",
-        downloadable: downloadable,
-        localDraft: true
+      const response = await fetch(API + "/bibliotheque", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...authHeaders()
+        },
+        body: JSON.stringify({
+          type: type,
+          titre: title,
+          auteur: author,
+          categorie: category,
+          description: description,
+          couvertureUrl: libraryCoverDataV2,
+          fichierUrl: uploadedUrl,
+          lienExterne: uploadedUrl ? "" : typedUrl,
+          nomFichier: libraryFileMetaV2 ? libraryFileMetaV2.name : "",
+          telechargeable: downloadable,
+          actif: true
+        })
       });
+      const result = await response.json().catch(function () { return {}; });
+      if (!response.ok) throw new Error(result.error || "Publication impossible");
+
+      ["library-title", "library-author", "library-category", "library-description", "library-url"].forEach(function (id) {
+        const el = document.getElementById(id);
+        if (el) el.value = "";
+      });
+      const coverInput = document.getElementById("library-cover-file");
+      const mainInput = document.getElementById("library-main-file");
+      if (coverInput) coverInput.value = "";
+      if (mainInput) mainInput.value = "";
+      libraryCoverDataV2 = "";
+      libraryFileMetaV2 = null;
+
+      const preview = document.getElementById("library-cover-preview");
+      if (preview) {
+        preview.classList.remove("visible");
+        preview.innerHTML = "";
+      }
+      window.changerTypeBibliotheque();
+      await chargerBibliothequeAdminV2();
+      window.toast && window.toast("Contenu publié chez les fidèles", "success");
+    } catch (error) {
+      window.toast && window.toast(error.message || "Publication impossible", "error");
     }
+  };
 
-    ["library-title", "library-author", "library-category", "library-description", "library-url"].forEach(function (id) {
-      const el = document.getElementById(id);
-      if (el) el.value = "";
-    });
-
-    const coverInput = document.getElementById("library-cover-file");
-    const mainInput = document.getElementById("library-main-file");
-    if (coverInput) coverInput.value = "";
-    if (mainInput) mainInput.value = "";
-
-    libraryCoverDataV2 = "";
-    libraryFileMetaV2 = null;
-
-    const preview = document.getElementById("library-cover-preview");
-    if (preview) {
-      preview.classList.remove("visible");
-      preview.innerHTML = "";
+  window.supprimerBibliothequeV2 = async function (id, source) {
+    if (!id || !confirm("Supprimer ce contenu de la bibliothèque ?")) return;
+    try {
+      const query = source ? "?source=" + encodeURIComponent(source) : "";
+      const response = await fetch(API + "/bibliotheque/" + encodeURIComponent(id) + query, {
+        method: "DELETE",
+        headers: authHeaders()
+      });
+      const result = await response.json().catch(function () { return {}; });
+      if (!response.ok) throw new Error(result.error || "Suppression impossible");
+      await chargerBibliothequeAdminV2();
+      window.toast && window.toast("Contenu supprimé", "success");
+    } catch (error) {
+      window.toast && window.toast(error.message || "Suppression impossible", "error");
     }
-
-    window.changerTypeBibliotheque();
-    await chargerBibliothequeAdminV2();
-
-    window.toast && window.toast(
-      published
-        ? "Contenu publié"
-        : "Contenu préparé dans l'admin; upload serveur du fichier à connecter",
-      published ? "success" : "error"
-    );
   };
 
   async function chargerBibliothequeAdminV2() {
     const container = document.getElementById("library-admin-list");
     if (!container) return;
 
-    let items = localLibraryDrafts();
-
     try {
-      const results = await Promise.allSettled([
-        fetch(API + "/livres", { headers: authHeaders() }),
-        fetch(API + "/videos", { headers: authHeaders() })
-      ]);
+      const response = await fetch(API + "/bibliotheque/all", {
+        headers: authHeaders(),
+        cache: "no-store"
+      });
+      const items = response.ok ? await response.json() : [];
+      if (!response.ok) throw new Error("HTTP " + response.status);
 
-      if (results[0].status === "fulfilled" && results[0].value.ok) {
-        const books = await results[0].value.json();
-        if (Array.isArray(books)) {
-          items = books.map(function (book) {
-            return { ...book, type: "book" };
-          }).concat(items);
-        }
+      if (!Array.isArray(items) || !items.length) {
+        container.innerHTML = '<div class="empty-state">Aucun contenu dans la bibliothèque</div>';
+        return;
       }
 
-      if (results[1].status === "fulfilled" && results[1].value.ok) {
-        const videos = await results[1].value.json();
-        if (Array.isArray(videos)) {
-          items = videos.map(function (video) {
-            return { ...video, type: "video" };
-          }).concat(items);
+      const labels = { video: "VIDÉO", photo: "PHOTO", audio: "AUDIO", book: "LIVRE PDF" };
+      container.innerHTML = items.slice(0, 80).map(function (item) {
+        let cover = item.couvertureUrl || item.coverUrl || item.imageUrl || "";
+        if (!cover && item.type === "video" && item.youtubeUrl) {
+          const match = String(item.youtubeUrl).match(/(?:v=|youtu\.be\/)([A-Za-z0-9_-]{6,})/);
+          if (match) cover = "https://i.ytimg.com/vi/" + match[1] + "/hqdefault.jpg";
         }
-      }
-    } catch (_) {}
-
-    if (!items.length) {
-      container.innerHTML = '<div class="empty-state">Aucun contenu dans la bibliothèque</div>';
-      return;
+        const source = item.source || "bibliotheque";
+        return (
+          '<article class="library-admin-card">' +
+            '<div class="library-admin-cover">' +
+              (cover ? '<img src="' + safe(cover) + '" alt="">' : '') +
+            '</div>' +
+            '<div class="library-admin-body">' +
+              '<div style="color:#D4AF37;font-size:9px;font-weight:900;margin-bottom:5px">' +
+                safe(labels[item.type] || "CONTENU") +
+              '</div>' +
+              '<div class="library-admin-title">' + safe(item.titre || item.title || "Sans titre") + '</div>' +
+              '<div class="library-admin-meta">' + safe(item.categorie || item.nomFichier || "") + '</div>' +
+              '<button class="btn-delete" type="button" style="margin-top:10px" onclick="supprimerBibliothequeV2(\'' +
+                safe(item._id) + '\',\'' + safe(source) + '\')">Supprimer</button>' +
+            '</div>' +
+          '</article>'
+        );
+      }).join("");
+    } catch (_) {
+      container.innerHTML = '<div class="empty-state">Impossible de charger la bibliothèque</div>';
     }
-
-    const labels = {
-      video: "VIDÉO",
-      photo: "PHOTO",
-      audio: "AUDIO",
-      book: "LIVRE PDF"
-    };
-
-    container.innerHTML = items.slice(0, 60).map(function (item) {
-      let cover = item.couvertureUrl || item.coverUrl || item.imageUrl || "";
-
-      if (!cover && item.type === "video" && item.youtubeUrl) {
-        const match = String(item.youtubeUrl).match(/(?:v=|youtu\.be\/)([A-Za-z0-9_-]{6,})/);
-        if (match) cover = "https://i.ytimg.com/vi/" + match[1] + "/hqdefault.jpg";
-      }
-
-      return (
-        '<article class="library-admin-card">' +
-          '<div class="library-admin-cover">' +
-            (cover
-              ? '<img src="' + safe(cover) + '" alt="">'
-              : '') +
-          '</div>' +
-          '<div class="library-admin-body">' +
-            '<div style="color:#D4AF37;font-size:9px;font-weight:900;margin-bottom:5px">' +
-              safe(labels[item.type] || "CONTENU") +
-            '</div>' +
-            '<div class="library-admin-title">' + safe(item.titre || item.title || "Sans titre") + '</div>' +
-            '<div class="library-admin-meta">' +
-              safe(item.categorie || item.fileName || "") +
-              (item.localDraft ? " · BROUILLON LOCAL" : "") +
-            '</div>' +
-          '</div>' +
-        '</article>'
-      );
-    }).join("");
   }
 
   /* ============================================================
@@ -3583,68 +3676,73 @@
   window.selectionnerCouvertureEtude = async function (input) {
     const file = input && input.files && input.files[0];
     if (!file) return;
-
+    const preview = document.getElementById("et-cover-preview");
     try {
-      studyCoverDataV2 = await imageToDataUrl(file, 900, 1100, 0.78);
-      const preview = document.getElementById("et-cover-preview");
+      studyCoverDataV2 = "";
       if (preview) {
         preview.classList.add("visible");
-        preview.innerHTML = '<img src="' + safe(studyCoverDataV2) + '" alt="Couverture étude">';
+        preview.innerHTML = '<div style="padding:18px;color:#D4AF37;font-weight:800">Envoi de la couverture...</div>';
       }
-    } catch (_) {}
+      const result = await uploadAdminFileV2(file, "/uploads/image");
+      studyCoverDataV2 = result.url;
+      if (preview) preview.innerHTML = '<img src="' + safe(result.url) + '" alt="Couverture étude">';
+      window.toast && window.toast("Couverture envoyée", "success");
+    } catch (error) {
+      studyCoverDataV2 = "";
+      input.value = "";
+      if (preview) {
+        preview.classList.remove("visible");
+        preview.innerHTML = "";
+      }
+      window.toast && window.toast(error.message || "Impossible d'envoyer la couverture", "error");
+    }
   };
 
-  window.selectionnerPdfEtude = function (input) {
+  window.selectionnerPdfEtude = async function (input) {
     const file = input && input.files && input.files[0];
     if (!file) return;
-
-    studyPdfMetaV2 = {
-      name: file.name,
-      size: file.size
-    };
-
     const label = document.getElementById("et-pdf-name");
-    if (label) {
-      label.textContent =
-        file.name + " — " +
-        (file.size < 1048576
-          ? Math.round(file.size / 1024) + " Ko"
-          : (file.size / 1048576).toFixed(1) + " Mo");
+    studyPdfMetaV2 = null;
+    if (label) label.textContent = "Envoi de " + file.name + "...";
+    try {
+      const result = await uploadAdminFileV2(file, "/uploads/asset?kind=pdf");
+      studyPdfMetaV2 = {
+        name: result.originalName || file.name,
+        size: result.bytes || file.size,
+        url: result.url
+      };
+      if (label) label.textContent = (studyPdfMetaV2.name || file.name) + " — prêt sur le serveur";
+      window.toast && window.toast("PDF envoyé", "success");
+    } catch (error) {
+      input.value = "";
+      studyPdfMetaV2 = null;
+      if (label) label.textContent = "Aucun PDF sélectionné";
+      window.toast && window.toast(error.message || "Impossible d'envoyer le PDF", "error");
     }
   };
 
   window.ajouterEtudeV2 = async function () {
     const titre = (document.getElementById("et-titre") || {}).value?.trim() || "";
     const texte = (document.getElementById("et-texte") || {}).value?.trim() || "";
-    const pdfUrl = (document.getElementById("et-pdf") || {}).value?.trim() || "";
+    const typedPdfUrl = (document.getElementById("et-pdf") || {}).value?.trim() || "";
     const datePublication = (document.getElementById("et-date") || {}).value || "";
-    const actif =
-      ((document.getElementById("et-actif") || {}).value || "true") === "true";
+    const actif = ((document.getElementById("et-actif") || {}).value || "true") === "true";
+    const pdfUrl = studyPdfMetaV2 && studyPdfMetaV2.url ? studyPdfMetaV2.url : typedPdfUrl;
 
     if (!titre) {
       window.toast && window.toast("Titre obligatoire", "error");
       return;
     }
 
-    if (studyPdfMetaV2 && !pdfUrl) {
-      window.toast && window.toast(
-        "Le PDF est bien sélectionné. L'upload serveur doit encore être connecté avant publication.",
-        "error"
-      );
-      return;
-    }
-
     try {
       const response = await fetch(API + "/etudes", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...authHeaders()
-        },
+        headers: { "Content-Type": "application/json", ...authHeaders() },
         body: JSON.stringify({
           titre: titre,
           texte: texte,
           pdfUrl: pdfUrl,
+          pdfNom: studyPdfMetaV2 ? studyPdfMetaV2.name : "",
           datePublication: datePublication
             ? new Date(datePublication + "T12:00:00").toISOString()
             : new Date().toISOString(),
@@ -3652,35 +3750,30 @@
           couvertureUrl: studyCoverDataV2
         })
       });
-
-      if (!response.ok) throw new Error("Erreur");
+      const result = await response.json().catch(function () { return {}; });
+      if (!response.ok) throw new Error(result.error || "Publication impossible");
 
       ["et-titre", "et-texte", "et-pdf"].forEach(function (id) {
         const el = document.getElementById(id);
         if (el) el.value = "";
       });
-
       const cover = document.getElementById("et-cover-file");
       const pdf = document.getElementById("et-pdf-file");
       if (cover) cover.value = "";
       if (pdf) pdf.value = "";
-
       const preview = document.getElementById("et-cover-preview");
       if (preview) {
         preview.classList.remove("visible");
         preview.innerHTML = "";
       }
-
       const name = document.getElementById("et-pdf-name");
       if (name) name.textContent = "Aucun PDF sélectionné";
-
       studyCoverDataV2 = "";
       studyPdfMetaV2 = null;
-
-      window.toast && window.toast("Étude publiée", "success");
+      window.toast && window.toast("Étude publiée chez les fidèles", "success");
       await chargerEtudesAdminV2();
-    } catch (_) {
-      window.toast && window.toast("Impossible de publier l'étude", "error");
+    } catch (error) {
+      window.toast && window.toast(error.message || "Impossible de publier l'étude", "error");
     }
   };
 
@@ -4047,7 +4140,7 @@
     let donations = [];
 
     try {
-      const direct = await fetch(API + "/dons/admin", {
+      const direct = await fetch(API + "/dons/admin?refresh=1", {
         headers: authHeaders(),
         cache: "no-store"
       });
@@ -4169,7 +4262,7 @@
       if (yt) yt.value = config.youtubeChannelUrl || "";
       if (tt) tt.value = config.tiktokUrl || "";
 
-      if (Array.isArray(config.heroBanners) && config.heroBanners.length) {
+      if (Array.isArray(config.heroBanners)) {
         heroBannersV2 = config.heroBanners;
         writeStorage(BANNER_STORAGE, heroBannersV2);
         renderBannersV2();
@@ -4603,9 +4696,9 @@
             "mai-alerts"
         );
     let password =
-        sessionStorage.getItem(
-            "maranatha_admin_inbox_password"
-        ) || "";
+        typeof adminPassword === "string"
+            ? adminPassword
+            : "";
     let firstLoad =
         true;
     let knownIds =
@@ -4666,23 +4759,17 @@
         );
     }
     async function ensurePassword() {
+        password =
+            typeof adminPassword === "string"
+                ? adminPassword
+                : "";
         if (password) {
             return true;
         }
-        const entered =
-            window.prompt(
-                "Mot de passe administrateur Maranatha"
-            );
-        if (!entered) {
-            return false;
-        }
-        password =
-            entered;
-        sessionStorage.setItem(
-            "maranatha_admin_inbox_password",
-            password
+        window.alert(
+            "Reconnectez-vous à l'espace administrateur."
         );
-        return true;
+        return false;
     }
     function headers() {
         return {
@@ -4965,16 +5052,11 @@
                     }
                 );
             if (
-                response.status === 401
+                response.status === 401 ||
+                response.status === 429
             ) {
-                password =
-                    "";
-                sessionStorage.removeItem(
-                    "maranatha_admin_inbox_password"
-                );
-                updateBadge(
-                    0
-                );
+                password = "";
+                updateBadge(0);
                 return;
             }
             const result =
@@ -5115,16 +5197,24 @@
      */
     setInterval(
         function () {
+            password =
+                typeof adminPassword === "string"
+                    ? adminPassword
+                    : "";
             if (password) {
                 loadInbox();
             }
         },
-        5000
+        10000
     );
     /*
      * Si le mot de passe existe deja
      * dans cette session, charger le compteur.
      */
+    password =
+        typeof adminPassword === "string"
+            ? adminPassword
+            : "";
     if (password) {
         loadInbox();
     }

@@ -2,14 +2,21 @@ const express = require('express');
 
 const Device = require('../models/Device');
 const adminOnly = require('../utils/adminAuth');
+const { createRateLimiter } = require('../utils/security');
 
 const router = express.Router();
+
+const deviceLimiter = createRateLimiter({
+  windowMs: 10 * 60 * 1000,
+  max: 120,
+  keyPrefix: 'devices-register',
+});
 
 function cleanText(value, maxLength) {
   return String(value || '').trim().slice(0, maxLength);
 }
 
-router.post('/register', async (req, res) => {
+router.post('/register', deviceLimiter, async (req, res) => {
   try {
     const installationId = cleanText(req.body.installationId, 220);
     const fcmToken = cleanText(req.body.fcmToken, 4096);

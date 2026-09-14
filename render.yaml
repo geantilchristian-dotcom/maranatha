@@ -3,12 +3,18 @@ services:
     name: maranatha
     runtime: node
     plan: free
-    buildCommand: npm install
+    buildCommand: npm ci
     startCommand: npm start
     healthCheckPath: /api/health
     envVars:
       - key: NODE_VERSION
         value: 22
+      - key: NODE_ENV
+        value: production
+      - key: MARANATHA_PUBLIC_URL
+        value: https://cemm-eglisemaranatha.site
+      - key: ALLOWED_ORIGINS
+        value: https://cemm-eglisemaranatha.site,https://www.cemm-eglisemaranatha.site,https://maranatha-1-k6ro.onrender.com
       - key: MONGO_URI
         sync: false
       - key: ADMIN_PASSWORD
@@ -21,5 +27,7 @@ services:
         sync: false
       - key: CLOUDINARY_API_SECRET
         sync: false
-      - key: ALLOWED_ORIGINS
-        value: https://maranatha-dl9d.onrender.com
+      - key: KPAY_API_KEY
+        sync: false
+      - key: KPAY_SECRET_KEY
+        sync: false

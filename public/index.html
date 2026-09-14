@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -4306,7 +4306,7 @@ setInterval(
             "/api/admin-inbox/public"
         ],
         membres: [
-            "/api/admin-inbox/public"
+            "/api/membres"
         ],
         settings: [
             "/api/settings/home"
@@ -5255,24 +5255,41 @@ function showNotes(editId) {
 }
 
 async function showStudies() {
-        openSheet(
-            "\u00c9tude biblique",
-            loading()
-        );
-        const result =
-            await apiGetFirst(
-                API.etudes
+        openSheet("Étude biblique", loading());
+        const result = await apiGetFirst(API.etudes);
+        if (!result.ok) {
+            sheetBody.innerHTML = empty("Aucune étude biblique n'est disponible pour le moment.");
+            return;
+        }
+
+        const studies = extractArray(result.data).filter(function (item) {
+            return item && item.actif !== false;
+        });
+        if (!studies.length) {
+            sheetBody.innerHTML = empty("Aucune étude biblique n'est disponible pour le moment.");
+            return;
+        }
+
+        sheetBody.innerHTML = '<div class="m-list">' + studies.map(function (item) {
+            const cover = librarySafeUrl(item.couvertureUrl || item.coverUrl || "");
+            const pdf = librarySafeUrl(item.pdfUrl || "");
+            const date = item.datePublication
+                ? new Date(item.datePublication).toLocaleDateString("fr-FR")
+                : "";
+            return (
+                '<article class="m-card">' +
+                    (cover
+                        ? '<img src="' + escapeHtml(cover) + '" alt="" loading="lazy" style="width:100%;max-height:240px;object-fit:cover;border-radius:14px;margin-bottom:12px">'
+                        : '') +
+                    '<h3 class="m-card-title">' + escapeHtml(item.titre || "Étude biblique") + '</h3>' +
+                    (item.texte ? '<div class="m-card-text">' + escapeHtml(item.texte) + '</div>' : '') +
+                    (date ? '<div class="m-card-meta">' + escapeHtml(date) + '</div>' : '') +
+                    (pdf
+                        ? '<a class="m-primary" style="margin-top:12px;text-decoration:none;display:flex;align-items:center;justify-content:center" href="' + escapeHtml(pdf) + '" target="_blank" rel="noopener noreferrer">Ouvrir le PDF</a>'
+                        : '') +
+                '</article>'
             );
-        sheetBody.innerHTML =
-            result.ok
-                ?
-                renderCards(
-                    result.data
-                )
-                :
-                empty(
-                    "Aucune etude biblique n'est disponible pour le moment."
-                );
+        }).join("") + '</div>';
     }
     /* =====================================================
        DON
@@ -5481,7 +5498,10 @@ async function showDon() {
                             body:
                                 JSON.stringify({
                                     amount,
-                                    category
+                                    category,
+                                    donorName: donorProfile.nom || localStorage.getItem("maranatha_user") || "",
+                                    donorPhone: donorProfile.telephone || localStorage.getItem("maranatha_tel") || "",
+                                    memberId: localStorage.getItem("maranatha_membre_id") || ""
                                 })
                         }
                     );
@@ -5946,6 +5966,14 @@ function showMessageForm(
                             'type="email" ' +
                             'placeholder="email@exemple.com">' +
                     '</div>' +
+                    '<div class="m-field">' +
+                        '<label>Adresse</label>' +
+                        '<input ' +
+                            'id="member-address" ' +
+                            'class="m-input" ' +
+                            'type="text" ' +
+                            'placeholder="Quartier, avenue, numéro">' +
+                    '</div>' +
                     '<div ' +
                         'id="member-result" ' +
                         'class="m-message">' +
@@ -5987,6 +6015,13 @@ function showMessageForm(
                             )
                             .value
                             .trim();
+                    const address =
+                        document
+                            .getElementById(
+                                "member-address"
+                            )
+                            .value
+                            .trim();
                     const payload = {
 
                         type: "membre",
@@ -5995,7 +6030,8 @@ function showMessageForm(
                         name: name,
                         telephone: phone,
                         phone: phone,
-                        email: email
+                        email: email,
+                        adresse: address
                     };
                     const result =
                         await apiPostFirst(
@@ -6015,7 +6051,20 @@ function showMessageForm(
                         box.className =
                             "m-message show success";
                         box.textContent =
-                            "Votre demande a ete envoyee a Maranatha.";
+                            "Votre demande a été enregistrée à Maranatha.";
+                        const member = result.data || {};
+                        if (member._id) localStorage.setItem("maranatha_membre_id", String(member._id));
+                        localStorage.setItem("maranatha_tel", phone);
+                        localStorage.setItem("maranatha_nom", name);
+                        localStorage.setItem("maranatha_email", email);
+                        localStorage.setItem("maranatha_adresse", address);
+                        localStorage.setItem("maranatha_user", name);
+                        localStorage.setItem("maranatha_profile", JSON.stringify({
+                            nom: name,
+                            telephone: phone,
+                            email: email,
+                            adresse: address
+                        }));
                         event.currentTarget.reset();
                     }
                     else {
@@ -6230,7 +6279,11 @@ function libraryCover(item, type) {
                             ? "Livre"
                             : type === "video"
                                 ? "Vid\u00e9o"
-                                : "Pr\u00e9dication"
+                                : type === "photo"
+                                    ? "Photo"
+                                    : type === "audio"
+                                        ? "Audio"
+                                        : "Pr\u00e9dication"
                     ) +
                 '</div>' +
             '</div>'
@@ -6254,149 +6307,41 @@ function libraryCover(item, type) {
 }
 
 function libraryCard(item, type) {
-    const title =
-        item.titre ||
-        item.title ||
-        "Sans titre";
-
-    const description =
-        item.description ||
-        item.resume ||
-        "";
-
-    let meta = "";
-    let href = "";
-    let buttonText = "";
-    let wide = false;
-    let coverClass = "book";
-    let play = "";
-
-    if (type === "book") {
-        meta =
-            item.auteur ||
-            item.categorie ||
-            "Maranatha";
-
-        href =
-            item.fichierUrl ||
-            item.lienExterne ||
-            item.url ||
-            "";
-
-        buttonText = "Lire";
-    }
-
-    if (type === "video") {
-        wide = true;
-        coverClass = "media";
-
-        meta =
-            item.auteur ||
-            item.pasteur ||
-            item.categorie ||
-            "Maranatha";
-
-        href =
-            item.youtubeUrl ||
-            item.videoUrl ||
-            item.url ||
-            "";
-
-        buttonText = "Regarder";
-        play = '<div class="lib-play">&#9654;</div>';
-    }
-
-    if (type === "sermon") {
-        wide = true;
-        coverClass = "media";
-
-        meta =
-            item.pasteur ||
-            item.auteur ||
-            item.orateur ||
-            (
-                item.dateDiffusion
-                    ? new Intl.DateTimeFormat(
-                        "fr-FR",
-                        {
-                            day: "2-digit",
-                            month: "short",
-                            year: "numeric"
-                        }
-                    ).format(
-                        new Date(item.dateDiffusion)
-                    )
-                    : "Maranatha"
-            );
-
-        href =
-            item.audioUrl ||
-            item.url ||
-            "";
-
-        buttonText = "\u00c9couter";
-        play = '<div class="lib-play">&#9654;</div>';
-    }
-
-    href = librarySafeUrl(href);
+    const title = item.titre || item.title || "Sans titre";
+    const description = item.description || item.resume || "";
+    const meta = item.auteur || item.pasteur || item.categorie || "Maranatha";
+    const fileHref = librarySafeUrl(item.fichierUrl || item.audioUrl || item.videoUrl || item.url || "");
+    const externalHref = librarySafeUrl(item.lienExterne || item.youtubeUrl || "");
+    const href = fileHref || externalHref;
+    const labels = {
+        book: ["LIVRE", "Ouvrir"],
+        video: ["VIDÉO", "Regarder"],
+        photo: ["PHOTO", "Voir"],
+        audio: ["AUDIO", "Écouter"],
+        sermon: ["PRÉDICATION", "Écouter"]
+    };
+    const pair = labels[type] || ["CONTENU", "Ouvrir"];
+    const wide = type !== "book";
+    const play = (type === "video" || type === "audio" || type === "sermon")
+        ? '<div class="lib-play">&#9654;</div>'
+        : "";
 
     return (
-        '<article class="lib-card ' +
-            (wide ? "lib-wide" : "") +
-        '">' +
-
-            '<div class="lib-cover ' +
-                coverClass +
-            '">' +
-
+        '<article class="lib-card ' + (wide ? "lib-wide" : "") + '">' +
+            '<div class="lib-cover ' + (wide ? "media" : "book") + '">' +
                 libraryCover(item, type) +
-
-                '<div class="lib-badge">' +
-                    (
-                        type === "book"
-                            ? "LIVRE"
-                            : type === "video"
-                                ? "VID\u00c9O"
-                                : "PR\u00c9DICATION"
-                    ) +
-                '</div>' +
-
+                '<div class="lib-badge">' + pair[0] + '</div>' +
                 play +
-
             '</div>' +
-
             '<div class="lib-card-body">' +
-
-                '<div class="lib-title">' +
-                    escapeHtml(String(title)) +
-                '</div>' +
-
-                '<div class="lib-meta">' +
-                    escapeHtml(String(meta)) +
-                '</div>' +
-
-                (
-                    description
-                        ? '<div class="lib-desc">' +
-                            escapeHtml(
-                                String(description)
-                            ) +
-                          '</div>'
-                        : ''
-                ) +
-
-                (
-                    href
-                        ? '<a class="lib-action" href="' +
-                            escapeHtml(href) +
-                            '" target="_blank" rel="noopener noreferrer">' +
-                            buttonText +
-                          '</a>'
-                        : ''
-                ) +
-
+                '<div class="lib-title">' + escapeHtml(String(title)) + '</div>' +
+                '<div class="lib-meta">' + escapeHtml(String(meta)) + '</div>' +
+                (description ? '<div class="lib-desc">' + escapeHtml(String(description)) + '</div>' : '') +
+                (href
+                    ? '<a class="lib-action" href="' + escapeHtml(href) + '" target="_blank" rel="noopener noreferrer"' +
+                        ((item.telechargeable !== false && fileHref) ? ' download' : '') + '>' + pair[1] + '</a>'
+                    : '') +
             '</div>' +
-
         '</article>'
     );
 }
@@ -6405,156 +6350,824 @@ function librarySection(title, items, type) {
     if (!items.length) {
         return (
             '<section class="lib-section">' +
-
                 '<div class="lib-section-head">' +
-                    '<div class="lib-section-title">' +
-                        title +
-                    '</div>' +
+                    '<div class="lib-section-title">' + title + '</div>' +
                     '<div class="lib-section-count">0</div>' +
                 '</div>' +
-
-                '<div class="lib-empty">' +
-                    'Aucun contenu publi\u00e9 pour le moment.' +
-                '</div>' +
-
+                '<div class="lib-empty">Aucun contenu publié pour le moment.</div>' +
             '</section>'
         );
     }
-
     return (
         '<section class="lib-section">' +
-
             '<div class="lib-section-head">' +
-                '<div class="lib-section-title">' +
-                    title +
-                '</div>' +
-
-                '<div class="lib-section-count">' +
-                    items.length +
-                '</div>' +
+                '<div class="lib-section-title">' + title + '</div>' +
+                '<div class="lib-section-count">' + items.length + '</div>' +
             '</div>' +
-
             '<div class="lib-row">' +
-                items
-                    .map(function(item) {
-                        return libraryCard(
-                            item,
-                            type
-                        );
-                    })
-                    .join("") +
+                items.map(function(item) { return libraryCard(item, type); }).join("") +
             '</div>' +
-
         '</section>'
     );
 }
 
 async function showLibrary() {
     maranathaLibraryStyles();
-
-    openSheet(
-        "Biblioth\u00e8que",
-        '<div class="bible-status">Chargement...</div>'
-    );
-
+    openSheet("Bibliothèque", '<div class="bible-status">Chargement...</div>');
     const results = await Promise.all([
-        libraryFetch([
-            "/api/livres",
-            "/api/livre"
-        ]),
-        libraryFetch([
-            "/api/videos",
-            "/api/video"
-        ]),
-        libraryFetch([
-            "/api/sermons",
-            "/api/sermon"
-        ])
+        libraryFetch(["/api/bibliotheque"]),
+        libraryFetch(["/api/sermons", "/api/sermon"])
     ]);
-
-    const livres =
-        libraryArray(results[0].data);
-
-    const videos =
-        libraryArray(results[1].data);
-
-    const sermons =
-        libraryArray(results[2].data)
-            .filter(function(item) {
-                return (
-                    !item.statut ||
-                    item.statut === "termine" ||
-                    item.statut === "en_cours"
-                );
-            });
-
+    const all = libraryArray(results[0].data);
+    const livres = all.filter(function (item) { return item.type === "book"; });
+    const videos = all.filter(function (item) { return item.type === "video"; });
+    const photos = all.filter(function (item) { return item.type === "photo"; });
+    const audios = all.filter(function (item) { return item.type === "audio"; });
+    const sermons = libraryArray(results[1].data).filter(function (item) {
+        return !item.statut || item.statut === "termine" || item.statut === "en_cours";
+    });
     sheetBody.innerHTML =
         '<div class="lib-wrap">' +
-
-            librarySection(
-                "Livres",
-                livres,
-                "book"
-            ) +
-
-            librarySection(
-                "Vid\u00e9os",
-                videos,
-                "video"
-            ) +
-
-            librarySection(
-                "Pr\u00e9dications",
-                sermons,
-                "sermon"
-            ) +
-
+            librarySection("Livres", livres, "book") +
+            librarySection("Vidéos", videos, "video") +
+            librarySection("Photos", photos, "photo") +
+            librarySection("Audios", audios, "audio") +
+            librarySection("Prédications", sermons, "sermon") +
         '</div>';
 }
 
 /* =====================================================
        PROGRAM
        ===================================================== */
+    function maranathaProgramStyles() {
+
+        if (
+            document.getElementById(
+                "maranatha-program-style"
+            )
+        ) {
+            return;
+        }
+
+        const style =
+            document.createElement(
+                "style"
+            );
+
+        style.id =
+            "maranatha-program-style";
+
+        style.textContent = `
+            .prog-grid{
+                display:grid;
+                grid-template-columns:repeat(2,minmax(0,1fr));
+                gap:11px;
+                align-items:start;
+            }
+
+            .prog-card{
+                width:100%;
+                padding:0;
+                overflow:hidden;
+                text-align:left;
+                border:1px solid #e8e3e5;
+                border-radius:18px;
+                background:#ffffff;
+                box-shadow:0 7px 18px rgba(55,15,25,.07);
+                cursor:pointer;
+                transition:transform .15s ease,box-shadow .15s ease;
+            }
+
+            .prog-card:active{
+                transform:scale(.98);
+            }
+
+            .prog-cover{
+                width:100%;
+                aspect-ratio:4/5;
+                position:relative;
+                overflow:hidden;
+                background:
+                    linear-gradient(
+                        145deg,
+                        #58000f,
+                        #a40020
+                    );
+            }
+
+            .prog-cover img{
+                width:100%;
+                height:100%;
+                position:absolute;
+                inset:0;
+                z-index:2;
+                object-fit:cover;
+                display:block;
+            }
+
+            .prog-cover-placeholder{
+                width:100%;
+                height:100%;
+                padding:16px 10px;
+                display:flex;
+                flex-direction:column;
+                align-items:center;
+                justify-content:center;
+                gap:7px;
+                color:#ffffff;
+                text-align:center;
+                background:
+                    radial-gradient(
+                        circle at 80% 15%,
+                        rgba(255,255,255,.16),
+                        transparent 28%
+                    ),
+                    linear-gradient(
+                        145deg,
+                        #59000f,
+                        #a90022
+                    );
+            }
+
+            .prog-placeholder-logo{
+                width:52px;
+                height:52px;
+                display:grid;
+                place-items:center;
+                border-radius:50%;
+                background:#ffffff;
+                color:#900019;
+                font-size:18px;
+                font-weight:900;
+            }
+
+            .prog-placeholder-name{
+                font-size:11px;
+                font-weight:900;
+                letter-spacing:1px;
+            }
+
+            .prog-card-body{
+                padding:11px 10px 12px;
+            }
+
+            .prog-card-title{
+                margin:0;
+                color:#741126;
+                font-size:13px;
+                line-height:1.25;
+                font-weight:900;
+                display:-webkit-box;
+                -webkit-line-clamp:2;
+                -webkit-box-orient:vertical;
+                overflow:hidden;
+            }
+
+            .prog-card-date{
+                margin-top:8px;
+                color:#1f2937;
+                font-size:10px;
+                line-height:1.35;
+                font-weight:800;
+            }
+
+            .prog-card-meta{
+                margin-top:5px;
+                color:#7b8492;
+                font-size:9px;
+                line-height:1.45;
+            }
+
+            .prog-detail-back{
+                min-height:40px;
+                margin-bottom:12px;
+                padding:0 13px;
+                border-radius:12px;
+                background:#f4e9ec;
+                color:#850018;
+                font-size:11px;
+                font-weight:900;
+            }
+
+            .prog-detail{
+                overflow:hidden;
+                border:1px solid #eadfe2;
+                border-radius:20px;
+                background:#ffffff;
+                box-shadow:0 8px 22px rgba(78,12,28,.07);
+            }
+
+            .prog-detail-cover{
+                width:100%;
+                aspect-ratio:16/10;
+                position:relative;
+                overflow:hidden;
+                background:
+                    linear-gradient(
+                        145deg,
+                        #59000f,
+                        #a90022
+                    );
+            }
+
+            .prog-detail-cover img{
+                width:100%;
+                height:100%;
+                position:absolute;
+                inset:0;
+                z-index:2;
+                object-fit:cover;
+            }
+
+            .prog-detail-body{
+                padding:18px;
+            }
+
+            .prog-detail-title{
+                margin:0;
+                color:#760016;
+                font-family:Georgia,serif;
+                font-size:22px;
+                line-height:1.15;
+                font-weight:800;
+            }
+
+            .prog-detail-info{
+                margin-top:15px;
+                display:grid;
+                gap:8px;
+            }
+
+            .prog-detail-info-row{
+                display:flex;
+                gap:9px;
+                align-items:flex-start;
+                color:#4f5a6b;
+                font-size:12px;
+                line-height:1.4;
+            }
+
+            .prog-detail-info-label{
+                min-width:48px;
+                color:#8b001b;
+                font-weight:900;
+            }
+
+            .prog-detail-text{
+                margin-top:17px;
+                padding-top:15px;
+                border-top:1px solid #eee4e7;
+                color:#4d5665;
+                font-size:12px;
+                line-height:1.65;
+                white-space:pre-wrap;
+            }
+
+            @media(max-width:340px){
+                .prog-grid{
+                    gap:8px;
+                }
+
+                .prog-card-body{
+                    padding:9px 8px 10px;
+                }
+
+                .prog-card-title{
+                    font-size:11px;
+                }
+
+                .prog-card-date{
+                    font-size:9px;
+                }
+
+                .prog-card-meta{
+                    font-size:8px;
+                }
+            }
+        `;
+
+        document.head.appendChild(
+            style
+        );
+    }
+
+
+    function programDateLabel(value) {
+
+        const raw =
+            String(
+                value ||
+                ""
+            ).trim();
+
+        if (!raw) {
+            return "";
+        }
+
+        if (
+            /^\d{4}-\d{2}-\d{2}$/.test(
+                raw
+            )
+        ) {
+
+            const parts =
+                raw.split("-");
+
+            const date =
+                new Date(
+                    Number(parts[0]),
+                    Number(parts[1]) - 1,
+                    Number(parts[2])
+                );
+
+            if (
+                !Number.isNaN(
+                    date.getTime()
+                )
+            ) {
+                return new Intl.DateTimeFormat(
+                    "fr-FR",
+                    {
+                        weekday:
+                            "long",
+                        day:
+                            "2-digit",
+                        month:
+                            "long",
+                        year:
+                            "numeric"
+                    }
+                ).format(
+                    date
+                );
+            }
+        }
+
+        return raw;
+    }
+
+
+    function programTimeLabel(value) {
+
+        const raw =
+            String(
+                value ||
+                ""
+            ).trim();
+
+        if (!raw) {
+            return "";
+        }
+
+        if (
+            /^\d{2}:\d{2}$/.test(
+                raw
+            )
+        ) {
+            return raw;
+        }
+
+        return raw;
+    }
+
+
     async function showProgram() {
+
+        maranathaProgramStyles();
+
         openSheet(
             "Programme",
             loading()
         );
+
         const result =
             await apiGetFirst(
-                API.sermons
+                [
+                    "/api/settings/programme"
+                ]
             );
+
         if (
             !result.ok
         ) {
+
             sheetBody.innerHTML =
                 empty(
-                    "Le programme n'est pas disponible."
+                    "Le programme n'est pas disponible pour le moment."
                 );
+
             return;
         }
+
+
         const list =
             extractArray(
                 result.data
+            ).filter(
+                function(item) {
+                    return (
+                        item &&
+                        item.titre
+                    );
+                }
             );
+
+
         list.sort(
-            function (a, b) {
-                return (
+            function(a, b) {
+
+                const ad =
+                    String(
+                        a.dateStr ||
+                        ""
+                    ) +
+                    "T" +
+                    String(
+                        a.heureStr ||
+                        "00:00"
+                    );
+
+                const bd =
+                    String(
+                        b.dateStr ||
+                        ""
+                    ) +
+                    "T" +
+                    String(
+                        b.heureStr ||
+                        "00:00"
+                    );
+
+                const at =
                     new Date(
-                        a.dateDiffusion || 0
-                    )
-                    -
+                        ad
+                    ).getTime();
+
+                const bt =
                     new Date(
-                        b.dateDiffusion || 0
-                    )
-                );
+                        bd
+                    ).getTime();
+
+                if (
+                    Number.isNaN(at) ||
+                    Number.isNaN(bt)
+                ) {
+                    return 0;
+                }
+
+                return at - bt;
             }
         );
-        sheetBody.innerHTML =
-            renderCards(
-                list
+
+
+        if (
+            list.length === 0
+        ) {
+
+            sheetBody.innerHTML =
+                empty(
+                    "Aucun programme publié pour le moment."
+                );
+
+            return;
+        }
+
+
+        function coverHtml(item) {
+
+            const image =
+                String(
+                    item.imageUrl ||
+                    ""
+                ).trim();
+
+            return (
+                '<div class="prog-cover">' +
+
+                    '<div class="prog-cover-placeholder">' +
+                        '<div class="prog-placeholder-logo">' +
+                            'M' +
+                        '</div>' +
+                        '<div class="prog-placeholder-name">' +
+                            'MARANATHA' +
+                        '</div>' +
+                        '<div style="' +
+                            'font-size:9px;' +
+                            'opacity:.82' +
+                        '">' +
+                            'PROGRAMME' +
+                        '</div>' +
+                    '</div>' +
+
+                    (
+                        image
+                            ?
+                            '<img ' +
+                                'src="' +
+                                escapeHtml(
+                                    image
+                                ) +
+                                '" ' +
+                                'alt="" ' +
+                                'loading="lazy" ' +
+                                'onerror="this.style.display=\'none\'">' 
+                            :
+                            ''
+                    ) +
+
+                '</div>'
             );
+        }
+
+
+        function renderProgramList() {
+
+            sheetTitle.textContent =
+                "Programme";
+
+            sheetBody.innerHTML =
+                '<div class="prog-grid">' +
+
+                list
+                    .map(
+                        function(item, index) {
+
+                            const dateText =
+                                programDateLabel(
+                                    item.dateStr
+                                );
+
+                            const heure =
+                                programTimeLabel(
+                                    item.heureStr
+                                );
+
+                            const lieu =
+                                item.lieu ||
+                                "";
+
+                            return (
+                                '<button ' +
+                                    'type="button" ' +
+                                    'class="prog-card" ' +
+                                    'data-program-index="' +
+                                    index +
+                                    '">' +
+
+                                    coverHtml(
+                                        item
+                                    ) +
+
+                                    '<div class="prog-card-body">' +
+
+                                        '<h3 class="prog-card-title">' +
+                                            escapeHtml(
+                                                item.titre ||
+                                                "Programme"
+                                            ) +
+                                        '</h3>' +
+
+                                        (
+                                            dateText
+                                                ?
+                                                '<div class="prog-card-date">' +
+                                                    escapeHtml(
+                                                        dateText
+                                                    ) +
+                                                '</div>'
+                                                :
+                                                ''
+                                        ) +
+
+                                        (
+                                            heure
+                                                ?
+                                                '<div class="prog-card-meta">' +
+                                                    'Heure : ' +
+                                                    escapeHtml(
+                                                        heure
+                                                    ) +
+                                                '</div>'
+                                                :
+                                                ''
+                                        ) +
+
+                                        (
+                                            lieu
+                                                ?
+                                                '<div class="prog-card-meta">' +
+                                                    escapeHtml(
+                                                        lieu
+                                                    ) +
+                                                '</div>'
+                                                :
+                                                ''
+                                        ) +
+
+                                    '</div>' +
+
+                                '</button>'
+                            );
+                        }
+                    )
+                    .join("") +
+
+                '</div>';
+
+
+            document
+                .querySelectorAll(
+                    "[data-program-index]"
+                )
+                .forEach(
+                    function(button) {
+
+                        button.addEventListener(
+                            "click",
+                            function() {
+
+                                const index =
+                                    Number(
+                                        button.dataset.programIndex
+                                    );
+
+                                showProgramDetail(
+                                    index
+                                );
+                            }
+                        );
+                    }
+                );
+        }
+
+
+        function showProgramDetail(index) {
+
+            const item =
+                list[index];
+
+            if (!item) {
+                return;
+            }
+
+            const image =
+                String(
+                    item.imageUrl ||
+                    ""
+                ).trim();
+
+            const dateText =
+                programDateLabel(
+                    item.dateStr
+                );
+
+            const heure =
+                programTimeLabel(
+                    item.heureStr
+                );
+
+
+            sheetBody.innerHTML =
+
+                '<button ' +
+                    'type="button" ' +
+                    'class="prog-detail-back" ' +
+                    'id="prog-detail-back">' +
+                    '&#8592; Retour aux programmes' +
+                '</button>' +
+
+                '<article class="prog-detail">' +
+
+                    '<div class="prog-detail-cover">' +
+
+                        '<div class="prog-cover-placeholder">' +
+                            '<div class="prog-placeholder-logo">' +
+                                'M' +
+                            '</div>' +
+                            '<div class="prog-placeholder-name">' +
+                                'MARANATHA' +
+                            '</div>' +
+                            '<div style="' +
+                                'font-size:9px;' +
+                                'opacity:.82' +
+                            '">' +
+                                'PROGRAMME' +
+                            '</div>' +
+                        '</div>' +
+
+                        (
+                            image
+                                ?
+                                '<img ' +
+                                    'src="' +
+                                    escapeHtml(
+                                        image
+                                    ) +
+                                    '" ' +
+                                    'alt="" ' +
+                                    'onerror="this.style.display=\'none\'">' 
+                                :
+                                ''
+                        ) +
+
+                    '</div>' +
+
+                    '<div class="prog-detail-body">' +
+
+                        '<h3 class="prog-detail-title">' +
+                            escapeHtml(
+                                item.titre ||
+                                "Programme"
+                            ) +
+                        '</h3>' +
+
+                        '<div class="prog-detail-info">' +
+
+                            (
+                                dateText
+                                    ?
+                                    '<div class="prog-detail-info-row">' +
+                                        '<span class="prog-detail-info-label">' +
+                                            'Date' +
+                                        '</span>' +
+                                        '<span>' +
+                                            escapeHtml(
+                                                dateText
+                                            ) +
+                                        '</span>' +
+                                    '</div>'
+                                    :
+                                    ''
+                            ) +
+
+                            (
+                                heure
+                                    ?
+                                    '<div class="prog-detail-info-row">' +
+                                        '<span class="prog-detail-info-label">' +
+                                            'Heure' +
+                                        '</span>' +
+                                        '<span>' +
+                                            escapeHtml(
+                                                heure
+                                            ) +
+                                        '</span>' +
+                                    '</div>'
+                                    :
+                                    ''
+                            ) +
+
+                            (
+                                item.lieu
+                                    ?
+                                    '<div class="prog-detail-info-row">' +
+                                        '<span class="prog-detail-info-label">' +
+                                            'Lieu' +
+                                        '</span>' +
+                                        '<span>' +
+                                            escapeHtml(
+                                                item.lieu
+                                            ) +
+                                        '</span>' +
+                                    '</div>'
+                                    :
+                                    ''
+                            ) +
+
+                        '</div>' +
+
+                        (
+                            item.description
+                                ?
+                                '<div class="prog-detail-text">' +
+                                    escapeHtml(
+                                        item.description
+                                    ) +
+                                '</div>'
+                                :
+                                ''
+                        ) +
+
+                    '</div>' +
+
+                '</article>';
+
+
+            document
+                .getElementById(
+                    "prog-detail-back"
+                )
+                .addEventListener(
+                    "click",
+                    renderProgramList
+                );
+        }
+
+
+        renderProgramList();
     }
+
+
     /* =====================================================
        DIRECT
        ===================================================== */
@@ -6956,6 +7569,38 @@ async function showLibrary() {
         );
     }
     configureSocials();
+
+    async function verifierRetourDon() {
+        const params = new URLSearchParams(window.location.search);
+        const state = params.get("don");
+        const reference = params.get("reference");
+        if (!state) return;
+
+        if (state === "annule") {
+            toast("Paiement annulé.");
+        } else if (state === "retour" && reference) {
+            try {
+                const response = await fetch(
+                    "/api/dons/kpay/status/" + encodeURIComponent(reference),
+                    { cache: "no-store" }
+                );
+                const result = await response.json().catch(function () { return {}; });
+                const status = String(result && result.donation && result.donation.status || "").toUpperCase();
+                if (response.ok && status === "COMPLETED") toast("Merci. Votre don a été confirmé.");
+                else if (response.ok) toast("Paiement reçu. Confirmation en cours.");
+                else toast("Vérification du paiement indisponible.");
+            } catch (_) {
+                toast("Vérification du paiement indisponible.");
+            }
+        }
+
+        params.delete("don");
+        params.delete("reference");
+        const query = params.toString();
+        history.replaceState(null, "", window.location.pathname + (query ? "?" + query : "") + window.location.hash);
+    }
+    verifierRetourDon();
+
     /* =====================================================
        EXPOSE FUNCTIONS FOR FUTURE MODULES
        ===================================================== */
@@ -7830,6 +8475,430 @@ async function showLibrary() {
 <script src="/profile-final.js?v=20260910-final"></script>
 <script src="/settings-final.js?v=20260910-final"></script>
   <script src="/maranatha-home-brand.js?v=20260914-113446"></script>
+
+<!-- MARANATHA HERO SERVER SYNC START -->
+<script>
+(function () {
+    "use strict";
+
+    const hero =
+        document.querySelector(
+            ".hero"
+        );
+
+    if (!hero) {
+        return;
+    }
+
+    const title =
+        hero.querySelector(
+            "h1"
+        );
+
+    const text =
+        hero.querySelector(
+            ".hero-text"
+        );
+
+    const reference =
+        hero.querySelector(
+            ".hero-reference"
+        );
+
+    const button =
+        hero.querySelector(
+            ".hero-button"
+        );
+
+    const dots =
+        document.querySelector(
+            ".hero-dots"
+        );
+
+    if (
+        !title ||
+        !text ||
+        !reference
+    ) {
+        return;
+    }
+
+
+    const original = {
+        title:
+            title.textContent.trim(),
+
+        text:
+            text.textContent.trim(),
+
+        reference:
+            reference.textContent.trim(),
+
+        button:
+            button
+                ? button.textContent.trim()
+                : "",
+
+        dots:
+            dots
+                ? dots.innerHTML
+                : ""
+    };
+
+
+    let banners = [];
+    let currentIndex = 0;
+    let rotationTimer = null;
+    let currentSignature = "";
+
+
+    function resetHero() {
+        hero.style.removeProperty(
+            "background-image"
+        );
+
+        hero.style.removeProperty(
+            "background-position"
+        );
+
+        hero.style.removeProperty(
+            "background-size"
+        );
+
+        title.textContent =
+            original.title;
+
+        text.textContent =
+            original.text;
+
+        reference.textContent =
+            original.reference;
+
+        if (button) {
+            button.style.display = "";
+            button.textContent =
+                original.button;
+        }
+
+        if (dots) {
+            dots.innerHTML =
+                original.dots;
+        }
+    }
+
+
+    function renderDots() {
+        if (!dots) {
+            return;
+        }
+
+        dots.innerHTML = "";
+
+        banners.forEach(
+            function (_, index) {
+                const dot =
+                    document.createElement(
+                        "button"
+                    );
+
+                dot.type =
+                    "button";
+
+                dot.className =
+                    "hero-dot" +
+                    (
+                        index === currentIndex
+                            ? " active"
+                            : ""
+                    );
+
+                dot.style.border =
+                    "0";
+
+                dot.style.padding =
+                    "0";
+
+                dot.style.cursor =
+                    "pointer";
+
+                dot.setAttribute(
+                    "aria-label",
+                    "Bannière " +
+                    (index + 1)
+                );
+
+                dot.addEventListener(
+                    "click",
+                    function () {
+                        showBanner(
+                            index
+                        );
+
+                        startRotation();
+                    }
+                );
+
+                dots.appendChild(
+                    dot
+                );
+            }
+        );
+    }
+
+
+    function showBanner(index) {
+        if (!banners.length) {
+            resetHero();
+            return;
+        }
+
+        if (
+            index < 0 ||
+            index >= banners.length
+        ) {
+            index = 0;
+        }
+
+        currentIndex =
+            index;
+
+        const banner =
+            banners[
+                currentIndex
+            ];
+
+        const image =
+            String(
+                banner.imageUrl ||
+                ""
+            )
+            .trim();
+
+        if (image) {
+            const safeImage =
+                image.replace(
+                    /["\\\r\n]/g,
+                    ""
+                );
+
+            hero.style.backgroundImage =
+                'linear-gradient(' +
+                    '90deg,' +
+                    'rgba(22,7,11,.72) 0%,' +
+                    'rgba(30,8,13,.50) 45%,' +
+                    'rgba(15,5,7,.20) 100%' +
+                '),' +
+                'url("' +
+                safeImage +
+                '")';
+
+            hero.style.backgroundPosition =
+                "center";
+
+            hero.style.backgroundSize =
+                "cover";
+        }
+
+
+        title.textContent =
+            banner.title ||
+            "Maranatha";
+
+        text.textContent =
+            banner.text ||
+            "";
+
+        reference.textContent =
+            banner.reference ||
+            "";
+
+
+        if (button) {
+            const label =
+                String(
+                    banner.buttonLabel ||
+                    ""
+                ).trim();
+
+            if (label) {
+                button.style.display =
+                    "inline-flex";
+
+                button.textContent =
+                    label;
+            }
+            else {
+                button.style.display =
+                    "none";
+            }
+        }
+
+
+        renderDots();
+    }
+
+
+    function startRotation() {
+        if (rotationTimer) {
+            clearInterval(
+                rotationTimer
+            );
+
+            rotationTimer =
+                null;
+        }
+
+        if (
+            banners.length <= 1
+        ) {
+            return;
+        }
+
+        rotationTimer =
+            setInterval(
+                function () {
+                    const next =
+                        (
+                            currentIndex +
+                            1
+                        ) %
+                        banners.length;
+
+                    showBanner(
+                        next
+                    );
+                },
+                6000
+            );
+    }
+
+
+    async function loadHeroBanners() {
+        try {
+            const response =
+                await fetch(
+                    "/api/settings/home?_=" +
+                    Date.now(),
+                    {
+                        cache:
+                            "no-store"
+                    }
+                );
+
+            if (!response.ok) {
+                return;
+            }
+
+            const data =
+                await response.json();
+
+            const next =
+                Array.isArray(
+                    data.heroBanners
+                )
+                    ?
+                    data.heroBanners
+                        .filter(
+                            function (item) {
+                                return (
+                                    item &&
+                                    /^https?:\/\//i.test(
+                                        String(
+                                            item.imageUrl ||
+                                            ""
+                                        )
+                                    )
+                                );
+                            }
+                        )
+                    :
+                    [];
+
+
+            const signature =
+                JSON.stringify(
+                    next
+                );
+
+
+            if (
+                signature ===
+                currentSignature
+            ) {
+                return;
+            }
+
+            currentSignature =
+                signature;
+
+            banners =
+                next;
+
+            currentIndex =
+                0;
+
+
+            if (!banners.length) {
+                if (rotationTimer) {
+                    clearInterval(
+                        rotationTimer
+                    );
+
+                    rotationTimer =
+                        null;
+                }
+
+                resetHero();
+                return;
+            }
+
+
+            showBanner(
+                0
+            );
+
+            startRotation();
+        }
+        catch (error) {
+            console.warn(
+                "[MARANATHA HERO]",
+                error
+            );
+        }
+    }
+
+
+    loadHeroBanners();
+
+
+    setInterval(
+        loadHeroBanners,
+        30000
+    );
+
+
+    window.addEventListener(
+        "focus",
+        loadHeroBanners
+    );
+
+
+    document.addEventListener(
+        "visibilitychange",
+        function () {
+            if (
+                document.visibilityState ===
+                "visible"
+            ) {
+                loadHeroBanners();
+            }
+        }
+    );
+
+})();
+</script>
+<!-- MARANATHA HERO SERVER SYNC END -->
+
 </body>
 </html>
 

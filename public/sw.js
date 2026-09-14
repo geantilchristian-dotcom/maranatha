@@ -1,4 +1,4 @@
-﻿const CACHE = "maranatha-v20260914-v2";
+const CACHE = "maranatha-v20260914-v3";
 const STATIC = [
   "/manifest.json",
   "/logo.jpg",
@@ -26,16 +26,16 @@ self.addEventListener("fetch", event => {
   if (event.request.method !== "GET") return;
 
   const url = new URL(event.request.url);
-  if (url.pathname.startsWith("/api/")) return;
+
+  // Les API et l'administration doivent toujours venir du serveur.
+  if (url.pathname.startsWith("/api/") || url.pathname === "/admin" || url.pathname.startsWith("/admin/")) {
+    return;
+  }
 
   if (event.request.mode === "navigate") {
     event.respondWith(
-      fetch(event.request)
-        .then(response => {
-          const copy = response.clone();
-          caches.open(CACHE).then(cache => cache.put(event.request, copy));
-          return response;
-        })
+      fetch(event.request, { cache: "no-store" })
+        .then(response => response)
         .catch(() => caches.match(event.request).then(cached => cached || caches.match("/")))
     );
     return;
@@ -44,8 +44,10 @@ self.addEventListener("fetch", event => {
   event.respondWith(
     caches.match(event.request).then(cached => {
       return cached || fetch(event.request).then(response => {
-        const copy = response.clone();
-        caches.open(CACHE).then(cache => cache.put(event.request, copy));
+        if (response && response.ok && url.origin === self.location.origin) {
+          const copy = response.clone();
+          caches.open(CACHE).then(cache => cache.put(event.request, copy));
+        }
         return response;
       });
     })
@@ -57,4 +59,3 @@ self.addEventListener("message", event => {
     event.ports[0].postMessage({ alive: true });
   }
 });
-

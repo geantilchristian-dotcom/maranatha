@@ -9,6 +9,7 @@
     telephone: "maranatha_tel",
     email: "maranatha_email",
     eglise: "maranatha_eglise",
+    adresse: "maranatha_adresse",
     photo: "maranatha_photo",
     statut: "maranatha_statut"
   };
@@ -163,6 +164,8 @@
         "",
       eglise:
         localStorage.getItem(STORAGE_KEYS.eglise) || "",
+      adresse:
+        localStorage.getItem(STORAGE_KEYS.adresse) || legacy.adresse || "",
       statut:
         localStorage.getItem(STORAGE_KEYS.statut) || "Fidèle",
       photo:
@@ -230,6 +233,11 @@
           </div>
 
           <div class="pf-field">
+            <label class="pf-label" for="pf-adresse">Adresse (facultatif)</label>
+            <input class="pf-input" id="pf-adresse" type="text" placeholder="Quartier, avenue, numéro">
+          </div>
+
+          <div class="pf-field">
             <label class="pf-label" for="pf-eglise">Église / Assemblée (facultatif)</label>
             <input class="pf-input" id="pf-eglise" type="text" placeholder="Votre assemblée">
           </div>
@@ -292,6 +300,7 @@
     document.getElementById("pf-prenom").value = profile.prenom;
     document.getElementById("pf-tel").value = profile.telephone;
     document.getElementById("pf-email").value = profile.email;
+    document.getElementById("pf-adresse").value = profile.adresse;
     document.getElementById("pf-eglise").value = profile.eglise;
     document.getElementById("pf-status").textContent = profile.statut;
 
@@ -366,6 +375,7 @@
       prenom: safe(document.getElementById("pf-prenom").value),
       telephone: safe(document.getElementById("pf-tel").value),
       email: safe(document.getElementById("pf-email").value),
+      adresse: safe(document.getElementById("pf-adresse").value),
       eglise: safe(document.getElementById("pf-eglise").value)
     };
 
@@ -390,6 +400,7 @@
     localStorage.setItem(STORAGE_KEYS.prenom, profile.prenom);
     localStorage.setItem(STORAGE_KEYS.telephone, profile.telephone);
     localStorage.setItem(STORAGE_KEYS.email, profile.email);
+    localStorage.setItem(STORAGE_KEYS.adresse, profile.adresse);
     localStorage.setItem(STORAGE_KEYS.eglise, profile.eglise);
     localStorage.setItem(
       "maranatha_user",
@@ -400,7 +411,8 @@
       JSON.stringify({
         nom: [profile.prenom, profile.postNom, profile.nom].filter(Boolean).join(" "),
         telephone: profile.telephone,
-        email: profile.email
+        email: profile.email,
+        adresse: profile.adresse
       })
     );
 
@@ -414,7 +426,8 @@
             nom: profile.nom,
             postNom: profile.postNom,
             prenom: profile.prenom,
-            email: profile.email
+            email: profile.email,
+            adresse: profile.adresse
           })
         });
 
@@ -454,6 +467,7 @@
       "maranatha_user",
       "maranatha_profile",
       "maranatha_email",
+      "maranatha_adresse",
       "maranatha_eglise",
       "maranatha_statut"
     ].forEach(function (key) {

@@ -2,16 +2,27 @@ const express = require('express');
 const mongoose = require('mongoose');
 const router = express.Router();
 const User = require('../models/User');
+const { createRateLimiter, cleanPhone, cleanText } = require('../utils/security');
 
-function cleanText(value, maxLength) {
-  return String(value || '').trim().slice(0, maxLength);
+const userWriteLimiter = createRateLimiter({
+  windowMs: 10 * 60 * 1000,
+  max: 80,
+  keyPrefix: 'users-write',
+});
+
+function publicUser(user) {
+  if (!user) return null;
+  const obj = user.toObject ? user.toObject() : { ...user };
+  delete obj.fcmToken;
+  delete obj.__v;
+  return obj;
 }
 
 // Enregistre l'appareil d'un fidèle et met à jour son token FCM.
-router.post('/register', async (req, res) => {
+router.post('/register', userWriteLimiter, async (req, res) => {
   try {
     const nom = cleanText(req.body.nom, 120) || 'Fidèle';
-    const telephone = cleanText(req.body.telephone, 160);
+    const telephone = cleanPhone(req.body.telephone);
     const fcmToken = cleanText(req.body.fcmToken, 4096);
 
     if (!telephone) {
@@ -32,7 +43,7 @@ router.post('/register', async (req, res) => {
 
     return res.status(200).json({
       message: 'Appareil enregistré',
-      user,
+      user: publicUser(user),
     });
   } catch (error) {
     console.error('[users/register]', error.message);
@@ -42,7 +53,7 @@ router.post('/register', async (req, res) => {
   }
 });
 
-router.patch('/:id/toggle-maranatha', async (req, res) => {
+router.patch('/:id/toggle-maranatha', userWriteLimiter, async (req, res) => {
   try {
     if (!mongoose.isValidObjectId(req.params.id)) {
       return res.status(400).json({ error: 'Identifiant invalide' });
@@ -59,7 +70,7 @@ router.patch('/:id/toggle-maranatha', async (req, res) => {
     );
 
     if (!user) return res.status(404).json({ error: 'Fidèle introuvable' });
-    return res.json({ message: 'Préférence mise à jour', user });
+    return res.json({ message: 'Préférence mise à jour', user: publicUser(user) });
   } catch (error) {
     console.error('[users/toggle]', error.message);
     return res.status(500).json({ error: 'Erreur lors de la modification' });

@@ -1,50 +1,21 @@
 const express = require("express");
+const mongoose = require("mongoose");
 const AdminNotification =
   require("../models/AdminNotification");
 const router = express.Router();
+const adminOnly = require("../utils/adminAuth");
 const allowedTypes = new Set([
   "temoignage",
   "commentaire",
   "membre",
   "priere",
   "don_initie",
-  "don_confirme",
-  "offrande",
-  "dime",
-  "don_mensuel",
-  "don_volontaire",
   "contact",
 ]);
 function clean(value, max = 5000) {
   return String(value || "")
     .trim()
     .slice(0, max);
-}
-function adminOnly(req, res, next) {
-  const expected =
-    String(
-      process.env.ADMIN_PASSWORD || ""
-    );
-  const received =
-    String(
-      req.headers["x-admin-password"] ||
-      ""
-    );
-  if (!expected) {
-    return res.status(503).json({
-      success: false,
-      message:
-        "Mot de passe administrateur non configure.",
-    });
-  }
-  if (received !== expected) {
-    return res.status(401).json({
-      success: false,
-      message:
-        "Acces administrateur refuse.",
-    });
-  }
-  next();
 }
 /*
  * ENVOI PUBLIC
@@ -133,14 +104,6 @@ router.post(
           "Nouveau don initie",
         don_confirme:
           "Don confirme",
-        offrande:
-          "Nouvelle offrande",
-        dime:
-          "Nouvelle dime",
-        don_mensuel:
-          "Nouveau don mensuel",
-        don_volontaire:
-          "Nouveau don volontaire",
         contact:
           "Nouveau message",
       };
@@ -328,20 +291,36 @@ router.patch(
   "/:id/read",
   adminOnly,
   async (req, res) => {
-    const notification =
-      await AdminNotification
-        .findByIdAndUpdate(
-          req.params.id,
-          {
-            $set: {
-              read: true,
-            },
-          }
-        );
-    return res.json({
-      success:
-        Boolean(notification),
-    });
+    try {
+      if (!mongoose.isValidObjectId(req.params.id)) {
+        return res.status(400).json({
+          success: false,
+          message: "Identifiant invalide.",
+        });
+      }
+      const notification =
+        await AdminNotification
+          .findByIdAndUpdate(
+            req.params.id,
+            {
+              $set: {
+                read: true,
+              },
+            }
+          );
+      return res.json({
+        success:
+          Boolean(notification),
+      });
+    } catch (error) {
+      console.error(
+        "[ADMIN INBOX READ]",
+        error.message
+      );
+      return res.status(500).json({
+        success: false,
+      });
+    }
   }
 );
 module.exports = router;
