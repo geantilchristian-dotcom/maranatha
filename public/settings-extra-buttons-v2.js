@@ -913,11 +913,16 @@ async function openDocument(type){
             );
 
         }else{
-
-            alert(
-                text ||
-                "Contenu indisponible."
-            );
+            const body =
+                getBody();
+            if(body){
+                body.innerHTML =
+                    content;
+            }else{
+                console.warn(
+                    "[MARANATHA SETTINGS] Contenu indisponible"
+                );
+            }
         }
 
 

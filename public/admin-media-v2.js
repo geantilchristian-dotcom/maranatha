@@ -6,43 +6,7 @@ const KEY = "maranatha_media_v2";
 
 const DEFAULTS = {
 
-    banners:[
-        {
-            id:"banner-1",
-            image:"/test-banners/affiche-1.svg",
-            link:"#bibliotheque",
-            title:"Jésus revient bientôt",
-            active:true
-        },
-        {
-            id:"banner-2",
-            image:"/test-banners/affiche-2.svg",
-            link:"#programme",
-            title:"Grande célébration du dimanche",
-            active:true
-        },
-        {
-            id:"banner-3",
-            image:"/test-banners/affiche-3.svg",
-            link:"#priere",
-            title:"Nuit de prière",
-            active:true
-        },
-        {
-            id:"banner-4",
-            image:"/test-banners/affiche-4.svg",
-            link:"#",
-            title:"Conférence de la jeunesse",
-            active:true
-        },
-        {
-            id:"banner-5",
-            image:"/test-banners/affiche-5.svg",
-            link:"#programme",
-            title:"Semaine de réveil spirituel",
-            active:true
-        }
-    ],
+    banners:[],
 
     featuredVideos:[],
 
@@ -119,6 +83,9 @@ function writeStore(data){
         KEY,
         JSON.stringify(data)
     );
+    void syncMediaState(
+        data
+    );
 
     window.dispatchEvent(
         new CustomEvent(
@@ -182,9 +149,7 @@ async function importRealSettings(){
     const data =
         readStore();
 
-    if(data.importedSettings){
-        return;
-    }
+
 
 
     try{
@@ -199,6 +164,35 @@ async function importRealSettings(){
 
             const cfg =
                 await res.json();
+            data.banners =
+                (
+                    Array.isArray(
+                        cfg.heroBanners
+                    )
+                        ? cfg.heroBanners
+                        : []
+                )
+                .map(function(item){
+                    return {
+                        id:
+                            item.id ||
+                            id(),
+                        image:
+                            item.imageUrl ||
+                            "",
+                        link:
+                            item.link ||
+                            "#",
+                        title:
+                            item.title ||
+                            "",
+                        active:
+                            item.active !== false
+                    };
+                })
+                .filter(function(item){
+                    return item.image;
+                });
 
 
             if(
@@ -299,6 +293,81 @@ async function saveSettings(partial){
 }
 
 
+async function syncMediaState(data){
+    if(!data){
+        return;
+    }
+    try{
+        await saveSettings({
+            heroBanners:
+                (
+                    Array.isArray(data.banners)
+                        ? data.banners
+                        : []
+                )
+                .filter(function(item){
+                    return (
+                        item &&
+                        item.image
+                    );
+                })
+                .map(function(item){
+                    return {
+                        id:
+                            item.id || "",
+                        imageUrl:
+                            item.image || "",
+                        title:
+                            item.title || "",
+                        link:
+                            item.link || "#",
+                        active:
+                            item.active !== false
+                    };
+                }),
+            youtubeLinks:
+                (
+                    Array.isArray(
+                        data.featuredVideos
+                    )
+                        ? data.featuredVideos
+                        : []
+                )
+                .filter(function(item){
+                    return (
+                        item &&
+                        item.url
+                    );
+                })
+                .map(function(item){
+                    return {
+                        url:
+                            item.url || "",
+                        label:
+                            item.label ||
+                            "Regarder"
+                    };
+                }),
+            facebookUrl:
+                data.social?.facebook ||
+                "",
+            youtubeChannelUrl:
+                data.social?.youtube ||
+                "",
+            tiktokUrl:
+                data.social?.tiktok ||
+                "",
+            instagramUrl:
+                data.social?.instagram ||
+                ""
+        });
+    }catch(error){
+        console.error(
+            "[MARANATHA MEDIA SYNC]",
+            error
+        );
+    }
+}
 async function upload(file){
 
     if(!file){
@@ -308,7 +377,7 @@ async function upload(file){
 
     const res =
         await fetch(
-            "/api/library-preview-upload",
+            "/api/library/upload",
             {
                 method:"POST",
 
@@ -321,6 +390,8 @@ async function upload(file){
                         encodeURIComponent(
                             file.name
                         )
+,
+                    ...auth()
                 },
 
                 body:file
@@ -918,7 +989,7 @@ function render(){
 
 
                 <div class="media2-state">
-                    ● Synchronisation locale active
+                    ● Synchronisation serveur active
                 </div>
 
             </div>

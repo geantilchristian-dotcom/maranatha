@@ -90,7 +90,33 @@ router.put('/home', adminOnly, async (req, res) => {
     if (req.body.facebookUrl       !== undefined) update.facebookUrl       = req.body.facebookUrl;
     if (req.body.youtubeChannelUrl !== undefined) update.youtubeChannelUrl = req.body.youtubeChannelUrl;
     if (req.body.tiktokUrl         !== undefined) update.tiktokUrl         = req.body.tiktokUrl;
-
+    if (req.body.instagramUrl       !== undefined) update.instagramUrl       = req.body.instagramUrl;
+    if (Array.isArray(req.body.heroBanners)) {
+      update.heroBanners =
+        req.body.heroBanners
+        .filter(item =>
+          item &&
+          item.imageUrl
+        )
+        .map(item => ({
+          id:
+            String(item.id || "").trim(),
+          imageUrl:
+            String(item.imageUrl || "").trim(),
+          title:
+            String(item.title || "").trim(),
+          link:
+            String(item.link || "#").trim() || "#",
+          active:
+            item.active !== false,
+          text:
+            String(item.text || "").trim(),
+          reference:
+            String(item.reference || "").trim(),
+          buttonLabel:
+            String(item.buttonLabel || "").trim()
+        }));
+    }
     const s = await Settings.findOneAndUpdate(
       { key: 'home' },
       { $set: update },

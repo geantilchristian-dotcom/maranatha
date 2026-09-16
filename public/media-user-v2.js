@@ -6,38 +6,7 @@ const KEY =
     "maranatha_media_v2";
 
 
-const DEFAULT_BANNERS = [
-    {
-        image:"/test-banners/affiche-1.svg",
-        link:"#bibliotheque",
-        title:"Jésus revient bientôt",
-        active:true
-    },
-    {
-        image:"/test-banners/affiche-2.svg",
-        link:"#programme",
-        title:"Grande célébration du dimanche",
-        active:true
-    },
-    {
-        image:"/test-banners/affiche-3.svg",
-        link:"#priere",
-        title:"Nuit de prière",
-        active:true
-    },
-    {
-        image:"/test-banners/affiche-4.svg",
-        link:"#",
-        title:"Conférence de la jeunesse",
-        active:true
-    },
-    {
-        image:"/test-banners/affiche-5.svg",
-        link:"#programme",
-        title:"Semaine de réveil spirituel",
-        active:true
-    }
-];
+const DEFAULT_BANNERS = [];
 
 
 function read(){
@@ -69,6 +38,69 @@ function read(){
 }
 
 
+async function loadRemote(){
+    try{
+        const response =
+            await fetch(
+                "/api/settings/home",
+                {
+                    cache:
+                        "no-store"
+                }
+            );
+        if(!response.ok){
+            return;
+        }
+        const cfg =
+            await response.json();
+        const data = {
+            banners:
+                (
+                    Array.isArray(
+                        cfg.heroBanners
+                    )
+                        ? cfg.heroBanners
+                        : []
+                )
+                .map(function(item){
+                    return {
+                        id:
+                            item.id || "",
+                        image:
+                            item.imageUrl || "",
+                        link:
+                            item.link || "#",
+                        title:
+                            item.title || "",
+                        active:
+                            item.active !== false
+                    };
+                })
+                .filter(function(item){
+                    return item.image;
+                }),
+            social:{
+                facebook:
+                    cfg.facebookUrl || "",
+                youtube:
+                    cfg.youtubeChannelUrl || "",
+                tiktok:
+                    cfg.tiktokUrl || "",
+                instagram:
+                    cfg.instagramUrl || ""
+            }
+        };
+        localStorage.setItem(
+            KEY,
+            JSON.stringify(data)
+        );
+    }catch(error){
+        console.warn(
+            "[MARANATHA MEDIA USER]",
+            error
+        );
+    }
+}
 function renderBanners(){
 
     const hero =
@@ -450,16 +482,19 @@ function refresh(){
 }
 
 
+function boot(){
+    loadRemote()
+        .finally(
+            refresh
+        );
+}
 if(document.readyState === "loading"){
-
     document.addEventListener(
         "DOMContentLoaded",
-        refresh
+        boot
     );
-
 }else{
-
-    refresh();
+    boot();
 }
 
 

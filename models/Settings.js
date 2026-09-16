@@ -32,6 +32,14 @@ const settingsSchema = new mongoose.Schema({
         type: String,
         default: '',
       },
+      link: {
+        type: String,
+        default: '#',
+      },
+      active: {
+        type: Boolean,
+        default: true,
+      },
       text: {
         type: String,
         default: '',
@@ -78,6 +86,7 @@ const settingsSchema = new mongoose.Schema({
   facebookUrl:       { type: String, default: '' },
   youtubeChannelUrl: { type: String, default: '' },
   tiktokUrl:         { type: String, default: '' },
+  instagramUrl:      { type: String, default: '' },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Settings', settingsSchema);
