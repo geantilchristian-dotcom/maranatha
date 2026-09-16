@@ -1734,7 +1734,66 @@
     }
 
 
-    function init(){
+    /* ======================================================
+       MARANATHA_LIBRARY_TAB_GUARD_V3
+       Gestion permanente des sous-onglets Bibliothèque.
+       ====================================================== */
+    document.addEventListener(
+        "click",
+        function(event){
+            const button =
+                event.target.closest(
+                    "[data-mlib-tab]"
+                );
+            if(!button){
+                return;
+            }
+            const pane =
+                document.getElementById(
+                    "pane-livres"
+                );
+            if(
+                !pane ||
+                !pane.contains(button)
+            ){
+                return;
+            }
+            const nextTab =
+                button.dataset.mlibTab;
+            const valid =
+                tabs.some(
+                    function(tab){
+                        return (
+                            tab[0] ===
+                            nextTab
+                        );
+                    }
+                );
+            if(!valid){
+                return;
+            }
+            /*
+             * On intercepte le clic avant les anciens
+             * handlers attachés au bouton reconstruit.
+             */
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            activeTab =
+                nextTab;
+            editingId =
+                null;
+            sourceMode =
+                "file";
+            coverMode =
+                "file";
+            render();
+            console.log(
+                "[BIBLIOTHEQUE] Onglet actif :",
+                activeTab
+            );
+        },
+        true
+    );    function init(){
 
         cleanOldDemo();
 
