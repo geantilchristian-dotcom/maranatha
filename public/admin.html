@@ -1649,7 +1649,16 @@ body,
       chargerPrieresAdmin(), chargerEtudesAdmin(), chargerLivresAdmin(),
       chargerVideosAdmin(), chargerProgrammeAdmin()
     ]);
-    document.getElementById('et-date').valueAsDate = new Date();
+    {
+      const dateField =
+        document.getElementById(
+          'et-date'
+        );
+      if(dateField){
+        dateField.valueAsDate =
+          new Date();
+      }
+    }
   }
 
   async function chargerStats() {
@@ -2403,7 +2412,13 @@ body,
 
   // ===== PRIÈRES =====
   async function chargerPrieresAdmin() {
-    const el = document.getElementById('prieres-admin-list');
+    const el =
+      document.getElementById(
+        'prieres-admin-list'
+      );
+    if(!el){
+      return;
+    }
     try {
       const r = await fetch(`${API}/prieres/all`, { headers: authHeaders() });
       const list = await r.json();
@@ -2485,7 +2500,16 @@ body,
       const r = await fetch(`${API}/etudes`, { method:'POST', headers:{...authHeaders(),'Content-Type':'application/json'}, body: JSON.stringify(body) });
       if (!r.ok) throw new Error('Erreur');
       ['et-titre','et-texte','et-pdf'].forEach(id => document.getElementById(id).value = '');
-      document.getElementById('et-date').valueAsDate = new Date();
+      {
+      const dateField =
+        document.getElementById(
+          'et-date'
+        );
+      if(dateField){
+        dateField.valueAsDate =
+          new Date();
+      }
+    }
       toast('Étude publiée', 'success'); chargerEtudesAdmin();
     } catch(e) { toast('Erreur lors de la publication', 'error'); }
   }
@@ -3496,10 +3520,10 @@ body,
 </script>
 <!-- MARANATHA ADMIN INBOX END -->
 
-<script src="/admin-library-v2.js?v=2"></script>
-<script src="/admin-tabs-fix.js?v=1"></script>
-<script src="/admin-media-v2.js?v=1"></script>
-<script src="/admin-program-v2.js?v=1"></script>
+<script src="/admin-library-v2.js?v=20260916-fix3"></script>
+<script src="/admin-tabs-fix.js?v=20260916-fix3"></script>
+<script src="/admin-media-v2.js?v=20260916-fix3"></script>
+<script src="/admin-program-v2.js?v=20260916-fix3"></script>
 <script id="MARANATHA_BIBLE_STUDY_V2_SCRIPT">
 (function(){
 
@@ -3673,22 +3697,45 @@ function bsSelectedVersion(){
 
 
 function bsPopulateBooks(){
-
   const select =
     document.getElementById(
       "bs-book"
     );
-
-
   if(!select){
     return;
   }
-
-
-  bsPopulateBooks();
+  const oldBook =
+    select.value ||
+    "43";
+  select.innerHTML =
+    BS_BOOKS
+    .map(
+      function(name,index){
+        return (
+          '<option value="' +
+          (index + 1) +
+          '">' +
+          name +
+          '</option>'
+        );
+      }
+    )
+    .join("");
+  if(
+    oldBook &&
+    select.querySelector(
+      'option[value="' +
+      oldBook +
+      '"]'
+    )
+  ){
+    select.value =
+      oldBook;
+  }else{
+    select.value =
+      "43";
+  }
 }
-
-
 const LOCAL_KEY =
   "maranatha_bible_studies_v2";
 
@@ -5393,13 +5440,13 @@ setTimeout(
 
 })();
 </script>
-<script src="/admin-bible-reference-selects.js?v=2"></script>
-<script src="/admin-bible-study-runtime.js?v=1"></script>
+<script src="/admin-bible-reference-selects.js?v=20260916-fix3"></script>
+<script src="/admin-bible-study-runtime.js?v=20260916-fix3"></script>
 <script src="/admin-members-v4.js?v=1"></script>
-<script src="/admin-dons-v2.js?v=1"></script>
+<script src="/admin-dons-v2.js?v=20260916-fix3"></script>
 <script src="/admin-params-v2.js?v=2"></script>
-  <script src="/admin-auth-production-v3.js?v=20260916-3"></script>
-  <script src="/admin-members-production-sync.js?v=1"></script>
-  <script src="/admin-library-production-sync.js?v=1"></script>
+  <script src="/admin-auth-production-v3.js?v=20260916-fix3"></script>
+  <script src="/admin-members-production-sync.js?v=20260916-fix3"></script>
+  <script src="/admin-library-production-sync.js?v=20260916-fix3"></script>
 </body>
 </html>
