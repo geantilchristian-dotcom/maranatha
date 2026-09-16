@@ -2760,6 +2760,13 @@ svg {
     display: none !important;
 }
 </style>
+<link rel="stylesheet" href="/banner-carousel-local.css?v=1">
+<link rel="stylesheet" href="/library-user-v3.css?v=1">
+<link rel="stylesheet" href="/program-user-v2.css?v=3">
+<link rel="stylesheet" href="/bible-user-v2.css?v=5">
+<link rel="stylesheet" href="/bible-study-user-v3.css?v=1">
+<link rel="stylesheet" href="/member-user-v3.css?v=1">
+<link rel="stylesheet" href="/settings-public-content-v2.css?v=3">
 </head>
 <body>
 <div class="app">
@@ -2805,7 +2812,7 @@ svg {
 </header>
 <main class="content">
 <!-- ======================================================
-     BANNIÈRE
+     BANNIÃˆRE
      ====================================================== -->
 <section class="hero">
     <div class="hero-content">
@@ -2817,7 +2824,7 @@ svg {
         <p class="hero-text">
             « Voici, je viens bientôt,
             et ma récompense est avec moi,
-            pour rendre à chacun selon son œuvre. »
+            pour rendre à chacun selon son Å“uvre. »
         </p>
         <div class="hero-reference">
             APOCALYPSE 22:12
@@ -3198,7 +3205,7 @@ svg {
 </div>
 </div>
 <div class="member-arrow">
-    ›
+    â€º
 </div>
 </a>
 <!-- ======================================================
@@ -4306,7 +4313,7 @@ setInterval(
             "/api/admin-inbox/public"
         ],
         membres: [
-            "/api/membres"
+            "/api/admin-inbox/public"
         ],
         settings: [
             "/api/settings/home"
@@ -4720,576 +4727,135 @@ setInterval(
     /* =====================================================
        BIBLE
        ===================================================== */
-
-    const BIBLE_BOOKS = [
-        ["Gen\u00e8se",50],["Exode",40],["L\u00e9vitique",27],["Nombres",36],["Deut\u00e9ronome",34],
-        ["Josu\u00e9",24],["Juges",21],["Ruth",4],["1 Samuel",31],["2 Samuel",24],
-        ["1 Rois",22],["2 Rois",25],["1 Chroniques",29],["2 Chroniques",36],
-        ["Esdras",10],["N\u00e9h\u00e9mie",13],["Esther",10],["Job",42],["Psaumes",150],
-        ["Proverbes",31],["Eccl\u00e9siaste",12],["Cantique des cantiques",8],
-        ["\u00c9sa\u00efe",66],["J\u00e9r\u00e9mie",52],["Lamentations",5],["\u00c9z\u00e9chiel",48],["Daniel",12],
-        ["Os\u00e9e",14],["Jo\u00ebl",3],["Amos",9],["Abdias",1],["Jonas",4],["Mich\u00e9e",7],
-        ["Nahum",3],["Habacuc",3],["Sophonie",3],["Agg\u00e9e",2],["Zacharie",14],
-        ["Malachie",4],["Matthieu",28],["Marc",16],["Luc",24],["Jean",21],
-        ["Actes",28],["Romains",16],["1 Corinthiens",16],["2 Corinthiens",13],
-        ["Galates",6],["\u00c9ph\u00e9siens",6],["Philippiens",4],["Colossiens",4],
-        ["1 Thessaloniciens",5],["2 Thessaloniciens",3],["1 Timoth\u00e9e",6],
-        ["2 Timoth\u00e9e",4],["Tite",3],["Phil\u00e9mon",1],["H\u00e9breux",13],["Jacques",5],
-        ["1 Pierre",5],["2 Pierre",3],["1 Jean",5],["2 Jean",1],["3 Jean",1],
-        ["Jude",1],["Apocalypse",22]
-    ];
-
-    let bibleBook = 0;
-    let bibleChapter = 1;
-
-    function bibleStyles() {
-        if (document.getElementById("maranatha-bible-style")) return;
-
-        const style = document.createElement("style");
-        style.id = "maranatha-bible-style";
-        style.textContent =
-            ".bible-tabs{display:flex;gap:8px;margin-bottom:14px}" +
-            ".bible-tab{flex:1;padding:11px;border-radius:12px;background:#f1f3f6;color:#5c6470;font-weight:800}" +
-            ".bible-tab.active{background:#850018;color:#fff}" +
-            ".bible-search{width:100%;padding:12px 14px;border:1px solid #e2e6ec;border-radius:14px;outline:none;margin-bottom:12px}" +
-            ".bible-books{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}" +
-            ".bible-book{padding:12px 9px;border-radius:13px;background:#fff;border:1px solid #e6e9ef;color:#182033;font-weight:700;text-align:left}" +
-            ".bible-chapters{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}" +
-            ".bible-chapter{min-height:43px;border-radius:11px;background:#f3f5f8;color:#850018;font-weight:800}" +
-            ".bible-top{display:flex;align-items:center;gap:9px;margin-bottom:14px}" +
-            ".bible-back{min-width:88px;height:40px;padding:0 12px;border-radius:12px;background:#f1f3f6;color:#850018;font-size:13px;font-weight:800}" +
-            ".bible-title{font-weight:900;font-size:18px;color:#182033}" +
-            ".bible-subtitle{font-size:11px;color:#748094;margin-top:2px}" +
-            ".bible-verses{display:flex;flex-direction:column;gap:10px}" +
-            ".bible-verse{padding:13px 14px;border-radius:14px;background:#fff;border:1px solid #e6e9ef;line-height:1.55;color:#263044}" +
-            ".bible-num{display:inline-grid;place-items:center;width:25px;height:25px;margin-right:7px;border-radius:50%;background:#850018;color:#fff;font-size:11px;font-weight:900}" +
-            ".bible-nav{display:flex;gap:8px;margin:15px 0}" +
-            ".bible-nav button{flex:1;padding:11px;border-radius:12px;background:#850018;color:#fff;font-weight:800}" +
-            ".bible-nav button:disabled{opacity:.35}" +
-            ".bible-status{text-align:center;padding:25px 10px;color:#748094}";
-
-        document.head.appendChild(style);
-    }
-
-    function bibleBooksView(testament) {
-        bibleStyles();
-
-        const startBook = testament === "new" ? 39 : 0;
-        const endBook = testament === "new" ? 66 : 39;
-
-        let books = "";
-
-        for (let i = startBook; i < endBook; i++) {
-            books +=
-                '<button class="bible-book" data-bible-book="' + i + '">' +
-                    escapeHtml(BIBLE_BOOKS[i][0]) +
-                '</button>';
-        }
-
-        sheetBody.innerHTML =
-            '<div class="bible-tabs">' +
-                '<button class="bible-tab ' + (testament === "old" ? "active" : "") + '" data-bible-testament="old">Ancien Testament</button>' +
-                '<button class="bible-tab ' + (testament === "new" ? "active" : "") + '" data-bible-testament="new">Nouveau Testament</button>' +
-            '</div>' +
-            '<input class="bible-search" id="bible-book-search" placeholder="Rechercher un livre...">' +
-            '<div class="bible-books" id="bible-books-list">' +
-                books +
-            '</div>';
-
-        document.querySelectorAll("[data-bible-testament]").forEach(function (button) {
-            button.addEventListener("click", function () {
-                bibleBooksView(button.dataset.bibleTestament);
-            });
-        });
-
-        document.querySelectorAll("[data-bible-book]").forEach(function (button) {
-            button.addEventListener("click", function () {
-                bibleBook = Number(button.dataset.bibleBook);
-                bibleChaptersView();
-            });
-        });
-
-        const search = document.getElementById("bible-book-search");
-
-        search.addEventListener("input", function () {
-            const value = search.value.toLowerCase().trim();
-
-            document.querySelectorAll("[data-bible-book]").forEach(function (button) {
-                button.style.display =
-                    button.textContent.toLowerCase().includes(value)
-                        ? ""
-                        : "none";
-            });
-        });
-    }
-
-    function bibleChaptersView() {
-        const book = BIBLE_BOOKS[bibleBook];
-        let chapters = "";
-
-        for (let i = 1; i <= book[1]; i++) {
-            chapters +=
-                '<button class="bible-chapter" data-bible-chapter="' + i + '">' +
-                    i +
-                '</button>';
-        }
-
-        sheetBody.innerHTML =
-            '<div class="bible-top">' +
-                '<button class="bible-back" id="bible-back-books">&#8592; Retour</button>' +
-                '<div>' +
-                    '<div class="bible-title">' + escapeHtml(book[0]) + '</div>' +
-                    '<div class="bible-subtitle">' + book[1] + ' chapitre' + (book[1] > 1 ? "s" : "") + '</div>' +
-                '</div>' +
-            '</div>' +
-            '<div class="bible-chapters">' +
-                chapters +
-            '</div>';
-
-        document.getElementById("bible-back-books")
-            .addEventListener("click", function () {
-                bibleBooksView(bibleBook >= 39 ? "new" : "old");
-            });
-
-        document.querySelectorAll("[data-bible-chapter]").forEach(function (button) {
-            button.addEventListener("click", function () {
-                bibleChapter = Number(button.dataset.bibleChapter);
-                bibleLoadChapter();
-            });
-        });
-    }
-
-    async function bibleLoadChapter() {
-        const book = BIBLE_BOOKS[bibleBook];
-        const cacheKey =
-            "maranatha_bible_" +
-            (bibleBook + 1) +
-            "_" +
-            bibleChapter;
-
-        sheetBody.innerHTML =
-            '<div class="bible-top">' +
-                '<button class="bible-back" id="bible-back-chapters">&#8592; Retour</button>' +
-                '<div>' +
-                    '<div class="bible-title">' +
-                        escapeHtml(book[0]) +
-                        " " +
-                        bibleChapter +
-                    '</div>' +
-                    '<div class="bible-subtitle">Bible Maranatha</div>' +
-                '</div>' +
-            '</div>' +
-            '<div class="bible-status">Chargement...</div>';
-
-        document.getElementById("bible-back-chapters")
-            .addEventListener("click", bibleChaptersView);
-
-        let data = null;
-
-        try {
-            const bibleApiBase =
-                location.hostname === "localhost" ||
-                location.hostname === "127.0.0.1"
-                    ? "https://maranatha-1-k6ro.onrender.com"
-                    : "";
-
-            const response = await fetch(
-                bibleApiBase +
-                "/api/bible/" +
-                (bibleBook + 1) +
-                "/" +
-                bibleChapter,
-                { cache: "no-store" }
-            );
-
-            if (!response.ok) {
-                throw new Error("HTTP " + response.status);
-            }
-
-            data = await response.json();
-
-            if (data && Array.isArray(data.verses)) {
-                localStorage.setItem(
-                    cacheKey,
-                    JSON.stringify(data)
-                );
-            }
-        } catch (error) {
-            try {
-                const saved = localStorage.getItem(cacheKey);
-                if (saved) data = JSON.parse(saved);
-            } catch (_) {}
-        }
-
-        if (!data || !Array.isArray(data.verses) || !data.verses.length) {
-            sheetBody.innerHTML =
-                '<div class="bible-top">' +
-                    '<button class="bible-back" id="bible-back-chapters">&#8592; Retour</button>' +
-                    '<div class="bible-title">' +
-                        escapeHtml(book[0]) +
-                        " " +
-                        bibleChapter +
-                    '</div>' +
-                '</div>' +
-                '<div class="bible-status">Chapitre indisponible. V&eacute;rifiez votre connexion.</div>';
-
-            document.getElementById("bible-back-chapters")
-                .addEventListener("click", bibleChaptersView);
-
-            return;
-        }
-
-        let verses = "";
-
-        data.verses.forEach(function (verse) {
-            verses +=
-                '<div class="bible-verse">' +
-                    '<span class="bible-num">' +
-                        escapeHtml(String(verse.verse)) +
-                    '</span>' +
-                    escapeHtml(String(verse.text || "")) +
-                '</div>';
-        });
-
-        sheetBody.innerHTML =
-            '<div class="bible-top">' +
-                '<button class="bible-back" id="bible-back-chapters">&#8592; Retour</button>' +
-                '<div>' +
-                    '<div class="bible-title">' +
-                        escapeHtml(book[0]) +
-                        " " +
-                        bibleChapter +
-                    '</div>' +
-                    '<div class="bible-subtitle">' +
-                        data.verses.length +
-                        " versets" +
-                    '</div>' +
-                '</div>' +
-            '</div>' +
-
-            '<input class="bible-search" id="bible-verse-search" placeholder="Rechercher dans ce chapitre...">' +
-
-            '<div class="bible-nav">' +
-                '<button id="bible-prev" ' +
-                    ((bibleChapter <= 1 && bibleBook <= 0) ? "disabled" : "") +
-                '>Pr&eacute;c&eacute;dent</button>' +
-                '<button id="bible-next" ' +
-                    ((bibleChapter >= book[1] && bibleBook >= BIBLE_BOOKS.length - 1) ? "disabled" : "") +
-                '>Suivant</button>' +
-            '</div>' +
-
-            '<div class="bible-verses" id="bible-verses-list">' +
-                verses +
-            '</div>';
-
-        document.getElementById("bible-back-chapters")
-            .addEventListener("click", bibleChaptersView);
-
-        document.getElementById("bible-verse-search")
-            .addEventListener("input", function (event) {
-                const value =
-                    event.target.value.toLowerCase().trim();
-
-                document.querySelectorAll(".bible-verse")
-                    .forEach(function (verse) {
-                        verse.style.display =
-                            verse.textContent.toLowerCase().includes(value)
-                                ? ""
-                                : "none";
-                    });
-            });
-
-        document.getElementById("bible-prev")
-            .addEventListener("click", function () {
-                if (bibleChapter > 1) {
-                    bibleChapter--;
-                } else if (bibleBook > 0) {
-                    bibleBook--;
-                    bibleChapter = BIBLE_BOOKS[bibleBook][1];
-                } else {
-                    return;
-                }
-
-                bibleLoadChapter();
-            });
-
-        document.getElementById("bible-next")
-            .addEventListener("click", function () {
-                if (bibleChapter < BIBLE_BOOKS[bibleBook][1]) {
-                    bibleChapter++;
-                } else if (bibleBook < BIBLE_BOOKS.length - 1) {
-                    bibleBook++;
-                    bibleChapter = 1;
-                } else {
-                    return;
-                }
-
-                bibleLoadChapter();
-            });
-    }
-
-    function showBible() {
+    async function showBible() {
         openSheet(
             "Bible",
-            '<div class="bible-status">Ouverture...</div>'
+            loading()
         );
-
-        bibleBooksView("old");
+        const result =
+            await apiGetFirst(
+                API.bible
+            );
+        if (
+            result.ok
+        ) {
+            sheetBody.innerHTML =
+                renderCards(
+                    result.data
+                );
+            return;
+        }
+        sheetBody.innerHTML =
+            empty(
+                "Le module Bible est disponible dans Maranatha, mais aucun contenu public n'est encore charge."
+            );
     }
-
     /* =====================================================
        BLOC-NOTE
        ===================================================== */
-    
-function getMaranathaNotes() {
-    try {
-        const data = JSON.parse(
-            localStorage.getItem("maranatha_notes") || "[]"
+    function showNotes() {
+        const saved =
+            localStorage.getItem(
+                "maranatha_note"
+            ) || "";
+        openSheet(
+            "Bloc-note",
+            (
+                '<div class="m-form">' +
+                    '<div class="m-field">' +
+                        '<label>' +
+                            'Mes notes personnelles' +
+                        '</label>' +
+                        '<textarea ' +
+                            'id="maranatha-note-input" ' +
+                            'class="m-textarea" ' +
+                            'placeholder="Ecrivez votre note ici...">' +
+                            escapeHtml(saved) +
+                        '</textarea>' +
+                    '</div>' +
+                    '<div class="m-note-actions">' +
+                        '<button ' +
+                            'id="maranatha-save-note" ' +
+                            'class="m-primary" ' +
+                            'type="button">' +
+                            'Enregistrer' +
+                        '</button>' +
+                        '<button ' +
+                            'id="maranatha-clear-note" ' +
+                            'class="m-secondary" ' +
+                            'type="button">' +
+                            'Effacer' +
+                        '</button>' +
+                    '</div>' +
+                '</div>'
+            )
         );
-        return Array.isArray(data) ? data : [];
-    } catch (_) {
-        return [];
-    }
-}
-
-function saveMaranathaNotes(notes) {
-    localStorage.setItem(
-        "maranatha_notes",
-        JSON.stringify(notes)
-    );
-}
-
-function formatMaranathaNoteDate(date) {
-    return new Intl.DateTimeFormat("fr-FR", {
-        weekday: "long",
-        day: "2-digit",
-        month: "long",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit"
-    }).format(new Date(date));
-}
-
-function showNotes(editId) {
-    let notes = getMaranathaNotes();
-
-    const oldNote =
-        localStorage.getItem("maranatha_note");
-
-    if (oldNote && oldNote.trim() && notes.length === 0) {
-        notes.push({
-            id: String(Date.now()),
-            text: oldNote.trim(),
-            createdAt: new Date().toISOString()
-        });
-
-        saveMaranathaNotes(notes);
-        localStorage.removeItem("maranatha_note");
-    }
-
-    const editing = editId
-        ? notes.find(function(n) {
-            return String(n.id) === String(editId);
-        })
-        : null;
-
-    let historique = "";
-
-    notes
-        .slice()
-        .sort(function(a, b) {
-            return new Date(b.createdAt) -
-                   new Date(a.createdAt);
-        })
-        .forEach(function(note) {
-            historique +=
-                '<div style="background:#fff;border:1px solid #e4e7ed;border-radius:15px;padding:13px;margin-bottom:10px;">' +
-
-                    '<div style="font-size:11px;font-weight:800;color:#850018;margin-bottom:7px;text-transform:capitalize;">' +
-                        escapeHtml(
-                            formatMaranathaNoteDate(note.createdAt)
-                        ) +
-                    '</div>' +
-
-                    '<div style="font-size:14px;line-height:1.5;white-space:pre-wrap;color:#263044;">' +
-                        escapeHtml(note.text) +
-                    '</div>' +
-
-                    '<div style="display:flex;gap:8px;margin-top:10px;">' +
-
-                        '<button type="button" data-note-edit="' +
-                            escapeHtml(String(note.id)) +
-                            '" style="flex:1;padding:9px;border-radius:10px;background:#f1f3f6;color:#850018;font-weight:800;">Modifier</button>' +
-
-                        '<button type="button" data-note-delete="' +
-                            escapeHtml(String(note.id)) +
-                            '" style="padding:9px 13px;border-radius:10px;background:#850018;color:white;font-weight:800;">Supprimer</button>' +
-
-                    '</div>' +
-
-                '</div>';
-        });
-
-    if (!historique) {
-        historique =
-            '<div style="text-align:center;padding:20px;color:#7b8492;">' +
-                'Aucun enregistrement.' +
-            '</div>';
-    }
-
-    openSheet(
-        "Bloc-note",
-        '<div class="m-form">' +
-
-            '<div class="m-field">' +
-                '<label>' +
-                    (editing ? "Modifier la note" : "Nouvelle note") +
-                '</label>' +
-
-                '<textarea id="maranatha-note-input" class="m-textarea" placeholder="Ecrivez votre note ici...">' +
-                    escapeHtml(editing ? editing.text : "") +
-                '</textarea>' +
-            '</div>' +
-
-            '<div class="m-note-actions">' +
-
-                '<button id="maranatha-save-note" class="m-primary" type="button">' +
-                    (editing
-                        ? "Enregistrer les modifications"
-                        : "Enregistrer") +
-                '</button>' +
-
-                (editing
-                    ? '<button id="maranatha-cancel-note" class="m-secondary" type="button">Annuler</button>'
-                    : '') +
-
-            '</div>' +
-
-            '<div style="margin-top:22px;font-size:16px;font-weight:900;color:#202939;">' +
-                'Mes enregistrements' +
-            '</div>' +
-
-            '<div style="margin-top:10px;">' +
-                historique +
-            '</div>' +
-
-        '</div>'
-    );
-
-    document
-        .getElementById("maranatha-save-note")
-        .addEventListener("click", function() {
-
-            const value =
-                document
-                    .getElementById("maranatha-note-input")
-                    .value
-                    .trim();
-
-            if (!value) {
-                toast("Ecrivez une note.");
-                return;
-            }
-
-            const current = getMaranathaNotes();
-
-            if (editing) {
-                const note = current.find(function(n) {
-                    return String(n.id) === String(editing.id);
-                });
-
-                if (note) {
-                    note.text = value;
+        document
+            .getElementById(
+                "maranatha-save-note"
+            )
+            .addEventListener(
+                "click",
+                function () {
+                    const value =
+                        document
+                            .getElementById(
+                                "maranatha-note-input"
+                            )
+                            .value;
+                    localStorage.setItem(
+                        "maranatha_note",
+                        value
+                    );
+                    toast(
+                        "Note enregistree."
+                    );
                 }
-            } else {
-                current.push({
-                    id:
-                        String(Date.now()) +
-                        Math.random().toString(36).slice(2, 7),
-                    text: value,
-                    createdAt: new Date().toISOString()
-                });
-            }
-
-            saveMaranathaNotes(current);
-
-            toast("Note enregistree.");
-            showNotes();
-        });
-
-    const cancel =
-        document.getElementById("maranatha-cancel-note");
-
-    if (cancel) {
-        cancel.addEventListener("click", function() {
-            showNotes();
-        });
-    }
-
-    document
-        .querySelectorAll("[data-note-edit]")
-        .forEach(function(button) {
-            button.addEventListener("click", function() {
-                showNotes(button.dataset.noteEdit);
-            });
-        });
-
-    document
-        .querySelectorAll("[data-note-delete]")
-        .forEach(function(button) {
-            button.addEventListener("click", function() {
-
-                const id = button.dataset.noteDelete;
-
-                const restant =
-                    getMaranathaNotes().filter(function(note) {
-                        return String(note.id) !== String(id);
-                    });
-
-                saveMaranathaNotes(restant);
-
-                toast("Note supprimee.");
-                showNotes();
-            });
-        });
-}
-
-async function showStudies() {
-        openSheet("Étude biblique", loading());
-        const result = await apiGetFirst(API.etudes);
-        if (!result.ok) {
-            sheetBody.innerHTML = empty("Aucune étude biblique n'est disponible pour le moment.");
-            return;
-        }
-
-        const studies = extractArray(result.data).filter(function (item) {
-            return item && item.actif !== false;
-        });
-        if (!studies.length) {
-            sheetBody.innerHTML = empty("Aucune étude biblique n'est disponible pour le moment.");
-            return;
-        }
-
-        sheetBody.innerHTML = '<div class="m-list">' + studies.map(function (item) {
-            const cover = librarySafeUrl(item.couvertureUrl || item.coverUrl || "");
-            const pdf = librarySafeUrl(item.pdfUrl || "");
-            const date = item.datePublication
-                ? new Date(item.datePublication).toLocaleDateString("fr-FR")
-                : "";
-            return (
-                '<article class="m-card">' +
-                    (cover
-                        ? '<img src="' + escapeHtml(cover) + '" alt="" loading="lazy" style="width:100%;max-height:240px;object-fit:cover;border-radius:14px;margin-bottom:12px">'
-                        : '') +
-                    '<h3 class="m-card-title">' + escapeHtml(item.titre || "Étude biblique") + '</h3>' +
-                    (item.texte ? '<div class="m-card-text">' + escapeHtml(item.texte) + '</div>' : '') +
-                    (date ? '<div class="m-card-meta">' + escapeHtml(date) + '</div>' : '') +
-                    (pdf
-                        ? '<a class="m-primary" style="margin-top:12px;text-decoration:none;display:flex;align-items:center;justify-content:center" href="' + escapeHtml(pdf) + '" target="_blank" rel="noopener noreferrer">Ouvrir le PDF</a>'
-                        : '') +
-                '</article>'
             );
-        }).join("") + '</div>';
+        document
+            .getElementById(
+                "maranatha-clear-note"
+            )
+            .addEventListener(
+                "click",
+                function () {
+                    document
+                        .getElementById(
+                            "maranatha-note-input"
+                        )
+                        .value =
+                        "";
+                    localStorage.removeItem(
+                        "maranatha_note"
+                    );
+                    toast(
+                        "Note effacee."
+                    );
+                }
+            );
+    }
+    /* =====================================================
+       ETUDES
+       ===================================================== */
+    async function showStudies() {
+        openSheet(
+            "\u00c9tude biblique",
+            loading()
+        );
+        const result =
+            await apiGetFirst(
+                API.etudes
+            );
+        sheetBody.innerHTML =
+            result.ok
+                ?
+                renderCards(
+                    result.data
+                )
+                :
+                empty(
+                    "Aucune etude biblique n'est disponible pour le moment."
+                );
     }
     /* =====================================================
        DON
@@ -5498,10 +5064,7 @@ async function showDon() {
                             body:
                                 JSON.stringify({
                                     amount,
-                                    category,
-                                    donorName: donorProfile.nom || localStorage.getItem("maranatha_user") || "",
-                                    donorPhone: donorProfile.telephone || localStorage.getItem("maranatha_tel") || "",
-                                    memberId: localStorage.getItem("maranatha_membre_id") || ""
+                                    category
                                 })
                         }
                     );
@@ -5966,14 +5529,6 @@ function showMessageForm(
                             'type="email" ' +
                             'placeholder="email@exemple.com">' +
                     '</div>' +
-                    '<div class="m-field">' +
-                        '<label>Adresse</label>' +
-                        '<input ' +
-                            'id="member-address" ' +
-                            'class="m-input" ' +
-                            'type="text" ' +
-                            'placeholder="Quartier, avenue, numéro">' +
-                    '</div>' +
                     '<div ' +
                         'id="member-result" ' +
                         'class="m-message">' +
@@ -6015,13 +5570,6 @@ function showMessageForm(
                             )
                             .value
                             .trim();
-                    const address =
-                        document
-                            .getElementById(
-                                "member-address"
-                            )
-                            .value
-                            .trim();
                     const payload = {
 
                         type: "membre",
@@ -6030,8 +5578,7 @@ function showMessageForm(
                         name: name,
                         telephone: phone,
                         phone: phone,
-                        email: email,
-                        adresse: address
+                        email: email
                     };
                     const result =
                         await apiPostFirst(
@@ -6051,20 +5598,7 @@ function showMessageForm(
                         box.className =
                             "m-message show success";
                         box.textContent =
-                            "Votre demande a été enregistrée à Maranatha.";
-                        const member = result.data || {};
-                        if (member._id) localStorage.setItem("maranatha_membre_id", String(member._id));
-                        localStorage.setItem("maranatha_tel", phone);
-                        localStorage.setItem("maranatha_nom", name);
-                        localStorage.setItem("maranatha_email", email);
-                        localStorage.setItem("maranatha_adresse", address);
-                        localStorage.setItem("maranatha_user", name);
-                        localStorage.setItem("maranatha_profile", JSON.stringify({
-                            nom: name,
-                            telephone: phone,
-                            email: email,
-                            adresse: address
-                        }));
+                            "Votre demande a ete envoyee a Maranatha.";
                         event.currentTarget.reset();
                     }
                     else {
@@ -6107,1067 +5641,121 @@ function showMessageForm(
     /* =====================================================
        LIBRARY
        ===================================================== */
-    
-function maranathaLibraryStyles() {
-    if (document.getElementById("maranatha-library-styles")) {
-        return;
-    }
-
-    const style = document.createElement("style");
-    style.id = "maranatha-library-styles";
-
-    style.textContent = [
-        ".lib-wrap{padding-bottom:12px}",
-        ".lib-section{margin-bottom:24px}",
-        ".lib-section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px}",
-        ".lib-section-title{font-size:16px;font-weight:900;color:#850018}",
-        ".lib-section-count{font-size:10px;font-weight:800;color:#8992a2;background:#eef1f5;padding:5px 9px;border-radius:20px}",
-
-        ".lib-row{display:flex;gap:12px;overflow-x:auto;padding:2px 2px 10px;scrollbar-width:none}",
-        ".lib-row::-webkit-scrollbar{display:none}",
-
-        ".lib-card{flex:0 0 155px;background:#fff;border:1px solid #e6e9ef;border-radius:18px;overflow:hidden;box-shadow:0 7px 18px rgba(23,30,45,.08)}",
-
-        ".lib-card.lib-wide{flex-basis:245px}",
-
-        ".lib-cover{position:relative;width:100%;overflow:hidden;background:linear-gradient(135deg,#5b0010,#a60022)}",
-        ".lib-cover.book{aspect-ratio:3/4}",
-        ".lib-cover.media{aspect-ratio:16/9}",
-
-        ".lib-cover img{width:100%;height:100%;display:block;object-fit:cover;object-position:center}",
-
-        ".lib-fallback{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:15px;color:#fff;background:linear-gradient(145deg,#52000e,#98001d)}",
-        ".lib-fallback-brand{font-size:9px;letter-spacing:2px;font-weight:900;opacity:.72}",
-        ".lib-fallback-type{font-family:Georgia,serif;font-size:20px;font-weight:700;margin-top:7px}",
-
-        ".lib-badge{position:absolute;left:9px;top:9px;background:rgba(81,0,14,.90);color:#fff;padding:5px 8px;border-radius:8px;font-size:9px;font-weight:900;letter-spacing:.3px}",
-
-        ".lib-play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:43px;height:43px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.93);color:#850018;box-shadow:0 6px 18px rgba(0,0,0,.20);font-size:17px;font-weight:900}",
-
-        ".lib-card-body{padding:11px}",
-        ".lib-title{font-size:13px;line-height:1.25;font-weight:900;color:#202939;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}",
-        ".lib-meta{margin-top:5px;font-size:10px;color:#850018;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}",
-        ".lib-desc{margin-top:6px;font-size:10px;line-height:1.4;color:#7a8494;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}",
-
-        ".lib-action{margin-top:10px;width:100%;min-height:35px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:#850018;color:#fff;text-decoration:none;font-size:11px;font-weight:900}",
-
-        ".lib-empty{padding:25px 14px;border:1px dashed #d8dde6;border-radius:17px;text-align:center;background:#fff;color:#818b9c;font-size:12px}",
-
-        "@media(max-width:360px){.lib-card{flex-basis:145px}.lib-card.lib-wide{flex-basis:225px}}"
-    ].join("");
-
-    document.head.appendChild(style);
-}
-
-function librarySafeUrl(value) {
-    const url = String(value || "").trim();
-
-    if (!url) return "";
-
-    if (
-        url.startsWith("/") ||
-        url.startsWith("https://") ||
-        url.startsWith("http://")
-    ) {
-        return url;
-    }
-
-    return "";
-}
-
-function libraryYoutubeThumb(url) {
-    const value = String(url || "");
-
-    let match =
-        value.match(/[?&]v=([^&#]+)/) ||
-        value.match(/youtu\.be\/([^?&#/]+)/) ||
-        value.match(/youtube\.com\/shorts\/([^?&#/]+)/) ||
-        value.match(/youtube\.com\/embed\/([^?&#/]+)/);
-
-    if (!match || !match[1]) {
-        return "";
-    }
-
-    return (
-        "https://i.ytimg.com/vi/" +
-        encodeURIComponent(match[1]) +
-        "/hqdefault.jpg"
-    );
-}
-
-function libraryArray(data) {
-    if (Array.isArray(data)) return data;
-
-    if (data && Array.isArray(data.items)) {
-        return data.items;
-    }
-
-    if (data && Array.isArray(data.data)) {
-        return data.data;
-    }
-
-    return [];
-}
-
-async function libraryFetch(paths) {
-    const local =
-        location.hostname === "localhost" ||
-        location.hostname === "127.0.0.1";
-
-    const base = local
-        ? "https://maranatha-1-k6ro.onrender.com"
-        : "";
-
-    for (const path of paths) {
-        try {
-            const response = await fetch(
-                base + path,
-                { cache: "no-store" }
+    async function showLibrary() {
+        openSheet(
+            "Biblioth\u00e8que",
+            loading()
+        );
+        const results =
+            await Promise.all(
+                [
+                    apiGetFirst(
+                        API.livres
+                    ),
+                    apiGetFirst(
+                        API.videos
+                    ),
+                    apiGetFirst(
+                        API.sermons
+                    )
+                ]
             );
-
-            if (!response.ok) continue;
-
-            return {
-                ok: true,
-                data: await response.json()
-            };
-        } catch (_) {}
+        const books =
+            results[0];
+        const videos =
+            results[1];
+        const sermons =
+            results[2];
+        let output =
+            "";
+        output +=
+            '<div class="m-section-title">' +
+                'Livres' +
+            '</div>';
+        output +=
+            books.ok
+                ?
+                renderCards(
+                    books.data
+                )
+                :
+                empty(
+                    "Aucun livre disponible."
+                );
+        output +=
+            '<div class="m-section-title">' +
+                'Videos' +
+            '</div>';
+        output +=
+            videos.ok
+                ?
+                renderCards(
+                    videos.data
+                )
+                :
+                empty(
+                    "Aucune video disponible."
+                );
+        output +=
+            '<div class="m-section-title">' +
+                'Predications' +
+            '</div>';
+        output +=
+            sermons.ok
+                ?
+                renderCards(
+                    sermons.data
+                )
+                :
+                empty(
+                    "Aucune predication disponible."
+                );
+        sheetBody.innerHTML =
+            output;
     }
-
-    return {
-        ok: false,
-        data: []
-    };
-}
-
-function libraryCover(item, type) {
-    let image =
-        item.couvertureUrl ||
-        item.imageUrl ||
-        item.thumbnailUrl ||
-        item.miniatureUrl ||
-        item.posterUrl ||
-        item.image ||
-        "";
-
-    if (!image && type === "video") {
-        image = libraryYoutubeThumb(
-            item.youtubeUrl ||
-            item.videoUrl ||
-            ""
-        );
-    }
-
-    if (!image && type === "sermon") {
-        image = "/hero-maranatha.jpg";
-    }
-
-    image = librarySafeUrl(image);
-
-    if (image) {
-        return (
-            '<img src="' +
-            escapeHtml(image) +
-            '" alt="" loading="lazy" ' +
-            'onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\';">' +
-
-            '<div class="lib-fallback" style="display:none">' +
-                '<div class="lib-fallback-brand">MARANATHA</div>' +
-                '<div class="lib-fallback-type">' +
-                    (
-                        type === "book"
-                            ? "Livre"
-                            : type === "video"
-                                ? "Vid\u00e9o"
-                                : type === "photo"
-                                    ? "Photo"
-                                    : type === "audio"
-                                        ? "Audio"
-                                        : "Pr\u00e9dication"
-                    ) +
-                '</div>' +
-            '</div>'
-        );
-    }
-
-    return (
-        '<div class="lib-fallback">' +
-            '<div class="lib-fallback-brand">MARANATHA</div>' +
-            '<div class="lib-fallback-type">' +
-                (
-                    type === "book"
-                        ? "Livre"
-                        : type === "video"
-                            ? "Vid\u00e9o"
-                            : "Pr\u00e9dication"
-                ) +
-            '</div>' +
-        '</div>'
-    );
-}
-
-function libraryCard(item, type) {
-    const title = item.titre || item.title || "Sans titre";
-    const description = item.description || item.resume || "";
-    const meta = item.auteur || item.pasteur || item.categorie || "Maranatha";
-    const fileHref = librarySafeUrl(item.fichierUrl || item.audioUrl || item.videoUrl || item.url || "");
-    const externalHref = librarySafeUrl(item.lienExterne || item.youtubeUrl || "");
-    const href = fileHref || externalHref;
-    const labels = {
-        book: ["LIVRE", "Ouvrir"],
-        video: ["VIDÉO", "Regarder"],
-        photo: ["PHOTO", "Voir"],
-        audio: ["AUDIO", "Écouter"],
-        sermon: ["PRÉDICATION", "Écouter"]
-    };
-    const pair = labels[type] || ["CONTENU", "Ouvrir"];
-    const wide = type !== "book";
-    const play = (type === "video" || type === "audio" || type === "sermon")
-        ? '<div class="lib-play">&#9654;</div>'
-        : "";
-
-    return (
-        '<article class="lib-card ' + (wide ? "lib-wide" : "") + '">' +
-            '<div class="lib-cover ' + (wide ? "media" : "book") + '">' +
-                libraryCover(item, type) +
-                '<div class="lib-badge">' + pair[0] + '</div>' +
-                play +
-            '</div>' +
-            '<div class="lib-card-body">' +
-                '<div class="lib-title">' + escapeHtml(String(title)) + '</div>' +
-                '<div class="lib-meta">' + escapeHtml(String(meta)) + '</div>' +
-                (description ? '<div class="lib-desc">' + escapeHtml(String(description)) + '</div>' : '') +
-                (href
-                    ? '<a class="lib-action" href="' + escapeHtml(href) + '" target="_blank" rel="noopener noreferrer"' +
-                        ((item.telechargeable !== false && fileHref) ? ' download' : '') + '>' + pair[1] + '</a>'
-                    : '') +
-            '</div>' +
-        '</article>'
-    );
-}
-
-function librarySection(title, items, type) {
-    if (!items.length) {
-        return (
-            '<section class="lib-section">' +
-                '<div class="lib-section-head">' +
-                    '<div class="lib-section-title">' + title + '</div>' +
-                    '<div class="lib-section-count">0</div>' +
-                '</div>' +
-                '<div class="lib-empty">Aucun contenu publié pour le moment.</div>' +
-            '</section>'
-        );
-    }
-    return (
-        '<section class="lib-section">' +
-            '<div class="lib-section-head">' +
-                '<div class="lib-section-title">' + title + '</div>' +
-                '<div class="lib-section-count">' + items.length + '</div>' +
-            '</div>' +
-            '<div class="lib-row">' +
-                items.map(function(item) { return libraryCard(item, type); }).join("") +
-            '</div>' +
-        '</section>'
-    );
-}
-
-async function showLibrary() {
-    maranathaLibraryStyles();
-    openSheet("Bibliothèque", '<div class="bible-status">Chargement...</div>');
-    const results = await Promise.all([
-        libraryFetch(["/api/bibliotheque"]),
-        libraryFetch(["/api/sermons", "/api/sermon"])
-    ]);
-    const all = libraryArray(results[0].data);
-    const livres = all.filter(function (item) { return item.type === "book"; });
-    const videos = all.filter(function (item) { return item.type === "video"; });
-    const photos = all.filter(function (item) { return item.type === "photo"; });
-    const audios = all.filter(function (item) { return item.type === "audio"; });
-    const sermons = libraryArray(results[1].data).filter(function (item) {
-        return !item.statut || item.statut === "termine" || item.statut === "en_cours";
-    });
-    sheetBody.innerHTML =
-        '<div class="lib-wrap">' +
-            librarySection("Livres", livres, "book") +
-            librarySection("Vidéos", videos, "video") +
-            librarySection("Photos", photos, "photo") +
-            librarySection("Audios", audios, "audio") +
-            librarySection("Prédications", sermons, "sermon") +
-        '</div>';
-}
-
-/* =====================================================
+    /* =====================================================
        PROGRAM
        ===================================================== */
-    function maranathaProgramStyles() {
-
-        if (
-            document.getElementById(
-                "maranatha-program-style"
-            )
-        ) {
-            return;
-        }
-
-        const style =
-            document.createElement(
-                "style"
-            );
-
-        style.id =
-            "maranatha-program-style";
-
-        style.textContent = `
-            .prog-grid{
-                display:grid;
-                grid-template-columns:repeat(2,minmax(0,1fr));
-                gap:11px;
-                align-items:start;
-            }
-
-            .prog-card{
-                width:100%;
-                padding:0;
-                overflow:hidden;
-                text-align:left;
-                border:1px solid #e8e3e5;
-                border-radius:18px;
-                background:#ffffff;
-                box-shadow:0 7px 18px rgba(55,15,25,.07);
-                cursor:pointer;
-                transition:transform .15s ease,box-shadow .15s ease;
-            }
-
-            .prog-card:active{
-                transform:scale(.98);
-            }
-
-            .prog-cover{
-                width:100%;
-                aspect-ratio:4/5;
-                position:relative;
-                overflow:hidden;
-                background:
-                    linear-gradient(
-                        145deg,
-                        #58000f,
-                        #a40020
-                    );
-            }
-
-            .prog-cover img{
-                width:100%;
-                height:100%;
-                position:absolute;
-                inset:0;
-                z-index:2;
-                object-fit:cover;
-                display:block;
-            }
-
-            .prog-cover-placeholder{
-                width:100%;
-                height:100%;
-                padding:16px 10px;
-                display:flex;
-                flex-direction:column;
-                align-items:center;
-                justify-content:center;
-                gap:7px;
-                color:#ffffff;
-                text-align:center;
-                background:
-                    radial-gradient(
-                        circle at 80% 15%,
-                        rgba(255,255,255,.16),
-                        transparent 28%
-                    ),
-                    linear-gradient(
-                        145deg,
-                        #59000f,
-                        #a90022
-                    );
-            }
-
-            .prog-placeholder-logo{
-                width:52px;
-                height:52px;
-                display:grid;
-                place-items:center;
-                border-radius:50%;
-                background:#ffffff;
-                color:#900019;
-                font-size:18px;
-                font-weight:900;
-            }
-
-            .prog-placeholder-name{
-                font-size:11px;
-                font-weight:900;
-                letter-spacing:1px;
-            }
-
-            .prog-card-body{
-                padding:11px 10px 12px;
-            }
-
-            .prog-card-title{
-                margin:0;
-                color:#741126;
-                font-size:13px;
-                line-height:1.25;
-                font-weight:900;
-                display:-webkit-box;
-                -webkit-line-clamp:2;
-                -webkit-box-orient:vertical;
-                overflow:hidden;
-            }
-
-            .prog-card-date{
-                margin-top:8px;
-                color:#1f2937;
-                font-size:10px;
-                line-height:1.35;
-                font-weight:800;
-            }
-
-            .prog-card-meta{
-                margin-top:5px;
-                color:#7b8492;
-                font-size:9px;
-                line-height:1.45;
-            }
-
-            .prog-detail-back{
-                min-height:40px;
-                margin-bottom:12px;
-                padding:0 13px;
-                border-radius:12px;
-                background:#f4e9ec;
-                color:#850018;
-                font-size:11px;
-                font-weight:900;
-            }
-
-            .prog-detail{
-                overflow:hidden;
-                border:1px solid #eadfe2;
-                border-radius:20px;
-                background:#ffffff;
-                box-shadow:0 8px 22px rgba(78,12,28,.07);
-            }
-
-            .prog-detail-cover{
-                width:100%;
-                aspect-ratio:16/10;
-                position:relative;
-                overflow:hidden;
-                background:
-                    linear-gradient(
-                        145deg,
-                        #59000f,
-                        #a90022
-                    );
-            }
-
-            .prog-detail-cover img{
-                width:100%;
-                height:100%;
-                position:absolute;
-                inset:0;
-                z-index:2;
-                object-fit:cover;
-            }
-
-            .prog-detail-body{
-                padding:18px;
-            }
-
-            .prog-detail-title{
-                margin:0;
-                color:#760016;
-                font-family:Georgia,serif;
-                font-size:22px;
-                line-height:1.15;
-                font-weight:800;
-            }
-
-            .prog-detail-info{
-                margin-top:15px;
-                display:grid;
-                gap:8px;
-            }
-
-            .prog-detail-info-row{
-                display:flex;
-                gap:9px;
-                align-items:flex-start;
-                color:#4f5a6b;
-                font-size:12px;
-                line-height:1.4;
-            }
-
-            .prog-detail-info-label{
-                min-width:48px;
-                color:#8b001b;
-                font-weight:900;
-            }
-
-            .prog-detail-text{
-                margin-top:17px;
-                padding-top:15px;
-                border-top:1px solid #eee4e7;
-                color:#4d5665;
-                font-size:12px;
-                line-height:1.65;
-                white-space:pre-wrap;
-            }
-
-            @media(max-width:340px){
-                .prog-grid{
-                    gap:8px;
-                }
-
-                .prog-card-body{
-                    padding:9px 8px 10px;
-                }
-
-                .prog-card-title{
-                    font-size:11px;
-                }
-
-                .prog-card-date{
-                    font-size:9px;
-                }
-
-                .prog-card-meta{
-                    font-size:8px;
-                }
-            }
-        `;
-
-        document.head.appendChild(
-            style
-        );
-    }
-
-
-    function programDateLabel(value) {
-
-        const raw =
-            String(
-                value ||
-                ""
-            ).trim();
-
-        if (!raw) {
-            return "";
-        }
-
-        if (
-            /^\d{4}-\d{2}-\d{2}$/.test(
-                raw
-            )
-        ) {
-
-            const parts =
-                raw.split("-");
-
-            const date =
-                new Date(
-                    Number(parts[0]),
-                    Number(parts[1]) - 1,
-                    Number(parts[2])
-                );
-
-            if (
-                !Number.isNaN(
-                    date.getTime()
-                )
-            ) {
-                return new Intl.DateTimeFormat(
-                    "fr-FR",
-                    {
-                        weekday:
-                            "long",
-                        day:
-                            "2-digit",
-                        month:
-                            "long",
-                        year:
-                            "numeric"
-                    }
-                ).format(
-                    date
-                );
-            }
-        }
-
-        return raw;
-    }
-
-
-    function programTimeLabel(value) {
-
-        const raw =
-            String(
-                value ||
-                ""
-            ).trim();
-
-        if (!raw) {
-            return "";
-        }
-
-        if (
-            /^\d{2}:\d{2}$/.test(
-                raw
-            )
-        ) {
-            return raw;
-        }
-
-        return raw;
-    }
-
-
     async function showProgram() {
-
-        maranathaProgramStyles();
-
         openSheet(
             "Programme",
             loading()
         );
-
         const result =
             await apiGetFirst(
-                [
-                    "/api/settings/programme"
-                ]
+                API.sermons
             );
-
         if (
             !result.ok
         ) {
-
             sheetBody.innerHTML =
                 empty(
-                    "Le programme n'est pas disponible pour le moment."
+                    "Le programme n'est pas disponible."
                 );
-
             return;
         }
-
-
         const list =
             extractArray(
                 result.data
-            ).filter(
-                function(item) {
-                    return (
-                        item &&
-                        item.titre
-                    );
-                }
             );
-
-
         list.sort(
-            function(a, b) {
-
-                const ad =
-                    String(
-                        a.dateStr ||
-                        ""
-                    ) +
-                    "T" +
-                    String(
-                        a.heureStr ||
-                        "00:00"
-                    );
-
-                const bd =
-                    String(
-                        b.dateStr ||
-                        ""
-                    ) +
-                    "T" +
-                    String(
-                        b.heureStr ||
-                        "00:00"
-                    );
-
-                const at =
+            function (a, b) {
+                return (
                     new Date(
-                        ad
-                    ).getTime();
-
-                const bt =
+                        a.dateDiffusion || 0
+                    )
+                    -
                     new Date(
-                        bd
-                    ).getTime();
-
-                if (
-                    Number.isNaN(at) ||
-                    Number.isNaN(bt)
-                ) {
-                    return 0;
-                }
-
-                return at - bt;
+                        b.dateDiffusion || 0
+                    )
+                );
             }
         );
-
-
-        if (
-            list.length === 0
-        ) {
-
-            sheetBody.innerHTML =
-                empty(
-                    "Aucun programme publié pour le moment."
-                );
-
-            return;
-        }
-
-
-        function coverHtml(item) {
-
-            const image =
-                String(
-                    item.imageUrl ||
-                    ""
-                ).trim();
-
-            return (
-                '<div class="prog-cover">' +
-
-                    '<div class="prog-cover-placeholder">' +
-                        '<div class="prog-placeholder-logo">' +
-                            'M' +
-                        '</div>' +
-                        '<div class="prog-placeholder-name">' +
-                            'MARANATHA' +
-                        '</div>' +
-                        '<div style="' +
-                            'font-size:9px;' +
-                            'opacity:.82' +
-                        '">' +
-                            'PROGRAMME' +
-                        '</div>' +
-                    '</div>' +
-
-                    (
-                        image
-                            ?
-                            '<img ' +
-                                'src="' +
-                                escapeHtml(
-                                    image
-                                ) +
-                                '" ' +
-                                'alt="" ' +
-                                'loading="lazy" ' +
-                                'onerror="this.style.display=\'none\'">' 
-                            :
-                            ''
-                    ) +
-
-                '</div>'
-            );
-        }
-
-
-        function renderProgramList() {
-
-            sheetTitle.textContent =
-                "Programme";
-
-            sheetBody.innerHTML =
-                '<div class="prog-grid">' +
-
+        sheetBody.innerHTML =
+            renderCards(
                 list
-                    .map(
-                        function(item, index) {
-
-                            const dateText =
-                                programDateLabel(
-                                    item.dateStr
-                                );
-
-                            const heure =
-                                programTimeLabel(
-                                    item.heureStr
-                                );
-
-                            const lieu =
-                                item.lieu ||
-                                "";
-
-                            return (
-                                '<button ' +
-                                    'type="button" ' +
-                                    'class="prog-card" ' +
-                                    'data-program-index="' +
-                                    index +
-                                    '">' +
-
-                                    coverHtml(
-                                        item
-                                    ) +
-
-                                    '<div class="prog-card-body">' +
-
-                                        '<h3 class="prog-card-title">' +
-                                            escapeHtml(
-                                                item.titre ||
-                                                "Programme"
-                                            ) +
-                                        '</h3>' +
-
-                                        (
-                                            dateText
-                                                ?
-                                                '<div class="prog-card-date">' +
-                                                    escapeHtml(
-                                                        dateText
-                                                    ) +
-                                                '</div>'
-                                                :
-                                                ''
-                                        ) +
-
-                                        (
-                                            heure
-                                                ?
-                                                '<div class="prog-card-meta">' +
-                                                    'Heure : ' +
-                                                    escapeHtml(
-                                                        heure
-                                                    ) +
-                                                '</div>'
-                                                :
-                                                ''
-                                        ) +
-
-                                        (
-                                            lieu
-                                                ?
-                                                '<div class="prog-card-meta">' +
-                                                    escapeHtml(
-                                                        lieu
-                                                    ) +
-                                                '</div>'
-                                                :
-                                                ''
-                                        ) +
-
-                                    '</div>' +
-
-                                '</button>'
-                            );
-                        }
-                    )
-                    .join("") +
-
-                '</div>';
-
-
-            document
-                .querySelectorAll(
-                    "[data-program-index]"
-                )
-                .forEach(
-                    function(button) {
-
-                        button.addEventListener(
-                            "click",
-                            function() {
-
-                                const index =
-                                    Number(
-                                        button.dataset.programIndex
-                                    );
-
-                                showProgramDetail(
-                                    index
-                                );
-                            }
-                        );
-                    }
-                );
-        }
-
-
-        function showProgramDetail(index) {
-
-            const item =
-                list[index];
-
-            if (!item) {
-                return;
-            }
-
-            const image =
-                String(
-                    item.imageUrl ||
-                    ""
-                ).trim();
-
-            const dateText =
-                programDateLabel(
-                    item.dateStr
-                );
-
-            const heure =
-                programTimeLabel(
-                    item.heureStr
-                );
-
-
-            sheetBody.innerHTML =
-
-                '<button ' +
-                    'type="button" ' +
-                    'class="prog-detail-back" ' +
-                    'id="prog-detail-back">' +
-                    '&#8592; Retour aux programmes' +
-                '</button>' +
-
-                '<article class="prog-detail">' +
-
-                    '<div class="prog-detail-cover">' +
-
-                        '<div class="prog-cover-placeholder">' +
-                            '<div class="prog-placeholder-logo">' +
-                                'M' +
-                            '</div>' +
-                            '<div class="prog-placeholder-name">' +
-                                'MARANATHA' +
-                            '</div>' +
-                            '<div style="' +
-                                'font-size:9px;' +
-                                'opacity:.82' +
-                            '">' +
-                                'PROGRAMME' +
-                            '</div>' +
-                        '</div>' +
-
-                        (
-                            image
-                                ?
-                                '<img ' +
-                                    'src="' +
-                                    escapeHtml(
-                                        image
-                                    ) +
-                                    '" ' +
-                                    'alt="" ' +
-                                    'onerror="this.style.display=\'none\'">' 
-                                :
-                                ''
-                        ) +
-
-                    '</div>' +
-
-                    '<div class="prog-detail-body">' +
-
-                        '<h3 class="prog-detail-title">' +
-                            escapeHtml(
-                                item.titre ||
-                                "Programme"
-                            ) +
-                        '</h3>' +
-
-                        '<div class="prog-detail-info">' +
-
-                            (
-                                dateText
-                                    ?
-                                    '<div class="prog-detail-info-row">' +
-                                        '<span class="prog-detail-info-label">' +
-                                            'Date' +
-                                        '</span>' +
-                                        '<span>' +
-                                            escapeHtml(
-                                                dateText
-                                            ) +
-                                        '</span>' +
-                                    '</div>'
-                                    :
-                                    ''
-                            ) +
-
-                            (
-                                heure
-                                    ?
-                                    '<div class="prog-detail-info-row">' +
-                                        '<span class="prog-detail-info-label">' +
-                                            'Heure' +
-                                        '</span>' +
-                                        '<span>' +
-                                            escapeHtml(
-                                                heure
-                                            ) +
-                                        '</span>' +
-                                    '</div>'
-                                    :
-                                    ''
-                            ) +
-
-                            (
-                                item.lieu
-                                    ?
-                                    '<div class="prog-detail-info-row">' +
-                                        '<span class="prog-detail-info-label">' +
-                                            'Lieu' +
-                                        '</span>' +
-                                        '<span>' +
-                                            escapeHtml(
-                                                item.lieu
-                                            ) +
-                                        '</span>' +
-                                    '</div>'
-                                    :
-                                    ''
-                            ) +
-
-                        '</div>' +
-
-                        (
-                            item.description
-                                ?
-                                '<div class="prog-detail-text">' +
-                                    escapeHtml(
-                                        item.description
-                                    ) +
-                                '</div>'
-                                :
-                                ''
-                        ) +
-
-                    '</div>' +
-
-                '</article>';
-
-
-            document
-                .getElementById(
-                    "prog-detail-back"
-                )
-                .addEventListener(
-                    "click",
-                    renderProgramList
-                );
-        }
-
-
-        renderProgramList();
+            );
     }
-
-
     /* =====================================================
        DIRECT
        ===================================================== */
@@ -7569,38 +6157,6 @@ async function showLibrary() {
         );
     }
     configureSocials();
-
-    async function verifierRetourDon() {
-        const params = new URLSearchParams(window.location.search);
-        const state = params.get("don");
-        const reference = params.get("reference");
-        if (!state) return;
-
-        if (state === "annule") {
-            toast("Paiement annulé.");
-        } else if (state === "retour" && reference) {
-            try {
-                const response = await fetch(
-                    "/api/dons/kpay/status/" + encodeURIComponent(reference),
-                    { cache: "no-store" }
-                );
-                const result = await response.json().catch(function () { return {}; });
-                const status = String(result && result.donation && result.donation.status || "").toUpperCase();
-                if (response.ok && status === "COMPLETED") toast("Merci. Votre don a été confirmé.");
-                else if (response.ok) toast("Paiement reçu. Confirmation en cours.");
-                else toast("Vérification du paiement indisponible.");
-            } catch (_) {
-                toast("Vérification du paiement indisponible.");
-            }
-        }
-
-        params.delete("don");
-        params.delete("reference");
-        const query = params.toString();
-        history.replaceState(null, "", window.location.pathname + (query ? "?" + query : "") + window.location.hash);
-    }
-    verifierRetourDon();
-
     /* =====================================================
        EXPOSE FUNCTIONS FOR FUTURE MODULES
        ===================================================== */
@@ -7717,7 +6273,7 @@ async function showLibrary() {
   }
   function iconFor(kind) {
     if (kind === "don") return "₣";
-    if (kind === "commentaire") return "ðŸ’¬";
+    if (kind === "commentaire") return "💬";
     if (kind === "temoignage") return "★";
     return "•";
   }
@@ -8474,431 +7030,18 @@ async function showLibrary() {
 <!-- === MARANATHA APK + PARTAGE AUDIO DIRECT V1 END === -->
 <script src="/profile-final.js?v=20260910-final"></script>
 <script src="/settings-final.js?v=20260910-final"></script>
-  <script src="/maranatha-home-brand.js?v=20260914-113446"></script>
-
-<!-- MARANATHA HERO SERVER SYNC START -->
-<script>
-(function () {
-    "use strict";
-
-    const hero =
-        document.querySelector(
-            ".hero"
-        );
-
-    if (!hero) {
-        return;
-    }
-
-    const title =
-        hero.querySelector(
-            "h1"
-        );
-
-    const text =
-        hero.querySelector(
-            ".hero-text"
-        );
-
-    const reference =
-        hero.querySelector(
-            ".hero-reference"
-        );
-
-    const button =
-        hero.querySelector(
-            ".hero-button"
-        );
-
-    const dots =
-        document.querySelector(
-            ".hero-dots"
-        );
-
-    if (
-        !title ||
-        !text ||
-        !reference
-    ) {
-        return;
-    }
-
-
-    const original = {
-        title:
-            title.textContent.trim(),
-
-        text:
-            text.textContent.trim(),
-
-        reference:
-            reference.textContent.trim(),
-
-        button:
-            button
-                ? button.textContent.trim()
-                : "",
-
-        dots:
-            dots
-                ? dots.innerHTML
-                : ""
-    };
-
-
-    let banners = [];
-    let currentIndex = 0;
-    let rotationTimer = null;
-    let currentSignature = "";
-
-
-    function resetHero() {
-        hero.style.removeProperty(
-            "background-image"
-        );
-
-        hero.style.removeProperty(
-            "background-position"
-        );
-
-        hero.style.removeProperty(
-            "background-size"
-        );
-
-        title.textContent =
-            original.title;
-
-        text.textContent =
-            original.text;
-
-        reference.textContent =
-            original.reference;
-
-        if (button) {
-            button.style.display = "";
-            button.textContent =
-                original.button;
-        }
-
-        if (dots) {
-            dots.innerHTML =
-                original.dots;
-        }
-    }
-
-
-    function renderDots() {
-        if (!dots) {
-            return;
-        }
-
-        dots.innerHTML = "";
-
-        banners.forEach(
-            function (_, index) {
-                const dot =
-                    document.createElement(
-                        "button"
-                    );
-
-                dot.type =
-                    "button";
-
-                dot.className =
-                    "hero-dot" +
-                    (
-                        index === currentIndex
-                            ? " active"
-                            : ""
-                    );
-
-                dot.style.border =
-                    "0";
-
-                dot.style.padding =
-                    "0";
-
-                dot.style.cursor =
-                    "pointer";
-
-                dot.setAttribute(
-                    "aria-label",
-                    "Bannière " +
-                    (index + 1)
-                );
-
-                dot.addEventListener(
-                    "click",
-                    function () {
-                        showBanner(
-                            index
-                        );
-
-                        startRotation();
-                    }
-                );
-
-                dots.appendChild(
-                    dot
-                );
-            }
-        );
-    }
-
-
-    function showBanner(index) {
-        if (!banners.length) {
-            resetHero();
-            return;
-        }
-
-        if (
-            index < 0 ||
-            index >= banners.length
-        ) {
-            index = 0;
-        }
-
-        currentIndex =
-            index;
-
-        const banner =
-            banners[
-                currentIndex
-            ];
-
-        const image =
-            String(
-                banner.imageUrl ||
-                ""
-            )
-            .trim();
-
-        if (image) {
-            const safeImage =
-                image.replace(
-                    /["\\\r\n]/g,
-                    ""
-                );
-
-            hero.style.backgroundImage =
-                'linear-gradient(' +
-                    '90deg,' +
-                    'rgba(22,7,11,.72) 0%,' +
-                    'rgba(30,8,13,.50) 45%,' +
-                    'rgba(15,5,7,.20) 100%' +
-                '),' +
-                'url("' +
-                safeImage +
-                '")';
-
-            hero.style.backgroundPosition =
-                "center";
-
-            hero.style.backgroundSize =
-                "cover";
-        }
-
-
-        title.textContent =
-            banner.title ||
-            "Maranatha";
-
-        text.textContent =
-            banner.text ||
-            "";
-
-        reference.textContent =
-            banner.reference ||
-            "";
-
-
-        if (button) {
-            const label =
-                String(
-                    banner.buttonLabel ||
-                    ""
-                ).trim();
-
-            if (label) {
-                button.style.display =
-                    "inline-flex";
-
-                button.textContent =
-                    label;
-            }
-            else {
-                button.style.display =
-                    "none";
-            }
-        }
-
-
-        renderDots();
-    }
-
-
-    function startRotation() {
-        if (rotationTimer) {
-            clearInterval(
-                rotationTimer
-            );
-
-            rotationTimer =
-                null;
-        }
-
-        if (
-            banners.length <= 1
-        ) {
-            return;
-        }
-
-        rotationTimer =
-            setInterval(
-                function () {
-                    const next =
-                        (
-                            currentIndex +
-                            1
-                        ) %
-                        banners.length;
-
-                    showBanner(
-                        next
-                    );
-                },
-                6000
-            );
-    }
-
-
-    async function loadHeroBanners() {
-        try {
-            const response =
-                await fetch(
-                    "/api/settings/home?_=" +
-                    Date.now(),
-                    {
-                        cache:
-                            "no-store"
-                    }
-                );
-
-            if (!response.ok) {
-                return;
-            }
-
-            const data =
-                await response.json();
-
-            const next =
-                Array.isArray(
-                    data.heroBanners
-                )
-                    ?
-                    data.heroBanners
-                        .filter(
-                            function (item) {
-                                return (
-                                    item &&
-                                    /^https?:\/\//i.test(
-                                        String(
-                                            item.imageUrl ||
-                                            ""
-                                        )
-                                    )
-                                );
-                            }
-                        )
-                    :
-                    [];
-
-
-            const signature =
-                JSON.stringify(
-                    next
-                );
-
-
-            if (
-                signature ===
-                currentSignature
-            ) {
-                return;
-            }
-
-            currentSignature =
-                signature;
-
-            banners =
-                next;
-
-            currentIndex =
-                0;
-
-
-            if (!banners.length) {
-                if (rotationTimer) {
-                    clearInterval(
-                        rotationTimer
-                    );
-
-                    rotationTimer =
-                        null;
-                }
-
-                resetHero();
-                return;
-            }
-
-
-            showBanner(
-                0
-            );
-
-            startRotation();
-        }
-        catch (error) {
-            console.warn(
-                "[MARANATHA HERO]",
-                error
-            );
-        }
-    }
-
-
-    loadHeroBanners();
-
-
-    setInterval(
-        loadHeroBanners,
-        30000
-    );
-
-
-    window.addEventListener(
-        "focus",
-        loadHeroBanners
-    );
-
-
-    document.addEventListener(
-        "visibilitychange",
-        function () {
-            if (
-                document.visibilityState ===
-                "visible"
-            ) {
-                loadHeroBanners();
-            }
-        }
-    );
-
-})();
-</script>
-<!-- MARANATHA HERO SERVER SYNC END -->
-
+<script src="/library-sheet-guard.js?v=1"></script>
+<script src="/library-user-bridge.js?v=2"></script>
+<script src="/media-user-v2.js?v=1"></script>
+<script src="/program-user-v2.js?v=3"></script>
+<script src="/bible-user-v2.js?v=5"></script>
+<script src="/bible-user-bridge.js?v=10"></script>
+<script src="/bible-study-user-v3.js?v=1"></script>
+<script src="/member-user-v3.js?v=1"></script>
+<script src="/settings-public-content-v2.js?v=3"></script>
+<script src="/settings-extra-buttons-v2.js?v=1"></script>
+  <script src="/program-production-sync.js?v=1"></script>
+  <script src="/bible-study-production-sync.js?v=1"></script>
+  <script src="/library-production-sync.js?v=1"></script>
 </body>
 </html>
-

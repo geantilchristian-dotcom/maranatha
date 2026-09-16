@@ -1,0 +1,443 @@
+/* ==========================================================
+   MARANATHA - BIBLE FIDELE FR / KISWAHILI V3
+   ========================================================== */
+
+.mbible{
+    box-sizing:border-box;
+    width:100%;
+    padding:14px 14px 22px;
+}
+
+
+/* ==========================================================
+   LANGUES
+   ========================================================== */
+
+.mbible-languages{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:5px;
+
+    width:100%;
+
+    margin-bottom:15px;
+    padding:4px;
+
+    border-radius:12px;
+
+    background:#f1f1f4;
+}
+
+
+.mbible-language{
+    min-height:39px;
+
+    border:0;
+    border-radius:9px;
+
+    background:transparent;
+    color:#77777e;
+
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Arial,
+        sans-serif;
+
+    font-size:10px;
+    font-weight:700;
+
+    cursor:pointer;
+
+    transition:
+        background .16s ease,
+        color .16s ease,
+        box-shadow .16s ease;
+}
+
+
+.mbible-language.active{
+    background:#b0002c;
+    color:#fff;
+
+    box-shadow:
+        0 5px 15px
+        rgba(176,0,44,.16);
+}
+
+
+/* ==========================================================
+   SELECTEURS
+   ========================================================== */
+
+.mbible-controls{
+    display:grid;
+
+    grid-template-columns:
+        minmax(0,1.55fr)
+        minmax(105px,.7fr);
+
+    gap:9px;
+
+    margin-bottom:10px;
+}
+
+
+.mbible-field{
+    min-width:0;
+}
+
+
+.mbible-field label{
+    display:block;
+
+    margin-bottom:6px;
+
+    color:#88888f;
+
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Arial,
+        sans-serif;
+
+    font-size:7.5px;
+    font-weight:800;
+
+    text-transform:uppercase;
+    letter-spacing:.25px;
+}
+
+
+.mbible-select{
+    box-sizing:border-box;
+
+    width:100%;
+    height:43px;
+
+    padding:
+        0 34px
+        0 12px;
+
+    border:
+        1px solid #dedee3;
+
+    border-radius:10px;
+
+    outline:none;
+
+    background:#fff;
+    color:#29292f;
+
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Arial,
+        sans-serif;
+
+    font-size:11px;
+    font-weight:620;
+
+    cursor:pointer;
+}
+
+
+.mbible-select:focus{
+    border-color:
+        rgba(176,0,44,.38);
+
+    box-shadow:
+        0 0 0 3px
+        rgba(176,0,44,.055);
+}
+
+
+/* ==========================================================
+   NAVIGATION
+   ========================================================== */
+
+.mbible-navigation{
+    display:grid;
+
+    grid-template-columns:
+        1fr 1fr;
+
+    gap:7px;
+
+    margin-bottom:17px;
+}
+
+
+.mbible-nav{
+    min-height:35px;
+
+    padding:
+        0 9px;
+
+    border:
+        1px solid #e1e1e5;
+
+    border-radius:9px;
+
+    background:#fff;
+    color:#626269;
+
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Arial,
+        sans-serif;
+
+    font-size:8.5px;
+    font-weight:650;
+
+    cursor:pointer;
+}
+
+
+.mbible-nav:hover:not(:disabled){
+    border-color:
+        rgba(176,0,44,.18);
+
+    background:#fff9fa;
+}
+
+
+.mbible-nav:disabled{
+    opacity:.32;
+    cursor:default;
+}
+
+
+/* ==========================================================
+   ENTETE CHAPITRE
+   ========================================================== */
+
+.mbible-heading{
+    display:flex;
+
+    align-items:center;
+    justify-content:space-between;
+
+    gap:12px;
+
+    margin-bottom:14px;
+}
+
+
+.mbible-reference{
+    color:#1e1e23;
+
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Arial,
+        sans-serif;
+
+    font-size:16px;
+    line-height:20px;
+
+    font-weight:800;
+}
+
+
+.mbible-version{
+    min-width:31px;
+    height:24px;
+
+    display:flex;
+
+    align-items:center;
+    justify-content:center;
+
+    padding:
+        0 7px;
+
+    border-radius:999px;
+
+    background:#fff0f3;
+    color:#b0002c;
+
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Arial,
+        sans-serif;
+
+    font-size:7px;
+    font-weight:850;
+}
+
+
+/* ==========================================================
+   PASSAGE
+   ========================================================== */
+
+.mbible-passage{
+    padding:
+        3px 1px
+        12px;
+
+    background:#fff;
+}
+
+
+.mbible-verse{
+    display:flex;
+    align-items:flex-start;
+
+    gap:9px;
+
+    margin:
+        0 0 14px;
+
+    padding:0;
+
+    color:#25252a;
+}
+
+
+.mbible-verse-number{
+    flex:
+        0 0 20px;
+
+    padding-top:2px;
+
+    color:#b0002c;
+
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Arial,
+        sans-serif;
+
+    font-size:9px;
+    line-height:18px;
+
+    font-weight:850;
+
+    text-align:right;
+}
+
+
+.mbible-verse-text{
+    flex:1;
+
+    min-width:0;
+
+    color:#28282d;
+
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Arial,
+        sans-serif;
+
+    font-size:15.5px;
+    line-height:1.75;
+
+    font-weight:430;
+
+    letter-spacing:.03px;
+}
+
+
+.mbible-verse-text strong{
+    color:#18181c;
+
+    font-weight:760;
+}
+
+
+.mbible-verse-text em{
+    font-style:italic;
+}
+
+
+/* ==========================================================
+   CHARGEMENT / ERREUR
+   ========================================================== */
+
+.mbible-loading,
+.mbible-empty,
+.mbible-error{
+    box-sizing:border-box;
+
+    min-height:145px;
+
+    display:flex;
+
+    align-items:center;
+    justify-content:center;
+
+    padding:22px;
+
+    border:
+        1px dashed #dedee3;
+
+    border-radius:12px;
+
+    color:#8e8e95;
+
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Arial,
+        sans-serif;
+
+    font-size:9.5px;
+    line-height:15px;
+
+    text-align:center;
+}
+
+
+.mbible-error{
+    border-color:#efd9de;
+
+    background:#fff8f9;
+
+    color:#a33a51;
+}
+
+
+/* ==========================================================
+   MOBILE
+   ========================================================== */
+
+@media(max-width:420px){
+
+    .mbible{
+        padding:
+            12px 11px
+            20px;
+    }
+
+
+    .mbible-controls{
+        grid-template-columns:
+            minmax(0,1.4fr)
+            minmax(90px,.7fr);
+    }
+
+
+    .mbible-select{
+        font-size:10px;
+    }
+
+
+    .mbible-verse-text{
+        font-size:15px;
+        line-height:1.72;
+    }
+
+}

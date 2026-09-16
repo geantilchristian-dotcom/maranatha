@@ -4,7 +4,71 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
+const dns = require('node:dns');
+
+
 require('dotenv').config();
+
+/* MARANATHA_NODE_DNS_FIX */
+
+/*
+ * DNS personnalisé UNIQUEMENT si
+ * NODE_DNS_SERVERS est défini.
+ *
+ * Exemple Windows local :
+ *
+ * NODE_DNS_SERVERS=1.1.1.1,8.8.8.8
+ *
+ * Sur Render :
+ * laisser cette variable absente.
+ */
+
+try {
+
+  const customDns =
+    String(
+      process.env.NODE_DNS_SERVERS || ""
+    )
+    .split(",")
+    .map(
+      value =>
+        value.trim()
+    )
+    .filter(Boolean);
+
+
+  if (
+    customDns.length
+  ) {
+
+    dns.setServers(
+      customDns
+    );
+
+
+    console.log(
+      "[DNS] Résolveurs personnalisés :",
+      customDns.join(", ")
+    );
+
+  }else{
+
+    console.log(
+      "[DNS] Résolveurs système."
+    );
+  }
+
+
+}catch(error){
+
+  console.warn(
+    "[DNS]",
+    error.message
+  );
+}
+
+/* MARANATHA_NODE_DNS_FIX_END */
+
 
 const adminOnly = require('./utils/adminAuth');
 const userRoutes = require('./routes/userRoutes');
@@ -16,27 +80,23 @@ const priereRoutes = require('./routes/priereRoutes');
 const etudeRoutes = require('./routes/etudeRoutes');
 const livreRoutes = require('./routes/livreRoutes');
 const videoRoutes = require('./routes/videoRoutes');
+const libraryStateRoutes = require('./routes/libraryStateRoutes');
 const bibleRoutes = require('./routes/bibleRoutes');
 const deviceRoutes = require('./routes/deviceRoutes');
-const bibliothequeRoutes = require('./routes/bibliothequeRoutes');
-const uploadRoutes = require('./routes/uploadRoutes');
-const { createRateLimiter, securityHeaders } = require('./utils/security');
 
 const app = express();
-app.use(securityHeaders);
-
-const donationLimiter = createRateLimiter({
-  windowMs: 10 * 60 * 1000,
-  max: 80,
-  keyPrefix: 'donations',
-});
-
-const publicMessageLimiter = createRateLimiter({
-  windowMs: 10 * 60 * 1000,
-  max: 60,
-  keyPrefix: 'messages',
-});
-
+// MARANATHA_DONS_PUBLIC_FIRST
+app.use(
+  "/api/dons",
+  express.json({ limit: "1mb" }),
+  require("./routes/donRoutes")
+);
+// MARANATHA_ADMIN_INBOX_PUBLIC_FIRST
+app.use(
+  "/api/admin-inbox",
+  express.json({ limit: "1mb" }),
+  require("./routes/adminInboxRoutes")
+);
 const PORT = Number(process.env.PORT || 5000);
 const MONGO_URI = process.env.MONGO_URI;
 const VERSION = '20260731-reveil-auto-v3';
@@ -46,58 +106,26 @@ app.set('trust proxy', 1);
 
 const allowedOrigins = String(process.env.ALLOWED_ORIGINS || '')
   .split(',')
-  .map((origin) => origin.trim().replace(/\/$/, ''))
+  .map((origin) => origin.trim())
   .filter(Boolean);
 
-for (const candidate of [
-  process.env.MARANATHA_PUBLIC_URL,
-  process.env.RENDER_EXTERNAL_URL,
-]) {
-  const value = String(candidate || '').trim().replace(/\/$/, '');
-  if (value && !allowedOrigins.includes(value)) allowedOrigins.push(value);
-}
-
 app.use(
-  cors((req, callback) => {
-    const origin = String(req.get('Origin') || '').trim().replace(/\/$/, '');
-    const isLocalDev = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
-
-    let isSameOrigin = false;
-    if (origin) {
-      try {
-        const parsed = new URL(origin);
-        isSameOrigin = parsed.host === req.get('host');
-      } catch (_) {
-        isSameOrigin = false;
+  cors({
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
+        return callback(null, true);
       }
-    }
-
-    const permitted =
-      !origin ||
-      isLocalDev ||
-      isSameOrigin ||
-      allowedOrigins.includes(origin);
-
-    callback(null, {
-      origin: permitted ? (origin || false) : false,
-      methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'x-admin-password'],
-      maxAge: 600,
-    });
+      return callback(new Error('Origine non autorisée'));
+    },
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'x-admin-password'],
   }),
 );
-
 app.use(express.json({ limit: '5mb' }));
 
 // MARANATHA_ADMIN_INBOX_CAPTURE
 app.use(require('./utils/adminInboxCapture'));
 app.use(express.urlencoded({ extended: true, limit: '5mb' }));
-
-// Les routes publiques sensibles sont montées après CORS et les parseurs.
-app.use('/api/dons', donationLimiter, require('./routes/donRoutes'));
-app.use('/api/admin-inbox/public', publicMessageLimiter);
-app.use('/api/admin-inbox', require('./routes/adminInboxRoutes'));
-
 
 app.get('/politique-confidentialite', (_req, res) => {
   res.type('html').send(`<!DOCTYPE html>
@@ -153,25 +181,7 @@ app.get('/', (_req, res) => {
 
 // MARANATHA_KPAY_DONS
 
-// Les copies de sauvegarde restent hors exposition publique, même si elles existent localement.
-app.use((req, res, next) => {
-  const requested = String(req.path || '').toLowerCase();
-  const base = path.basename(requested);
-  const looksLikeBackup =
-    /(?:\.bak|\.tmp|\.backup)(?:\.|$)/.test(base) ||
-    /(?:^|[-_.])(backup|avant|ancien|old)(?:[-_.]|$)/.test(base);
-
-  if (looksLikeBackup) {
-    return res.status(404).send('Introuvable');
-  }
-  return next();
-});
-
-app.use(express.static(path.join(__dirname, 'public'), {
-  maxAge: '1h',
-  dotfiles: 'deny',
-  etag: true,
-}));
+app.use(express.static(path.join(__dirname, 'public'), { maxAge: '1h' }));
 
 app.get('/admin', (_req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
@@ -187,10 +197,9 @@ app.use('/api/prieres', priereRoutes);
 app.use('/api/etudes', etudeRoutes);
 app.use('/api/livres', livreRoutes);
 app.use('/api/videos', videoRoutes);
+app.use('/api/library', libraryStateRoutes);
 app.use('/api/bible', bibleRoutes);
 app.use('/api/devices', deviceRoutes);
-app.use('/api/bibliotheque', bibliothequeRoutes);
-app.use('/api/uploads', uploadRoutes);
 
 app.get('/api/health', (_req, res) => {
   const states = {

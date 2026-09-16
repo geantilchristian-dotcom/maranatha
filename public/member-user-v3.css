@@ -1,0 +1,270 @@
+/* ==========================================================
+   MARANATHA - DEVENIR MEMBRE V3
+   ========================================================== */
+
+.member-v3{
+    box-sizing:border-box;
+    width:100%;
+    padding:14px 14px 20px;
+}
+
+.member-v3-progress{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom:17px;
+}
+
+.member-v3-progress-track{
+    flex:1;
+    height:4px;
+    overflow:hidden;
+    border-radius:999px;
+    background:#ececef;
+}
+
+.member-v3-progress-fill{
+    height:100%;
+    border-radius:999px;
+    background:#b0002c;
+    transition:width .22s ease;
+}
+
+.member-v3-progress-label{
+    color:#8b8b91;
+    font-size:8px;
+    font-weight:800;
+}
+
+.member-v3-step{
+    animation:memberV3Fade .18s ease;
+}
+
+@keyframes memberV3Fade{
+    from{
+        opacity:0;
+        transform:translateX(5px);
+    }
+    to{
+        opacity:1;
+        transform:translateX(0);
+    }
+}
+
+.member-v3-question{
+    margin-bottom:5px;
+    color:#222227;
+    font-size:16px;
+    line-height:21px;
+    font-weight:820;
+}
+
+.member-v3-help{
+    margin-bottom:15px;
+    color:#8a8a91;
+    font-size:9px;
+    line-height:14px;
+}
+
+.member-v3-input{
+    box-sizing:border-box;
+    width:100%;
+    height:47px;
+    padding:0 13px;
+
+    border:1px solid #dedee3;
+    border-radius:11px;
+
+    outline:none;
+
+    background:#fff;
+    color:#29292e;
+
+    font-family:inherit;
+    font-size:11px;
+}
+
+.member-v3-input:focus{
+    border-color:rgba(176,0,44,.35);
+    box-shadow:0 0 0 3px rgba(176,0,44,.05);
+}
+
+.member-v3-options{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+}
+
+.member-v3-option{
+    min-height:45px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+
+    padding:0 12px;
+
+    border:1px solid #e1e1e5;
+    border-radius:10px;
+
+    background:#fff;
+    color:#3b3b40;
+
+    font-family:inherit;
+    font-size:10px;
+    font-weight:680;
+
+    cursor:pointer;
+}
+
+.member-v3-option.active{
+    border-color:#b0002c;
+    background:#fff5f7;
+    color:#b0002c;
+}
+
+.member-v3-radio{
+    width:15px;
+    height:15px;
+    flex:0 0 15px;
+
+    display:grid;
+    place-items:center;
+
+    border:1.5px solid #c4c4ca;
+    border-radius:50%;
+}
+
+.member-v3-option.active .member-v3-radio{
+    border-color:#b0002c;
+}
+
+.member-v3-option.active .member-v3-radio::after{
+    content:"";
+    width:7px;
+    height:7px;
+    border-radius:50%;
+    background:#b0002c;
+}
+
+.member-v3-actions{
+    display:flex;
+    gap:7px;
+    margin-top:18px;
+}
+
+.member-v3-btn{
+    min-height:42px;
+    padding:0 14px;
+
+    border:0;
+    border-radius:10px;
+
+    font-family:inherit;
+    font-size:10px;
+    font-weight:800;
+
+    cursor:pointer;
+}
+
+.member-v3-btn-primary{
+    flex:1;
+    background:#b0002c;
+    color:#fff;
+}
+
+.member-v3-btn-back{
+    background:#f0f0f2;
+    color:#66666d;
+}
+
+.member-v3-btn:disabled{
+    opacity:.45;
+    cursor:wait;
+}
+
+
+/* RECAP */
+
+.member-v3-summary{
+    display:flex;
+    flex-direction:column;
+    gap:7px;
+}
+
+.member-v3-summary-row{
+    padding:10px 11px;
+    border:1px solid #ececef;
+    border-radius:10px;
+    background:#fafafa;
+}
+
+.member-v3-summary-label{
+    color:#9a9aa0;
+    font-size:7px;
+    font-weight:800;
+    text-transform:uppercase;
+}
+
+.member-v3-summary-value{
+    margin-top:3px;
+    color:#29292e;
+    font-size:10px;
+    line-height:14px;
+    font-weight:680;
+}
+
+
+/* SUCCES */
+
+.member-v3-success{
+    padding:18px 5px 9px;
+    text-align:center;
+}
+
+.member-v3-success-icon{
+    width:56px;
+    height:56px;
+
+    display:grid;
+    place-items:center;
+
+    margin:0 auto 13px;
+
+    border-radius:50%;
+
+    background:#fff0f3;
+    color:#b0002c;
+
+    font-size:26px;
+    font-weight:800;
+}
+
+.member-v3-success-title{
+    color:#222227;
+    font-size:18px;
+    line-height:22px;
+    font-weight:820;
+}
+
+.member-v3-success-text{
+    max-width:295px;
+    margin:8px auto 0;
+
+    color:#76767d;
+    font-size:9.5px;
+    line-height:16px;
+}
+
+.member-v3-success-community{
+    margin-top:14px;
+    padding:11px;
+
+    border-radius:10px;
+
+    background:#faf4e4;
+    color:#876b18;
+
+    font-size:9px;
+    line-height:14px;
+    font-weight:720;
+}

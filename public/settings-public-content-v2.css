@@ -1,0 +1,44 @@
+.maranatha-public-document{
+    padding:2px 3px 12px;
+}
+
+.maranatha-public-document .mpd-intro{
+    margin-bottom:15px;
+    color:#73757b;
+    font-size:12px;
+    line-height:18px;
+}
+
+.maranatha-public-document .mpd-content{
+    color:#24262a;
+    font-size:13px;
+    line-height:21px;
+    white-space:pre-wrap;
+}
+
+.maranatha-public-document .mpd-empty{
+    padding:28px 15px;
+    border:1px solid #ececef;
+    border-radius:13px;
+    background:#fff;
+    color:#8b8d94;
+    text-align:center;
+    font-size:12px;
+}
+
+.maranatha-public-document .mpd-contact{
+    margin-top:18px;
+    padding:13px;
+    border-radius:12px;
+    background:#f5f5f7;
+    color:#555861;
+    font-size:11px;
+    line-height:18px;
+}
+
+.maranatha-public-document .mpd-name{
+    margin-bottom:6px;
+    color:#b00024;
+    font-size:16px;
+    font-weight:800;
+}

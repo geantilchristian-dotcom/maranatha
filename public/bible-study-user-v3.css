@@ -1,0 +1,286 @@
+/* ==========================================================
+   MARANATHA - ETUDE BIBLIQUE FIDELE V3
+   ========================================================== */
+
+.ebf{
+    box-sizing:border-box;
+    width:100%;
+    padding:12px 13px 20px;
+}
+
+.ebf-list{
+    display:flex;
+    flex-direction:column;
+    gap:9px;
+}
+
+.ebf-item{
+    display:flex;
+    align-items:center;
+    gap:10px;
+
+    width:100%;
+
+    box-sizing:border-box;
+
+    padding:11px;
+
+    border:1px solid #e9e9ed;
+    border-radius:12px;
+
+    background:#fff;
+
+    cursor:pointer;
+
+    transition:.15s ease;
+}
+
+.ebf-item:hover{
+    border-color:rgba(176,0,44,.20);
+
+    box-shadow:
+        0 4px 14px
+        rgba(0,0,0,.04);
+}
+
+.ebf-icon{
+    width:44px;
+    height:44px;
+
+    flex:0 0 44px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    border-radius:10px;
+
+    background:#fff0f3;
+    color:#b0002c;
+
+    font-size:8px;
+    font-weight:800;
+}
+
+.ebf-main{
+    flex:1;
+    min-width:0;
+}
+
+.ebf-reference{
+    color:#b0002c;
+
+    font-size:8.5px;
+    line-height:12px;
+
+    font-weight:800;
+}
+
+.ebf-title{
+    margin-top:2px;
+
+    color:#242429;
+
+    font-size:11px;
+    line-height:14px;
+
+    font-weight:760;
+}
+
+.ebf-preview{
+    margin-top:4px;
+
+    color:#898990;
+
+    font-size:8px;
+    line-height:12px;
+
+    overflow:hidden;
+
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+}
+
+.ebf-lang{
+    min-width:27px;
+    height:22px;
+
+    flex:0 0 auto;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    padding:0 6px;
+
+    border-radius:999px;
+
+    background:#f3f3f5;
+    color:#696970;
+
+    font-size:7px;
+    font-weight:800;
+}
+
+.ebf-arrow{
+    color:#aaaab0;
+    font-size:18px;
+}
+
+
+/* ==========================================================
+   DETAIL
+   ========================================================== */
+
+.ebf-back{
+    min-height:31px;
+
+    margin-bottom:12px;
+    padding:0 10px;
+
+    border:0;
+    border-radius:8px;
+
+    background:#f1f1f3;
+    color:#5f5f66;
+
+    font-family:inherit;
+    font-size:8.5px;
+    font-weight:680;
+
+    cursor:pointer;
+}
+
+.ebf-detail-ref{
+    display:flex;
+    align-items:center;
+    gap:7px;
+
+    color:#b0002c;
+
+    font-size:9px;
+    font-weight:800;
+}
+
+.ebf-detail-lang{
+    min-width:25px;
+    height:20px;
+
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+
+    padding:0 6px;
+
+    border-radius:999px;
+
+    background:#fff0f3;
+    color:#b0002c;
+
+    font-size:7px;
+    font-weight:800;
+}
+
+.ebf-detail-title{
+    margin:5px 0 13px;
+
+    color:#1f1f23;
+
+    font-size:18px;
+    line-height:22px;
+
+    font-weight:800;
+}
+
+
+/* PASSAGE */
+
+.ebf-passage{
+    padding:14px;
+
+    border:1px solid #edd9de;
+    border-radius:12px;
+
+    background:#fff8f9;
+}
+
+.ebf-section-title{
+    margin-bottom:9px;
+
+    color:#b0002c;
+
+    font-size:8px;
+    font-weight:800;
+
+    text-transform:uppercase;
+}
+
+.ebf-passage-text{
+    color:#29292e;
+
+    font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
+
+    font-size:13px;
+    line-height:1.7;
+
+    white-space:pre-wrap;
+}
+
+
+/* EXPLICATION */
+
+.ebf-explanation{
+    margin-top:12px;
+
+    padding:14px;
+
+    border:1px solid #e9e9ed;
+    border-radius:12px;
+
+    background:#fafafa;
+}
+
+.ebf-explanation-title{
+    margin-bottom:8px;
+
+    color:#28282d;
+
+    font-size:9px;
+    font-weight:800;
+}
+
+.ebf-explanation-text{
+    color:#606067;
+
+    font-size:10px;
+    line-height:1.6;
+
+    white-space:pre-wrap;
+}
+
+
+/* VIDE */
+
+.ebf-empty{
+    min-height:100px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    padding:20px;
+
+    box-sizing:border-box;
+
+    border:1px dashed #dedee3;
+    border-radius:12px;
+
+    color:#939399;
+
+    font-size:9.5px;
+    text-align:center;
+}

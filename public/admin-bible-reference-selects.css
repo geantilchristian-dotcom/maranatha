@@ -1,0 +1,98 @@
+/* ==========================================================
+   MARANATHA - SELECTEURS REFERENCE BIBLIQUE
+   ========================================================== */
+
+.bs-verse-selects{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:7px;
+}
+
+
+.bs-mini-field{
+    min-width:0;
+}
+
+
+.bs-mini-field small{
+    display:block;
+
+    margin-bottom:5px;
+
+    color:rgba(255,255,255,.38);
+
+    font-size:7.5px;
+    font-weight:650;
+}
+
+
+#bs-chapter,
+#bs-verse-start,
+#bs-verse-end{
+    box-sizing:border-box;
+
+    width:100%;
+    height:43px;
+
+    padding:0 10px;
+
+    border:1px solid rgba(255,255,255,.10);
+    border-radius:9px;
+
+    outline:none;
+
+    background:#173747;
+    color:#fff;
+
+    font-family:inherit;
+    font-size:10.5px;
+
+    cursor:pointer;
+}
+
+
+#bs-chapter:focus,
+#bs-verse-start:focus,
+#bs-verse-end:focus{
+    border-color:rgba(212,175,55,.55);
+
+    box-shadow:
+        0 0 0 3px
+        rgba(212,175,55,.06);
+}
+
+
+#bs-verse-end:disabled{
+    opacity:.42;
+    cursor:not-allowed;
+}
+
+
+.bs-reference-loading{
+    margin-top:6px;
+
+    color:rgba(255,255,255,.38);
+
+    font-size:8px;
+
+    min-height:12px;
+}
+
+
+.bs-reference-loading.ok{
+    color:#58d486;
+}
+
+
+.bs-reference-loading.error{
+    color:#ff7085;
+}
+
+
+@media(max-width:600px){
+
+    .bs-verse-selects{
+        grid-template-columns:1fr;
+    }
+
+}

@@ -1,52 +1,13 @@
 const express = require('express');
-const multer = require('multer');
-const Settings = require('../models/Settings');
-const adminOnly = require('../utils/adminAuth');
-const { uploadImage } = require('../utils/cloudinary');
-const { cleanText, cleanHttpUrl } = require('../utils/security');
-
 const router = express.Router();
+const Settings = require('../models/Settings');
 
-const bannerUpload = multer({
-  storage: multer.memoryStorage(),
-  limits: { fileSize: 15 * 1024 * 1024 },
-  fileFilter: (_req, file, callback) => {
-    const mime = String(file?.mimetype || '').toLowerCase();
-    const ext = String(file?.originalname || '').toLowerCase().match(/\.[a-z0-9]+$/)?.[0] || '';
-    const ok =
-      mime.startsWith('image/') &&
-      ['.jpg', '.jpeg', '.png', '.webp', '.gif'].includes(ext);
-    callback(ok ? null : new Error('Format invalide. Choisissez une image JPG, PNG ou WEBP.'), ok);
-  },
-});
+const adminOnly = require('../utils/adminAuth');
+const multer = require('multer');
+const { uploadImage } = require('../utils/cloudinary');
 
-function cleanRelativeOrHttp(value, maxLength = 1600) {
-  const raw = cleanText(value, maxLength);
-  if (!raw) return '';
-  if (/^\/(?!\/)/.test(raw)) return raw;
-  return cleanHttpUrl(raw, maxLength);
-}
 
-function cleanImageUrl(value) {
-  const raw = cleanText(value, 900000);
-  if (!raw) return '';
-  const http = cleanHttpUrl(raw, 1600);
-  if (http) return http;
-
-  // Compatibilité avec les anciennes affiches déjà enregistrées en data URL.
-  if (/^data:image\/(?:jpeg|jpg|png|webp);base64,[A-Za-z0-9+/=\r\n]+$/i.test(raw)) {
-    return raw.slice(0, 900000);
-  }
-  return '';
-}
-
-function publicSettings(doc) {
-  if (!doc) return {};
-  const plain = doc.toObject ? doc.toObject() : doc;
-  delete plain.__v;
-  return plain;
-}
-
+// GET /api/settings — public summary (compatibility for older interfaces)
 router.get('/', async (_req, res) => {
   try {
     const [home, don, programme] = await Promise.all([
@@ -55,7 +16,7 @@ router.get('/', async (_req, res) => {
       Settings.findOne({ key: 'programme' }).lean(),
     ]);
 
-    return res.json({
+    res.json({
       home: home || {},
       don: don || {},
       programme: programme?.programme || [],
@@ -64,207 +25,517 @@ router.get('/', async (_req, res) => {
       tiktokUrl: home?.tiktokUrl || '',
       youtubeLinks: home?.youtubeLinks || [],
     });
-  } catch (error) {
-    return res.status(500).json({ error: 'Paramètres temporairement indisponibles' });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
   }
 });
 
-router.get('/splash', async (_req, res) => {
+// GET /api/settings/splash — public
+router.get('/splash', async (req, res) => {
   try {
-    let settings = await Settings.findOne({ key: 'splash' });
-    if (!settings) settings = await Settings.create({ key: 'splash' });
-    return res.json(publicSettings(settings));
-  } catch (error) {
-    return res.status(500).json({ error: 'Paramètres temporairement indisponibles' });
+    let s = await Settings.findOne({ key: 'splash' });
+    if (!s) s = await Settings.create({ key: 'splash' });
+    res.json(s);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
   }
 });
 
+// PUT /api/settings/splash — admin only
 router.put('/splash', adminOnly, async (req, res) => {
   try {
+    const allowed = ['nomEglise', 'verset', 'sousTitre', 'logoUrl', 'couleurFond', 'couleurAccent', 'dureeSplash'];
     const update = {};
-    if (req.body.nomEglise !== undefined) update.nomEglise = cleanText(req.body.nomEglise, 160);
-    if (req.body.verset !== undefined) update.verset = cleanText(req.body.verset, 1000);
-    if (req.body.sousTitre !== undefined) update.sousTitre = cleanText(req.body.sousTitre, 250);
-    if (req.body.logoUrl !== undefined) update.logoUrl = cleanRelativeOrHttp(req.body.logoUrl);
-    if (/^#[0-9a-f]{6}$/i.test(String(req.body.couleurFond || ''))) {
-      update.couleurFond = String(req.body.couleurFond);
+    for (const k of allowed) {
+      if (req.body[k] !== undefined) update[k] = req.body[k];
     }
-    if (/^#[0-9a-f]{6}$/i.test(String(req.body.couleurAccent || ''))) {
-      update.couleurAccent = String(req.body.couleurAccent);
-    }
-    if (req.body.dureeSplash !== undefined) {
-      const seconds = Number(req.body.dureeSplash);
-      if (Number.isFinite(seconds)) update.dureeSplash = Math.min(12, Math.max(1, seconds));
-    }
-
-    const settings = await Settings.findOneAndUpdate(
+    const s = await Settings.findOneAndUpdate(
       { key: 'splash' },
       { $set: update },
-      { new: true, upsert: true, runValidators: true },
+      { new: true, upsert: true }
     );
-    return res.json(publicSettings(settings));
-  } catch (error) {
-    return res.status(400).json({ error: 'Enregistrement impossible' });
+    res.json(s);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
   }
 });
 
-router.post(
-  '/home/banner-upload',
-  adminOnly,
-  bannerUpload.single('image'),
-  async (req, res) => {
-    try {
-      if (!req.file) return res.status(400).json({ error: 'Choisissez une image' });
-      const image = await uploadImage(req.file.buffer, req.file.originalname);
-      return res.status(201).json({
-        success: true,
-        url: image.url,
-        width: image.width,
-        height: image.height,
-      });
-    } catch (error) {
-      console.error('[BANNIERE UPLOAD]', error.message || error);
-      return res.status(500).json({
-        error: 'Impossible de téléverser cette image',
-      });
-    }
-  },
-);
-
-router.get('/home', async (_req, res) => {
+// GET /api/settings/home — public
+router.get('/home', async (req, res) => {
   try {
-    let settings = await Settings.findOne({ key: 'home' });
-    if (!settings) settings = await Settings.create({ key: 'home' });
-    return res.json(publicSettings(settings));
-  } catch (error) {
-    return res.status(500).json({ error: 'Paramètres temporairement indisponibles' });
+    let s = await Settings.findOne({ key: 'home' });
+    if (!s) s = await Settings.create({ key: 'home' });
+    res.json(s);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
   }
 });
 
+// PUT /api/settings/home — admin only
+// Accepte youtubeLinks (tableau [{url, label}]) + rétrocompatibilité youtubeUrl/ytLabel
 router.put('/home', adminOnly, async (req, res) => {
   try {
     const update = {};
 
+    // Nouveau format : tableau de liens
     if (Array.isArray(req.body.youtubeLinks)) {
       update.youtubeLinks = req.body.youtubeLinks
-        .slice(0, 20)
-        .map((item) => ({
-          url: cleanHttpUrl(item?.url),
-          label: cleanText(item?.label, 120) || 'Regarder sur YouTube',
-        }))
-        .filter((item) => item.url);
+        .filter(l => l && l.url && l.url.trim())
+        .map(l => ({ url: l.url.trim(), label: (l.label || '').trim() || 'Regarder sur YouTube' }));
     }
 
-    if (Array.isArray(req.body.heroBanners)) {
-      update.heroBanners = req.body.heroBanners
-        .slice(0, 20)
-        .map((item, index) => ({
-          id: cleanText(item?.id || `banner-${Date.now()}-${index}`, 100),
-          imageUrl: cleanHttpUrl(item?.imageUrl),
-          title: cleanText(item?.title, 180),
-          text: cleanText(item?.text, 1500),
-          reference: cleanText(item?.reference, 180),
-          buttonLabel: cleanText(item?.buttonLabel, 100),
-        }))
-        .filter((item) => item.imageUrl);
-    }
+    // Rétrocompatibilité : ancien format champ unique
+    if (req.body.youtubeUrl !== undefined) update.youtubeUrl = req.body.youtubeUrl;
+    if (req.body.ytLabel   !== undefined) update.ytLabel    = req.body.ytLabel;
+    if (req.body.facebookUrl       !== undefined) update.facebookUrl       = req.body.facebookUrl;
+    if (req.body.youtubeChannelUrl !== undefined) update.youtubeChannelUrl = req.body.youtubeChannelUrl;
+    if (req.body.tiktokUrl         !== undefined) update.tiktokUrl         = req.body.tiktokUrl;
 
-    if (req.body.youtubeUrl !== undefined) update.youtubeUrl = cleanHttpUrl(req.body.youtubeUrl);
-    if (req.body.ytLabel !== undefined) update.ytLabel = cleanText(req.body.ytLabel, 120);
-    if (req.body.facebookUrl !== undefined) update.facebookUrl = cleanHttpUrl(req.body.facebookUrl);
-    if (req.body.youtubeChannelUrl !== undefined) update.youtubeChannelUrl = cleanHttpUrl(req.body.youtubeChannelUrl);
-    if (req.body.tiktokUrl !== undefined) update.tiktokUrl = cleanHttpUrl(req.body.tiktokUrl);
-
-    const settings = await Settings.findOneAndUpdate(
+    const s = await Settings.findOneAndUpdate(
       { key: 'home' },
       { $set: update },
-      { new: true, upsert: true, runValidators: true },
+      { new: true, upsert: true }
     );
-    return res.json(publicSettings(settings));
-  } catch (error) {
-    return res.status(400).json({ error: 'Enregistrement impossible' });
+    res.json(s);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
   }
 });
 
-router.get('/don', async (_req, res) => {
+// GET /api/settings/don — public
+router.get('/don', async (req, res) => {
   try {
-    let settings = await Settings.findOne({ key: 'don' });
-    if (!settings) settings = await Settings.create({ key: 'don' });
-    return res.json(publicSettings(settings));
-  } catch (error) {
-    return res.status(500).json({ error: 'Paramètres temporairement indisponibles' });
-  }
+    let s = await Settings.findOne({ key: 'don' });
+    if (!s) s = await Settings.create({ key: 'don' });
+    res.json(s);
+  } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// PUT /api/settings/don — admin only
 router.put('/don', adminOnly, async (req, res) => {
   try {
-    const fields = [
-      'airtel', 'orange', 'vodacom', 'nomTitulaire', 'nomBanque',
-      'numeroCompte', 'iban', 'bic', 'instructions', 'telephone1', 'telephone2',
-    ];
+    const allowed = ['airtel','orange','vodacom','nomTitulaire','nomBanque','numeroCompte','iban','bic','instructions','telephone1','telephone2'];
     const update = {};
-    for (const key of fields) {
-      if (req.body[key] !== undefined) {
-        update[key] = cleanText(req.body[key], key === 'instructions' ? 2000 : 300);
+    for (const k of allowed) { if (req.body[k] !== undefined) update[k] = req.body[k]; }
+    const s = await Settings.findOneAndUpdate({ key: 'don' }, { $set: update }, { new: true, upsert: true });
+    res.json(s);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+
+
+/* ==========================================================
+   MARANATHA_PROGRAMME_IMAGE_ROUTE_V1
+   Upload image Programme - admin seulement
+   ========================================================== */
+
+const programmeImageUpload =
+  multer({
+    storage:
+      multer.memoryStorage(),
+
+    limits: {
+      fileSize:
+        10 * 1024 * 1024
+    },
+
+    fileFilter:
+      (_req, file, callback) => {
+
+        const valid =
+          Boolean(
+            file &&
+            file.mimetype &&
+            file.mimetype.startsWith(
+              "image/"
+            )
+          );
+
+
+        callback(
+          valid
+            ? null
+            : new Error(
+                "Le fichier doit etre une image."
+              ),
+
+          valid
+        );
       }
-    }
+  });
 
-    const settings = await Settings.findOneAndUpdate(
-      { key: 'don' },
-      { $set: update },
-      { new: true, upsert: true, runValidators: true },
+
+router.post(
+  "/programme/upload",
+
+  adminOnly,
+
+  (req, res, next) => {
+
+    programmeImageUpload.single(
+      "image"
+    )(
+      req,
+      res,
+
+      error => {
+
+        if (error) {
+
+          return res
+            .status(400)
+            .json({
+              ok: false,
+              error:
+                error.message ||
+                "Image invalide."
+            });
+        }
+
+        next();
+      }
     );
-    return res.json(publicSettings(settings));
-  } catch (error) {
-    return res.status(400).json({ error: 'Enregistrement impossible' });
-  }
-});
+  },
 
-router.get('/programme', async (_req, res) => {
+  async (req, res) => {
+
+    try {
+
+      if (!req.file) {
+
+        return res
+          .status(400)
+          .json({
+            ok: false,
+            error:
+              "Aucune image recue."
+          });
+      }
+
+
+      const url =
+        await uploadImage(
+          req.file.buffer,
+          req.file.originalname
+        );
+
+
+      return res.json({
+        ok: true,
+        url
+      });
+
+
+    } catch (error) {
+
+      console.error(
+        "[PROGRAMME IMAGE]",
+        error
+      );
+
+
+      return res
+        .status(500)
+        .json({
+          ok: false,
+          error:
+            error.message ||
+            "Upload impossible."
+        });
+    }
+  }
+);
+
+/* MARANATHA_PROGRAMME_IMAGE_ROUTE_V1_END */
+
+
+// GET /api/settings/programme — public
+router.get('/programme', async (req, res) => {
   try {
-    const settings = await Settings.findOne({ key: 'programme' }).lean();
-    return res.json({ items: settings?.programme || [] });
-  } catch (error) {
-    return res.status(500).json({ error: 'Programme temporairement indisponible' });
-  }
+    let s = await Settings.findOne({ key: 'programme' });
+    res.json({ items: (s && s.programme) ? s.programme : [] });
+  } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// PUT /api/settings/programme — admin only
 router.put('/programme', adminOnly, async (req, res) => {
   try {
-    const incoming = Array.isArray(req.body.items) ? req.body.items : [];
-    const items = incoming.slice(0, 80).map((item, index) => ({
-      id: cleanText(item?.id || `programme-${Date.now()}-${index}`, 100),
-      titre: cleanText(item?.titre, 180),
-      badge: cleanText(item?.badge, 80) || 'PROGRAMME',
-      dateStr: cleanText(item?.dateStr, 20),
-      heureStr: cleanText(item?.heureStr, 20),
-      lieu: cleanText(item?.lieu, 250),
-      description: cleanText(item?.description, 4000),
-      imageUrl: cleanImageUrl(item?.imageUrl),
-    })).filter((item) => item.titre && item.dateStr && item.heureStr && item.lieu && item.description);
-
-    if (incoming.length > 0 && items.length !== incoming.slice(0, 80).length) {
-      return res.status(400).json({
-        error: 'Chaque programme doit contenir un titre, une date, une heure, un lieu et un texte.',
-      });
-    }
-
-    const settings = await Settings.findOneAndUpdate(
+    const items = Array.isArray(req.body.items) ? req.body.items : [];
+    const s = await Settings.findOneAndUpdate(
       { key: 'programme' },
       { $set: { programme: items } },
-      { new: true, upsert: true, runValidators: true },
+      { new: true, upsert: true }
     );
-    return res.json({ items: settings.programme || [] });
-  } catch (error) {
-    return res.status(400).json({ error: 'Enregistrement du programme impossible' });
-  }
+    res.json({ items: s.programme || [] });
+  } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-router.use((error, _req, res, _next) => {
-  if (error instanceof multer.MulterError && error.code === 'LIMIT_FILE_SIZE') {
-    return res.status(413).json({ error: 'Image trop lourde. Maximum 15 Mo.' });
+
+/* ==========================================================
+   MARANATHA_APP_CONFIG_PRODUCTION_V1
+   Configuration générale utilisée par :
+   - Admin Paramètres V2
+   - Interface fidèle
+   ========================================================== */
+
+const APP_CONFIG_DEFAULT = {
+  identity: {
+    churchName: "CEMM MARANATHA",
+    ministryName:
+      "Communauté des Églises Missionnaires Maranatha",
+    appName: "MARANATHA",
+    version: "1.2.4",
+    description:
+      "Application officielle de la communauté CEMM MARANATHA."
+  },
+
+  contact: {
+    phone: "",
+    whatsapp: "",
+    email: "",
+    address: ""
+  },
+
+  links: {
+    website: "",
+    facebook: "",
+    youtube: "",
+    tiktok: ""
+  },
+
+  application: {
+    apkUrl: "/downloads/MARANATHA.apk",
+    supportEmail: "",
+    supportWhatsapp: ""
+  },
+
+  documents: {
+    about: "",
+    privacy: "",
+    terms: "",
+    help: ""
+  },
+
+  updatedAt: ""
+};
+
+
+function cleanAppConfig(input) {
+
+  const source =
+    input &&
+    typeof input === "object"
+      ? input
+      : {};
+
+
+  const output =
+    JSON.parse(
+      JSON.stringify(
+        APP_CONFIG_DEFAULT
+      )
+    );
+
+
+  const groups = {
+    identity: [
+      "churchName",
+      "ministryName",
+      "appName",
+      "version",
+      "description"
+    ],
+
+    contact: [
+      "phone",
+      "whatsapp",
+      "email",
+      "address"
+    ],
+
+    links: [
+      "website",
+      "facebook",
+      "youtube",
+      "tiktok"
+    ],
+
+    application: [
+      "apkUrl",
+      "supportEmail",
+      "supportWhatsapp"
+    ],
+
+    documents: [
+      "about",
+      "privacy",
+      "terms",
+      "help"
+    ]
+  };
+
+
+  Object.entries(groups).forEach(
+    ([group, fields]) => {
+
+      const incoming =
+        source[group] &&
+        typeof source[group] === "object"
+          ? source[group]
+          : {};
+
+
+      fields.forEach(
+        (field) => {
+
+          if(
+            Object.prototype.hasOwnProperty.call(
+              incoming,
+              field
+            )
+          ){
+
+            output[group][field] =
+              String(
+                incoming[field] == null
+                  ? ""
+                  : incoming[field]
+              ).trim();
+          }
+        }
+      );
+    }
+  );
+
+
+  return output;
+}
+
+
+/*
+ * GET public
+ * L'utilisateur doit pouvoir lire :
+ * À propos, confidentialité, conditions, support, etc.
+ */
+router.get(
+  "/app-config",
+  async (_req, res) => {
+
+    try {
+
+      const document =
+        await Settings.collection.findOne({
+          key: "app-config"
+        });
+
+
+      const config =
+        cleanAppConfig(
+          document &&
+          document.config
+            ? document.config
+            : {}
+        );
+
+
+      config.updatedAt =
+        document &&
+        document.updatedAt
+          ? new Date(
+              document.updatedAt
+            ).toISOString()
+          : "";
+
+
+      return res.json(
+        config
+      );
+
+
+    } catch (error) {
+
+      console.error(
+        "[SETTINGS APP-CONFIG GET]",
+        error
+      );
+
+
+      return res.status(500).json({
+        error:
+          "Impossible de charger les paramètres."
+      });
+    }
   }
-  return res.status(400).json({ error: 'Fichier invalide' });
-});
+);
+
+
+/*
+ * PUT admin seulement
+ */
+router.put(
+  "/app-config",
+  adminOnly,
+  async (req, res) => {
+
+    try {
+
+      const config =
+        cleanAppConfig(
+          req.body || {}
+        );
+
+
+      const updatedAt =
+        new Date();
+
+
+      await Settings.collection.updateOne(
+        {
+          key: "app-config"
+        },
+        {
+          $set: {
+            key: "app-config",
+            config,
+            updatedAt
+          }
+        },
+        {
+          upsert: true
+        }
+      );
+
+
+      return res.json({
+        success: true,
+
+        settings: {
+          ...config,
+
+          updatedAt:
+            updatedAt.toISOString()
+        }
+      });
+
+
+    } catch (error) {
+
+      console.error(
+        "[SETTINGS APP-CONFIG PUT]",
+        error
+      );
+
+
+      return res.status(500).json({
+        success: false,
+        error:
+          "Impossible d'enregistrer les paramètres."
+      });
+    }
+  }
+);
+
+
+/* MARANATHA_APP_CONFIG_PRODUCTION_V1_END */
 
 module.exports = router;

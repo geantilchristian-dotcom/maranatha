@@ -1,0 +1,495 @@
+/* ==========================================================
+   MARANATHA - BIBLIOTHEQUE FIDELE V3
+   ========================================================== */
+
+.mlib3{
+    box-sizing:border-box;
+    width:100%;
+    padding:0 12px 18px;
+}
+
+
+/* ==========================================================
+   ONGLETS
+   ========================================================== */
+
+.mlib3-tabs{
+    display:flex;
+    align-items:center;
+    gap:6px;
+
+    width:100%;
+
+    padding:12px 0 10px;
+
+    overflow-x:auto;
+    overflow-y:hidden;
+
+    scrollbar-width:none;
+}
+
+.mlib3-tabs::-webkit-scrollbar{
+    display:none;
+}
+
+.mlib3-tab{
+    flex:0 0 auto;
+
+    min-height:34px;
+
+    padding:0 12px;
+
+    border:1px solid #e3e3e7;
+    border-radius:9px;
+
+    background:#fff;
+    color:#696970;
+
+    font-family:inherit;
+    font-size:9.5px;
+    font-weight:620;
+
+    cursor:pointer;
+}
+
+.mlib3-tab.active{
+    border-color:#b00028;
+
+    background:#b00028;
+    color:#fff;
+
+    box-shadow:
+        0 6px 14px
+        rgba(176,0,40,.16);
+}
+
+
+.mlib3-title{
+    margin:10px 2px 9px;
+
+    color:#222226;
+
+    font-size:11px;
+    font-weight:750;
+}
+
+
+/* ==========================================================
+   LISTES AUDIO / DIRECT / PREDICATION
+   ========================================================== */
+
+.mlib3-list{
+    display:grid;
+    gap:8px;
+}
+
+.mlib3-row{
+    display:flex;
+    align-items:center;
+
+    gap:9px;
+
+    padding:9px;
+
+    border:
+        1px solid #ededf0;
+
+    border-radius:12px;
+
+    background:#fff;
+}
+
+.mlib3-row.live{
+    border-color:
+        rgba(176,0,40,.18);
+}
+
+.mlib3-type{
+    width:42px;
+    height:42px;
+
+    flex:0 0 42px;
+
+    display:grid;
+    place-items:center;
+
+    border-radius:11px;
+
+    background:#f3f3f5;
+
+    color:#717178;
+
+    font-size:8px;
+    font-weight:800;
+}
+
+.mlib3-row.live .mlib3-type{
+    background:#fff0f3;
+    color:#b00028;
+}
+
+.mlib3-main{
+    flex:1;
+    min-width:0;
+}
+
+.mlib3-name{
+    color:#242428;
+
+    font-size:10.5px;
+    line-height:14px;
+
+    font-weight:680;
+
+    overflow:hidden;
+    white-space:nowrap;
+    text-overflow:ellipsis;
+}
+
+.mlib3-meta{
+    margin-top:2px;
+
+    color:#939399;
+
+    font-size:8.5px;
+    line-height:12px;
+
+    overflow:hidden;
+    white-space:nowrap;
+    text-overflow:ellipsis;
+}
+
+.mlib3-live{
+    display:inline-flex;
+    align-items:center;
+
+    gap:4px;
+
+    margin-top:3px;
+
+    color:#c0002d;
+
+    font-size:8px;
+    font-weight:750;
+}
+
+.mlib3-live::before{
+    content:"";
+
+    width:5px;
+    height:5px;
+
+    border-radius:50%;
+
+    background:#e11d48;
+
+    animation:
+        mlib3Pulse
+        1.2s infinite;
+}
+
+@keyframes mlib3Pulse{
+
+    50%{
+        opacity:.3;
+    }
+}
+
+
+/* ==========================================================
+   ACTIONS
+   ========================================================== */
+
+.mlib3-actions{
+    display:flex;
+    align-items:center;
+
+    gap:4px;
+
+    flex:0 0 auto;
+}
+
+.mlib3-open,
+.mlib3-share,
+.mlib3-download{
+    min-height:28px;
+
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+
+    padding:0 8px;
+
+    border:0;
+    border-radius:8px;
+
+    font-family:inherit;
+    font-size:8.2px;
+    font-weight:650;
+
+    text-decoration:none;
+
+    cursor:pointer;
+}
+
+.mlib3-open{
+    background:#b00028;
+    color:#fff;
+}
+
+.mlib3-share,
+.mlib3-download{
+    background:#f2f2f4;
+    color:#5f5f66;
+}
+
+
+/* ==========================================================
+   VIDEOS
+   ========================================================== */
+
+.mlib3-video-grid{
+    display:grid;
+
+    grid-template-columns:
+        repeat(
+            2,
+            minmax(0,1fr)
+        );
+
+    gap:9px;
+}
+
+.mlib3-video{
+    min-width:0;
+}
+
+.mlib3-video-cover{
+    position:relative;
+
+    display:block;
+
+    width:100%;
+
+    aspect-ratio:16 / 9;
+
+    overflow:hidden;
+
+    border-radius:11px;
+
+    background:#151519;
+}
+
+.mlib3-video-cover img{
+    width:100%;
+    height:100%;
+
+    display:block;
+
+    object-fit:cover;
+}
+
+.mlib3-video-fallback{
+    width:100%;
+    height:100%;
+
+    display:grid;
+    place-items:center;
+
+    background:
+        linear-gradient(
+            145deg,
+            #350812,
+            #121217
+        );
+
+    color:#fff;
+
+    font-size:9px;
+    font-weight:750;
+}
+
+.mlib3-play{
+    position:absolute;
+
+    left:50%;
+    top:50%;
+
+    transform:
+        translate(-50%,-50%);
+
+    width:31px;
+    height:31px;
+
+    display:grid;
+    place-items:center;
+
+    border-radius:50%;
+
+    background:
+        rgba(176,0,40,.94);
+
+    color:#fff;
+
+    font-size:10px;
+}
+
+.mlib3-video-name{
+    margin-top:6px;
+
+    color:#252529;
+
+    font-size:9.7px;
+    line-height:13px;
+
+    font-weight:680;
+}
+
+.mlib3-video-actions{
+    margin-top:5px;
+}
+
+
+/* ==========================================================
+   LIVRES
+   ========================================================== */
+
+.mlib3-book-grid{
+    display:grid;
+
+    grid-template-columns:
+        repeat(
+            2,
+            minmax(0,1fr)
+        );
+
+    gap:10px;
+}
+
+.mlib3-book{
+    min-width:0;
+}
+
+.mlib3-book-cover{
+    display:block;
+
+    width:100%;
+
+    aspect-ratio:3 / 4;
+
+    overflow:hidden;
+
+    border-radius:10px;
+
+    background:
+        linear-gradient(
+            145deg,
+            #b00028,
+            #600016
+        );
+
+    text-decoration:none;
+}
+
+.mlib3-book-cover img{
+    width:100%;
+    height:100%;
+
+    display:block;
+
+    object-fit:cover;
+}
+
+.mlib3-book-placeholder{
+    box-sizing:border-box;
+
+    width:100%;
+    height:100%;
+
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+
+    padding:11px;
+
+    color:#fff;
+}
+
+.mlib3-book-brand{
+    font-size:6px;
+    font-weight:750;
+}
+
+.mlib3-book-big{
+    font-size:13px;
+    line-height:16px;
+
+    font-weight:800;
+}
+
+.mlib3-book-author-small{
+    font-size:6px;
+    opacity:.85;
+}
+
+.mlib3-book-name{
+    margin-top:6px;
+
+    color:#252529;
+
+    font-size:9.5px;
+    line-height:13px;
+
+    font-weight:680;
+}
+
+.mlib3-book-author{
+    margin-top:1px;
+
+    color:#96969c;
+
+    font-size:8px;
+}
+
+.mlib3-book-actions{
+    display:flex;
+    flex-wrap:wrap;
+
+    gap:4px;
+
+    margin-top:6px;
+}
+
+.mlib3-book-actions
+.mlib3-open,
+.mlib3-book-actions
+.mlib3-share,
+.mlib3-book-actions
+.mlib3-download{
+
+    min-height:26px;
+
+    padding:0 7px;
+
+    font-size:7.8px;
+}
+
+
+/* ==========================================================
+   VIDE
+   ========================================================== */
+
+.mlib3-empty{
+    padding:31px 12px;
+
+    border:
+        1px dashed #e1e1e5;
+
+    border-radius:12px;
+
+    color:#96969d;
+
+    font-size:9.5px;
+
+    text-align:center;
+}

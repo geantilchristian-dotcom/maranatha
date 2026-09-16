@@ -41,7 +41,7 @@ function nettoyerNom(originalName) {
   );
 }
 
-async function uploadAudio(buffer, originalName, options = {}) {
+async function uploadAudio(buffer, originalName) {
   if (!Buffer.isBuffer(buffer) || buffer.length === 0) {
     throw new Error('Le fichier audio est vide');
   }
@@ -75,15 +75,7 @@ async function uploadAudio(buffer, originalName, options = {}) {
         }
 
         console.log('[Cloudinary/audio prêt]', result.secure_url);
-        const payload = {
-          url: result.secure_url,
-          durationSeconds: Math.max(
-            0,
-            Math.ceil(Number(result.duration) || 0),
-          ),
-        };
-
-        resolve(options.withMetadata ? payload : payload.url);
+        resolve(result.secure_url);
       },
     );
 
@@ -91,66 +83,209 @@ async function uploadAudio(buffer, originalName, options = {}) {
   });
 }
 
-async function uploadImage(buffer, originalName) {
-  if (!Buffer.isBuffer(buffer) || buffer.length === 0) {
-    throw new Error('Le fichier image est vide');
+
+
+/* ==========================================================
+   MARANATHA_PROGRAMME_IMAGE_UPLOAD_V1
+   ========================================================== */
+
+async function uploadImage(
+  buffer,
+  originalName
+) {
+
+  if (
+    !Buffer.isBuffer(buffer) ||
+    buffer.length === 0
+  ) {
+    throw new Error(
+      "L'image est vide"
+    );
   }
 
-  const cld = getCloudinary();
+
+  const cld =
+    getCloudinary();
+
 
   const publicId =
-    `maranatha/banners/${Date.now()}_${nettoyerNom(originalName || 'banniere')}`;
-
-  return new Promise((resolve, reject) => {
-    const stream = cld.uploader.upload_stream(
-      {
-        resource_type: 'image',
-        type: 'upload',
-        public_id: publicId,
-        overwrite: false,
-      },
-      (error, result) => {
-        if (error) {
-          console.error(
-            '[Cloudinary/image]',
-            error.message || error,
-          );
-
-          reject(
-            new Error(
-              `Échec upload image Cloudinary : ${
-                error.message || 'erreur inconnue'
-              }`,
-            ),
-          );
-
-          return;
-        }
-
-        if (!result?.secure_url) {
-          reject(
-            new Error(
-              'Cloudinary n’a pas retourné une adresse image',
-            ),
-          );
-
-          return;
-        }
-
-        resolve({
-          url: result.secure_url,
-          publicId: result.public_id || '',
-          width: Number(result.width) || 0,
-          height: Number(result.height) || 0,
-        });
-      },
+    "maranatha/programmes/" +
+    Date.now() +
+    "_" +
+    nettoyerNom(
+      originalName ||
+      "programme"
     );
 
-    stream.end(buffer);
-  });
+
+  return new Promise(
+    (resolve, reject) => {
+
+      const stream =
+        cld.uploader.upload_stream(
+          {
+            resource_type:
+              "image",
+
+            type:
+              "upload",
+
+            public_id:
+              publicId,
+
+            overwrite:
+              false
+          },
+
+          (error, result) => {
+
+            if (error) {
+
+              console.error(
+                "[Cloudinary/programme]",
+                error.message ||
+                error
+              );
+
+              reject(
+                new Error(
+                  "Echec upload image Cloudinary : " +
+                  (
+                    error.message ||
+                    "erreur inconnue"
+                  )
+                )
+              );
+
+              return;
+            }
+
+
+            if (
+              !result ||
+              !result.secure_url
+            ) {
+
+              reject(
+                new Error(
+                  "Cloudinary n'a pas retourne d'adresse image"
+                )
+              );
+
+              return;
+            }
+
+
+            console.log(
+              "[Cloudinary/programme pret]",
+              result.secure_url
+            );
+
+
+            resolve(
+              result.secure_url
+            );
+          }
+        );
+
+
+      stream.end(
+        buffer
+      );
+    }
+  );
 }
 
-module.exports = {
-  uploadAudio,
-  uploadImage,
-};
+/* MARANATHA_PROGRAMME_IMAGE_UPLOAD_V1_END */
+
+
+
+/* ==========================================================
+   MARANATHA_LIBRARY_CLOUDINARY_V1
+   ========================================================== */
+async function uploadFile(
+  buffer,
+  originalName,
+  mimetype
+) {
+  if (
+    !Buffer.isBuffer(buffer) ||
+    buffer.length === 0
+  ) {
+    throw new Error(
+      "Le fichier est vide."
+    );
+  }
+  const cld =
+    getCloudinary();
+  const options = {
+    resource_type:
+      "auto",
+    folder:
+      "maranatha/library",
+    use_filename:
+      true,
+    unique_filename:
+      true,
+    overwrite:
+      false,
+  };
+  if (
+    String(mimetype || "") ===
+    "application/pdf"
+  ) {
+    options.resource_type =
+      "raw";
+  }
+  return new Promise(
+    (resolve, reject) => {
+      const stream =
+        cld.uploader.upload_stream(
+          options,
+          (error, result) => {
+            if(error){
+              console.error(
+                "[Cloudinary/library]",
+                error.message ||
+                error
+              );
+              reject(
+                new Error(
+                  "Echec upload Cloudinary : " +
+                  (
+                    error.message ||
+                    "erreur inconnue"
+                  )
+                )
+              );
+              return;
+            }
+            if(
+              !result ||
+              !result.secure_url
+            ){
+              reject(
+                new Error(
+                  "Cloudinary n'a pas retourné d'URL."
+                )
+              );
+              return;
+            }
+            console.log(
+              "[Cloudinary/library prêt]",
+              result.secure_url
+            );
+            resolve(
+              result.secure_url
+            );
+          }
+        );
+      stream.end(
+        buffer
+      );
+    }
+  );
+}
+/* MARANATHA_LIBRARY_CLOUDINARY_V1_END */
+
+module.exports = { uploadAudio, uploadImage, uploadFile };

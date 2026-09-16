@@ -1,0 +1,367 @@
+/* MARANATHA ADMIN PARAMS V2 */
+
+.params-v2{
+    width:min(1320px,calc(100% - 48px));
+    margin:0 auto;
+    padding:38px 0 70px;
+    box-sizing:border-box;
+}
+
+.params-v2 *{
+    box-sizing:border-box;
+}
+
+.params-v2-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:20px;
+    margin-bottom:23px;
+}
+
+.params-v2-title{
+    margin:0;
+    color:#fff;
+    font-size:22px;
+    line-height:28px;
+    font-weight:850;
+}
+
+.params-v2-sub{
+    margin-top:5px;
+    color:rgba(255,255,255,.42);
+    font-size:9px;
+    line-height:15px;
+}
+
+.params-v2-status{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    padding:8px 11px;
+    border:1px solid rgba(255,255,255,.07);
+    border-radius:999px;
+    color:#3bd278;
+    font-size:8px;
+    white-space:nowrap;
+}
+
+.params-v2-status-dot{
+    width:6px;
+    height:6px;
+    border-radius:50%;
+    background:#3bd278;
+}
+
+.params-v2-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+    align-items:start;
+}
+
+.params-card{
+    padding:18px;
+    border:1px solid rgba(255,255,255,.07);
+    border-radius:14px;
+    background:#0d2b3b;
+}
+
+.params-card.full{
+    grid-column:1/-1;
+}
+
+.params-card-title{
+    color:#fff;
+    font-size:12px;
+    font-weight:800;
+    margin-bottom:4px;
+}
+
+.params-card-desc{
+    margin-bottom:16px;
+    color:rgba(255,255,255,.37);
+    font-size:8px;
+    line-height:13px;
+}
+
+.params-form-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:11px;
+}
+
+.params-field.full{
+    grid-column:1/-1;
+}
+
+.params-label{
+    display:block;
+    margin-bottom:6px;
+    color:rgba(255,255,255,.60);
+    font-size:8px;
+    font-weight:750;
+    text-transform:uppercase;
+}
+
+.params-input,
+.params-textarea{
+    width:100%;
+    border:1px solid rgba(255,255,255,.09);
+    border-radius:8px;
+    outline:none;
+    background:#193d4f;
+    color:#fff;
+    font-family:inherit;
+    font-size:9px;
+}
+
+.params-input{
+    height:39px;
+    padding:0 12px;
+}
+
+.params-textarea{
+    min-height:86px;
+    resize:vertical;
+    padding:11px 12px;
+    line-height:15px;
+}
+
+.params-input:focus,
+.params-textarea:focus{
+    border-color:rgba(212,175,55,.55);
+}
+
+.params-doc-list{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+}
+
+.params-doc-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:15px;
+    min-height:62px;
+    padding:10px 12px;
+    border:1px solid rgba(255,255,255,.06);
+    border-radius:10px;
+    background:rgba(0,0,0,.08);
+}
+
+.params-doc-info{
+    min-width:0;
+}
+
+.params-doc-name{
+    color:#fff;
+    font-size:9px;
+    font-weight:780;
+}
+
+.params-doc-meta{
+    margin-top:4px;
+    color:rgba(255,255,255,.35);
+    font-size:7px;
+}
+
+.params-doc-meta.ready{
+    color:#42d77b;
+}
+
+.params-doc-btn{
+    flex:0 0 auto;
+    min-height:31px;
+    padding:0 11px;
+    border:1px solid rgba(255,255,255,.09);
+    border-radius:7px;
+    background:#15384a;
+    color:#fff;
+    font-family:inherit;
+    font-size:8px;
+    font-weight:750;
+    cursor:pointer;
+}
+
+.params-doc-btn:hover{
+    border-color:#d4af37;
+    color:#d4af37;
+}
+
+.params-savebar{
+    position:sticky;
+    bottom:16px;
+    z-index:10;
+    display:flex;
+    justify-content:flex-end;
+    margin-top:16px;
+}
+
+.params-save{
+    min-width:190px;
+    height:42px;
+    border:0;
+    border-radius:9px;
+    background:#d4af37;
+    color:#071b27;
+    font-family:inherit;
+    font-size:9px;
+    font-weight:850;
+    cursor:pointer;
+    box-shadow:0 10px 30px rgba(0,0,0,.20);
+}
+
+.params-save:disabled{
+    opacity:.55;
+    cursor:wait;
+}
+
+
+/* MODAL DOCUMENT */
+
+.params-editor-backdrop{
+    position:fixed;
+    inset:0;
+    z-index:99990;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:25px;
+    background:rgba(0,10,18,.72);
+    backdrop-filter:blur(5px);
+}
+
+.params-editor{
+    width:min(760px,100%);
+    max-height:88vh;
+    overflow:auto;
+    padding:20px;
+    border:1px solid rgba(255,255,255,.09);
+    border-radius:15px;
+    background:#0d2b3b;
+    box-shadow:0 28px 80px rgba(0,0,0,.45);
+}
+
+.params-editor-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:15px;
+    margin-bottom:16px;
+}
+
+.params-editor-title{
+    color:#fff;
+    font-size:15px;
+    font-weight:850;
+}
+
+.params-editor-sub{
+    margin-top:4px;
+    color:rgba(255,255,255,.40);
+    font-size:8px;
+    line-height:13px;
+}
+
+.params-editor-close{
+    width:33px;
+    height:33px;
+    border:1px solid rgba(255,255,255,.10);
+    border-radius:50%;
+    background:transparent;
+    color:#fff;
+    font-size:18px;
+    cursor:pointer;
+}
+
+.params-editor-area{
+    width:100%;
+    min-height:380px;
+    padding:15px;
+    border:1px solid rgba(255,255,255,.10);
+    border-radius:10px;
+    outline:none;
+    resize:vertical;
+    background:#17394a;
+    color:#fff;
+    font-family:inherit;
+    font-size:10px;
+    line-height:18px;
+}
+
+.params-editor-area:focus{
+    border-color:rgba(212,175,55,.60);
+}
+
+.params-editor-footer{
+    display:flex;
+    justify-content:flex-end;
+    gap:8px;
+    margin-top:13px;
+}
+
+.params-editor-cancel,
+.params-editor-save{
+    min-height:37px;
+    padding:0 15px;
+    border-radius:8px;
+    font-family:inherit;
+    font-size:8px;
+    font-weight:800;
+    cursor:pointer;
+}
+
+.params-editor-cancel{
+    border:1px solid rgba(255,255,255,.09);
+    background:transparent;
+    color:#fff;
+}
+
+.params-editor-save{
+    border:0;
+    background:#d4af37;
+    color:#071b27;
+}
+
+
+@media(max-width:850px){
+
+    .params-v2-grid{
+        grid-template-columns:1fr;
+    }
+
+    .params-card.full{
+        grid-column:auto;
+    }
+}
+
+@media(max-width:600px){
+
+    .params-v2{
+        width:calc(100% - 22px);
+        padding-top:25px;
+    }
+
+    .params-v2-head{
+        flex-direction:column;
+    }
+
+    .params-form-grid{
+        grid-template-columns:1fr;
+    }
+
+    .params-field.full{
+        grid-column:auto;
+    }
+
+    .params-doc-row{
+        align-items:flex-start;
+        flex-direction:column;
+    }
+
+    .params-doc-btn{
+        width:100%;
+    }
+}

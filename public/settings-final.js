@@ -3,7 +3,7 @@
 
   const STYLE_ID = "maranatha-settings-final-style";
   const APK_URL = "/downloads/MARANATHA.apk";
-  const VERSION = "1.2.0";
+  const VERSION = "1.2.4";
 
   function injectStyles() {
     if (document.getElementById(STYLE_ID)) return;
@@ -11,61 +11,207 @@
     const style = document.createElement("style");
     style.id = STYLE_ID;
     style.textContent = `
-      .ms-wrap{display:grid;gap:14px}
+      .ms-wrap{
+        display:grid;
+        gap:22px;
+        padding:4px 0 12px;
+        font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,Arial,sans-serif;
+        color:#18181b;
+      }
+
       .ms-section-title{
-        margin:2px 3px 7px;color:#7b8493;font-size:10px;
-        font-weight:900;letter-spacing:.7px;text-transform:uppercase;
+        margin:0 10px 8px;
+        color:#6f7278;
+        font-size:12px;
+        line-height:16px;
+        font-weight:650;
+        letter-spacing:0;
+        text-transform:none;
       }
+
       .ms-box{
-        overflow:hidden;background:#fff;border:1px solid #e4e8ee;
-        border-radius:17px;box-shadow:0 4px 13px rgba(15,23,42,.04);
+        overflow:hidden;
+        background:#fff;
+        border:0;
+        border-radius:15px;
+        box-shadow:0 1px 2px rgba(0,0,0,.025);
       }
+
       .ms-row{
-        width:100%;min-height:58px;display:flex;align-items:center;gap:11px;
-        padding:10px 13px;border:0;border-bottom:1px solid #edf0f4;
-        background:#fff;text-align:left;color:#172033;
+        width:100%;
+        min-height:54px;
+        display:flex;
+        align-items:center;
+        gap:10px;
+        padding:8px 13px;
+        border:0;
+        border-bottom:1px solid #f0f0f2;
+        background:#fff;
+        text-align:left;
+        color:#17171a;
+        -webkit-tap-highlight-color:transparent;
       }
-      .ms-row:last-child{border-bottom:0}
-      button.ms-row{cursor:pointer}
-      button.ms-row:active{background:#faf3f5}
+
+      .ms-row:last-child{
+        border-bottom:0;
+      }
+
+      button.ms-row{
+        cursor:pointer;
+      }
+
+      button.ms-row:active{
+        background:#f7f7f8;
+      }
+
       .ms-icon{
-        width:36px;height:36px;flex:0 0 36px;display:grid;place-items:center;
-        border-radius:11px;background:#fff0f2;color:#a5001a;
+        width:30px;
+        height:30px;
+        flex:0 0 30px;
+        display:grid;
+        place-items:center;
+        border-radius:9px;
+        background:#f6f6f7;
+        color:#252529;
       }
-      .ms-icon svg{width:19px;height:19px}
-      .ms-copy{flex:1;min-width:0}
-      .ms-name{font-size:12px;font-weight:900;color:#18202c}
-      .ms-desc{margin-top:2px;font-size:9.5px;line-height:1.35;color:#828c9c}
+
+      .ms-icon svg{
+        width:16px;
+        height:16px;
+        stroke-width:1.8;
+      }
+
+      .ms-copy{
+        flex:1;
+        min-width:0;
+        display:flex;
+        flex-direction:column;
+        justify-content:center;
+      }
+
+      .ms-name{
+        display:block;
+        color:#1c1c1e;
+        font-size:13.5px;
+        line-height:18px;
+        font-weight:600;
+        letter-spacing:-.08px;
+      }
+
+      .ms-desc{
+        display:block;
+        margin-top:1px;
+        color:#8a8a90;
+        font-size:10.5px;
+        line-height:14px;
+        font-weight:400;
+      }
+
       .ms-value{
-        flex:0 0 auto;padding:5px 8px;border-radius:20px;
-        background:#edf8f2;color:#137348;font-size:9px;font-weight:900;
+        flex:0 0 auto;
+        max-width:105px;
+        overflow:hidden;
+        text-overflow:ellipsis;
+        white-space:nowrap;
+        color:#737378;
+        background:transparent;
+        padding:0;
+        font-size:11px;
+        line-height:15px;
+        font-weight:500;
       }
-      .ms-arrow{flex:0 0 auto;color:#a0a8b4;font-size:21px;line-height:1}
+
+      .ms-value.active{
+        color:#1f9d55;
+      }
+
+      .ms-arrow{
+        width:18px;
+        height:24px;
+        flex:0 0 18px;
+        display:grid;
+        place-items:center;
+        color:#c2c2c7;
+      }
+
+      .ms-arrow svg{
+        width:14px;
+        height:14px;
+        stroke-width:1.8;
+      }
+
       .ms-toggle{
-        width:44px;height:25px;flex:0 0 44px;border:0;border-radius:20px;
-        padding:3px;background:#d8dde4;cursor:pointer;
+        position:relative;
+        width:42px;
+        height:24px;
+        flex:0 0 42px;
+        border:0;
+        border-radius:999px;
+        padding:2px;
+        background:#d8d9dd;
+        cursor:pointer;
+        transition:background .18s ease;
       }
+
       .ms-toggle span{
-        display:block;width:19px;height:19px;border-radius:50%;
-        background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.18);transition:.18s;
+        display:block;
+        width:20px;
+        height:20px;
+        border-radius:50%;
+        background:#fff;
+        box-shadow:0 1px 3px rgba(0,0,0,.22);
+        transition:transform .18s ease;
       }
-      .ms-toggle.on{background:#b50024}
-      .ms-toggle.on span{transform:translateX(19px)}
+
+      .ms-toggle.on{
+        background:#34c759;
+      }
+
+      .ms-toggle.on span{
+        transform:translateX(18px);
+      }
+
       .ms-download{
-        background:linear-gradient(135deg,#850018,#d9183b)!important;
-        color:#fff!important;
+        background:#fff!important;
+        color:#17171a!important;
       }
-      .ms-download .ms-name,.ms-download .ms-desc{color:#fff}
-      .ms-download .ms-desc{opacity:.78}
+
+      .ms-download .ms-name{
+        color:#1c1c1e!important;
+      }
+
+      .ms-download .ms-desc{
+        color:#8a8a90!important;
+        opacity:1!important;
+      }
+
       .ms-download .ms-icon{
-        background:rgba(255,255,255,.15);color:#fff;
+        background:#f6f6f7!important;
+        color:#252529!important;
       }
-      .ms-download .ms-arrow{color:#fff}
+
+      .ms-download .ms-arrow{
+        color:#c2c2c7!important;
+      }
+
       .ms-version{
-        padding:4px 0 2px;text-align:center;color:#939aa6;
-        font-size:9px;line-height:1.45;
+        padding:1px 12px 5px;
+        text-align:center;
+        color:#a0a0a6;
+        font-size:9.5px;
+        line-height:14px;
+        font-weight:400;
       }
-      html.maranatha-reduce-motion *,html.maranatha-reduce-motion *::before,
+
+      @media (max-width:380px){
+        .ms-wrap{gap:18px}
+        .ms-row{min-height:52px;padding:8px 11px}
+        .ms-name{font-size:13px}
+        .ms-desc{font-size:10px}
+      }
+
+      html.maranatha-reduce-motion *,
+      html.maranatha-reduce-motion *::before,
       html.maranatha-reduce-motion *::after{
         animation-duration:.001ms!important;
         animation-iteration-count:1!important;
@@ -75,7 +221,6 @@
     `;
     document.head.appendChild(style);
   }
-
   function icon(path) {
     return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + path + '</svg>';
   }
@@ -89,123 +234,159 @@
     const nativeApp =
       typeof window.FlutterAudio !== "undefined";
 
-    let notificationText = "À vérifier";
+    let notificationText = "\u00C0 v\u00E9rifier";
+
     if (nativeApp) {
       notificationText = "Android";
     } else if ("Notification" in window) {
       const labels = {
-        granted: "Autorisées",
-        denied: "Bloquées",
-        default: "À autoriser"
+        granted: "Autoris\u00E9es",
+        denied: "Bloqu\u00E9es",
+        default: "\u00C0 autoriser"
       };
-      notificationText = labels[Notification.permission] || "À vérifier";
+
+      notificationText =
+        labels[Notification.permission] || "\u00C0 v\u00E9rifier";
     } else {
       notificationText = "Non disponible";
     }
 
+    const chevron =
+      icon('<path d="m9 18 6-6-6-6"/>');
+
     return `
       <div class="ms-wrap">
 
-        <div>
-          <div class="ms-section-title">Compte</div>
-          <div class="ms-box">
-            <button class="ms-row" id="ms-profile" type="button">
-              <span class="ms-icon">${icon('<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>')}</span>
-              <span class="ms-copy">
-                <span class="ms-name">Mon profil</span>
-                <span class="ms-desc">Nom, téléphone, e-mail et informations du compte</span>
-              </span>
-              <span class="ms-arrow">›</span>
-            </button>
-          </div>
-        </div>
+        <section>
+          <div class="ms-section-title">G\u00E9n\u00E9ral</div>
 
-        <div>
-          <div class="ms-section-title">Notifications et réveil</div>
           <div class="ms-box">
+
             <button class="ms-row" id="ms-notifications" type="button">
-              <span class="ms-icon">${icon('<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>')}</span>
+              <span class="ms-icon">
+                ${icon('<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>')}
+              </span>
+
               <span class="ms-copy">
                 <span class="ms-name">Notifications</span>
-                <span class="ms-desc">Autorisation pour recevoir les annonces Maranatha</span>
               </span>
-              <span class="ms-value" id="ms-notification-value">${notificationText}</span>
+
+              <span class="ms-value">${notificationText}</span>
+              <span class="ms-arrow">${chevron}</span>
             </button>
 
-            <div class="ms-row">
-              <span class="ms-icon">${icon('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>')}</span>
-              <span class="ms-copy">
-                <span class="ms-name">Réveil Maranatha</span>
-                <span class="ms-desc">Les horaires sont programmés par l’administration de l’église</span>
-              </span>
-              <span class="ms-value">Automatique</span>
-            </div>
 
-            <div class="ms-row">
-              <span class="ms-icon">${icon('<path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/>')}</span>
-              <span class="ms-copy">
-                <span class="ms-name">Audio en arrière-plan</span>
-                <span class="ms-desc">Le système audio existant reste inchangé</span>
-              </span>
-              <span class="ms-value">Actif</span>
-            </div>
           </div>
-        </div>
+        </section>
 
-        <div>
-          <div class="ms-section-title">Affichage</div>
+
+        <section>
+          <div class="ms-section-title">R\u00E9veil &amp; audio</div>
+
           <div class="ms-box">
-            <div class="ms-row">
-              <span class="ms-icon">${icon('<path d="M4 4h16v12H4z"/><path d="M8 20h8"/><path d="M12 16v4"/>')}</span>
-              <span class="ms-copy">
-                <span class="ms-name">Réduire les animations</span>
-                <span class="ms-desc">Diminue les mouvements de l’interface</span>
-              </span>
-              <button class="ms-toggle ${reduceMotion ? "on" : ""}" id="ms-motion" type="button" aria-pressed="${reduceMotion ? "true" : "false"}"><span></span></button>
-            </div>
-          </div>
-        </div>
 
-        <div>
+            <div class="ms-row">
+              <span class="ms-icon">
+                ${icon('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>')}
+              </span>
+
+              <span class="ms-copy">
+                <span class="ms-name">R\u00E9veil Maranatha</span>
+              </span>
+
+              <span class="ms-value active">Automatique</span>
+            </div>
+
+            <div class="ms-row">
+              <span class="ms-icon">
+                ${icon('<path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/>')}
+              </span>
+
+              <span class="ms-copy">
+                <span class="ms-name">Audio en arri\u00E8re-plan</span>
+              </span>
+
+              <span class="ms-value active">Actif</span>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class="ms-section-title">Compte</div>
+
+          <div class="ms-box">
+
+            <button class="ms-row" id="ms-profile" type="button">
+              <span class="ms-icon">
+                ${icon('<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>')}
+              </span>
+
+              <span class="ms-copy">
+                <span class="ms-name">Mon profil</span>
+              </span>
+
+              <span class="ms-arrow">${chevron}</span>
+            </button>
+
+          </div>
+        </section>
+
+
+        <section>
           <div class="ms-section-title">Application</div>
+
           <div class="ms-box">
+
             <button class="ms-row ms-download" id="ms-download" type="button">
-              <span class="ms-icon">${icon('<path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/>')}</span>
-              <span class="ms-copy">
-                <span class="ms-name">Télécharger l’application</span>
-                <span class="ms-desc">Installer la version Android de Maranatha</span>
+              <span class="ms-icon">
+                ${icon('<path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/>')}
               </span>
-              <span class="ms-arrow">›</span>
+
+              <span class="ms-copy">
+                <span class="ms-name">T\u00E9l\u00E9charger l\u2019application</span>
+              </span>
+
+              <span class="ms-arrow">${chevron}</span>
             </button>
 
             <button class="ms-row" id="ms-privacy" type="button">
-              <span class="ms-icon">${icon('<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/>')}</span>
-              <span class="ms-copy">
-                <span class="ms-name">Confidentialité et données</span>
-                <span class="ms-desc">Consulter la politique de confidentialité</span>
+              <span class="ms-icon">
+                ${icon('<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/>')}
               </span>
-              <span class="ms-arrow">›</span>
+
+              <span class="ms-copy">
+                <span class="ms-name">Confidentialit\u00E9 et donn\u00E9es</span>
+              </span>
+
+              <span class="ms-arrow">${chevron}</span>
             </button>
 
             <button class="ms-row" id="ms-about" type="button">
-              <span class="ms-icon">${icon('<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>')}</span>
-              <span class="ms-copy">
-                <span class="ms-name">À propos de Maranatha</span>
-                <span class="ms-desc">Informations sur l’application</span>
+              <span class="ms-icon">
+                ${icon('<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>')}
               </span>
-              <span class="ms-arrow">›</span>
+
+              <span class="ms-copy">
+                <span class="ms-name">\u00C0 propos de Maranatha</span>
+              </span>
+
+              <span class="ms-arrow">${chevron}</span>
             </button>
+
           </div>
-        </div>
+        </section>
+
 
         <div class="ms-version">
-          MARANATHA — version ${VERSION}<br>
-          Communauté des Églises Missionnaires Maranatha
+          MARANATHA &mdash; version ${VERSION}<br>
+          Communaut\u00E9 des \u00C9glises Missionnaires Maranatha
         </div>
+
       </div>
     `;
   }
-
   function showToast(message) {
     const toast =
       document.getElementById("m-toast");

@@ -1,0 +1,218 @@
+/* ==========================================================
+   MARANATHA - CARROUSEL AFFICHES LOCAL
+   ========================================================== */
+
+.hero{
+    position:relative!important;
+    overflow:hidden!important;
+    padding:0!important;
+    border-radius:17px!important;
+    background:#09090c!important;
+}
+
+.maranatha-banner-carousel{
+    position:relative;
+    width:100%;
+    aspect-ratio:12 / 5;
+    min-height:155px;
+    overflow:hidden;
+    border-radius:17px;
+    background:#09090c;
+}
+
+.mbc-track{
+    display:flex;
+    width:100%;
+    height:100%;
+    transition:transform .55s cubic-bezier(.22,.61,.36,1);
+    will-change:transform;
+}
+
+.mbc-slide{
+    position:relative;
+    min-width:100%;
+    height:100%;
+    overflow:hidden;
+    background:#111;
+}
+
+.mbc-slide-link{
+    display:block;
+    width:100%;
+    height:100%;
+    text-decoration:none;
+    color:inherit;
+}
+
+.mbc-slide img{
+    display:block;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    user-select:none;
+    pointer-events:none;
+}
+
+
+/* ==========================================================
+   LUMIERE QUI TRAVERSE L'AFFICHE
+   ========================================================== */
+
+.mbc-slide::after{
+    content:"";
+    position:absolute;
+    top:-25%;
+    bottom:-25%;
+    left:-45%;
+
+    width:24%;
+
+    background:
+        linear-gradient(
+            105deg,
+            rgba(255,255,255,0) 0%,
+            rgba(255,255,255,.03) 25%,
+            rgba(255,255,255,.32) 49%,
+            rgba(255,255,255,.08) 58%,
+            rgba(255,255,255,0) 100%
+        );
+
+    transform:skewX(-18deg);
+
+    filter:blur(2px);
+
+    pointer-events:none;
+
+    animation:
+        maranathaBannerShine 4.6s ease-in-out infinite;
+}
+
+@keyframes maranathaBannerShine{
+
+    0%{
+        left:-45%;
+        opacity:0;
+    }
+
+    17%{
+        opacity:.2;
+    }
+
+    34%{
+        opacity:.85;
+    }
+
+    52%{
+        left:125%;
+        opacity:0;
+    }
+
+    100%{
+        left:125%;
+        opacity:0;
+    }
+}
+
+
+/* ==========================================================
+   POINTS
+   ========================================================== */
+
+.mbc-dots{
+    position:absolute;
+    left:0;
+    right:0;
+    bottom:9px;
+
+    z-index:5;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:5px;
+
+    pointer-events:auto;
+}
+
+.mbc-dot{
+    width:6px;
+    height:6px;
+    padding:0;
+    border:0;
+    border-radius:999px;
+    background:rgba(255,255,255,.45);
+    cursor:pointer;
+
+    transition:
+        width .2s ease,
+        background .2s ease;
+}
+
+.mbc-dot.active{
+    width:18px;
+    background:#fff;
+}
+
+
+/* ==========================================================
+   PETIT COMPTEUR
+   ========================================================== */
+
+.mbc-counter{
+    position:absolute;
+    z-index:5;
+
+    top:9px;
+    right:10px;
+
+    min-width:37px;
+    height:23px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    padding:0 7px;
+
+    border-radius:999px;
+
+    background:rgba(0,0,0,.34);
+    color:#fff;
+
+    backdrop-filter:blur(5px);
+
+    font-size:9px;
+    font-weight:650;
+
+    pointer-events:none;
+}
+
+
+/* ==========================================================
+   MOBILE
+   ========================================================== */
+
+@media(max-width:480px){
+
+    .maranatha-banner-carousel{
+        min-height:145px;
+        aspect-ratio:2.25 / 1;
+    }
+
+}
+
+
+/* Respecter l'option systeme si animations reduites */
+
+@media(prefers-reduced-motion:reduce){
+
+    .mbc-track{
+        transition:none;
+    }
+
+    .mbc-slide::after{
+        animation:none;
+        display:none;
+    }
+
+}
