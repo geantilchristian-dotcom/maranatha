@@ -9,7 +9,7 @@
   var initialized = false;
   var currentUrl = '';
   var playing = false;
-  var nativeVolume = 0.70;
+  var nativeVolume = 1.0;
   var seeking = false;
   var waveTimer = null;
   var waveTick = 0;
@@ -159,7 +159,7 @@
 
   function updateVolumeUi(value) {
     nativeVolume = Math.max(0, Math.min(1, Number(value)));
-    if (!Number.isFinite(nativeVolume)) nativeVolume = 0.70;
+    if (!Number.isFinite(nativeVolume)) nativeVolume = 1.0;
 
     var slider = byId('volume');
     var label = byId('volume-value');
