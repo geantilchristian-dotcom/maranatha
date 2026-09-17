@@ -291,10 +291,14 @@ document.addEventListener(
 
         if(action === "privacy"){
 
-            showDocument(
-                "Confidentialité et données",
-                "privacy"
-            );
+            /* MARANATHA_PRIVACY_ABOUT_PAGES_V1 */
+
+            if(
+                window.MaranathaInfoPages &&
+                typeof window.MaranathaInfoPages.open === "function"
+            ){
+                window.MaranathaInfoPages.open("privacy");
+            }
 
             return;
         }
@@ -302,10 +306,14 @@ document.addEventListener(
 
         if(action === "about"){
 
-            showDocument(
-                "À propos de Maranatha",
-                "about"
-            );
+            if(
+                window.MaranathaInfoPages &&
+                typeof window.MaranathaInfoPages.open === "function"
+            ){
+                window.MaranathaInfoPages.open("about");
+            }
+
+            return;
         }
 
     },

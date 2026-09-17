@@ -7051,10 +7051,977 @@ function showMessageForm(
 <script src="/bible-user-bridge.js?v=20260916-fix3"></script>
 <script src="/bible-study-user-v3.js?v=20260916-fix3"></script>
 <script src="/member-user-v3.js?v=20260916-fix3"></script>
-<script src="/settings-public-content-v2.js?v=20260916-fix3"></script>
+<script src="/settings-public-content-v2.js?v=20260917-legal1"></script>
 <script src="/settings-extra-buttons-v2.js?v=20260916-fix3"></script>
   <script src="/program-production-sync.js?v=20260916-fix3"></script>
   <script src="/bible-study-production-sync.js?v=20260916-fix3"></script>
   <script src="/library-production-sync.js?v=20260916-fix3"></script>
+
+<!-- MARANATHA_LEGAL_PAGES_V1 -->
+<style>
+#maranatha-info-page{
+    position:fixed;
+    inset:0;
+    z-index:999999;
+    display:none;
+    background:#f4f5f8;
+    font-family:Arial,Helvetica,sans-serif;
+    color:#24262d;
+}
+
+#maranatha-info-page.mip-open{
+    display:flex;
+    flex-direction:column;
+}
+
+.mip-header{
+    flex:0 0 auto;
+    min-height:74px;
+    background:linear-gradient(135deg,#8d001d,#c40032);
+    color:#fff;
+    display:flex;
+    align-items:center;
+    gap:15px;
+    padding:0 22px;
+    box-sizing:border-box;
+    box-shadow:0 3px 14px rgba(0,0,0,.15);
+}
+
+.mip-back{
+    width:42px;
+    height:42px;
+    border:0;
+    background:rgba(255,255,255,.12);
+    color:#fff;
+    border-radius:50%;
+    font-size:29px;
+    line-height:42px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.mip-header-text{
+    min-width:0;
+}
+
+.mip-brand{
+    margin:0 0 3px;
+    font-size:10px;
+    font-weight:800;
+    letter-spacing:1.5px;
+    opacity:.82;
+}
+
+#mip-title{
+    margin:0;
+    font-size:21px;
+    font-weight:800;
+    line-height:1.2;
+}
+
+.mip-scroll{
+    flex:1;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+}
+
+.mip-content{
+    width:min(820px,calc(100% - 30px));
+    margin:0 auto;
+    padding:35px 0 55px;
+    box-sizing:border-box;
+}
+
+.mip-main-title{
+    margin:0 0 22px;
+    text-align:center;
+    font-size:25px;
+    line-height:1.25;
+    font-weight:700;
+    color:#17191e;
+}
+
+.mip-update{
+    margin:0 0 28px;
+    padding:14px 16px;
+    background:#fff;
+    border:1px solid #e5e6ea;
+    border-radius:12px;
+    font-size:14px;
+    font-weight:600;
+    color:#555b67;
+}
+
+.mip-intro{
+    margin:0 0 28px;
+    font-size:15px;
+    line-height:1.7;
+    color:#454952;
+}
+
+.mip-section{
+    margin:0 0 28px;
+}
+
+.mip-section h2{
+    margin:0 0 10px;
+    font-size:17px;
+    line-height:1.35;
+    color:#303746;
+}
+
+.mip-section p{
+    margin:0 0 10px;
+    font-size:15px;
+    line-height:1.72;
+    color:#444851;
+}
+
+.mip-section ul{
+    margin:8px 0 10px 22px;
+    padding:0;
+}
+
+.mip-section li{
+    margin:7px 0;
+    font-size:15px;
+    line-height:1.6;
+    color:#444851;
+}
+
+.mip-quote{
+    margin:22px 0;
+    padding:18px;
+    text-align:center;
+    border-radius:12px;
+    background:#fff0f3;
+    color:#9f0027;
+    font-weight:800;
+    font-size:18px;
+}
+
+.mip-help-title{
+    margin-top:30px !important;
+}
+
+.mip-footer{
+    margin-top:35px;
+    padding-top:20px;
+    border-top:1px solid #dedfe4;
+    text-align:center;
+    color:#777c85;
+    font-size:12px;
+    line-height:1.6;
+}
+
+@media(max-width:600px){
+    .mip-header{
+        min-height:66px;
+        padding:0 14px;
+    }
+
+    .mip-back{
+        width:38px;
+        height:38px;
+        font-size:26px;
+    }
+
+    #mip-title{
+        font-size:19px;
+    }
+
+    .mip-content{
+        width:100%;
+        padding:28px 24px 50px;
+    }
+
+    .mip-main-title{
+        font-size:21px;
+    }
+
+    .mip-section h2{
+        font-size:16px;
+    }
+
+    .mip-section p,
+    .mip-section li,
+    .mip-intro{
+        font-size:14px;
+    }
+}
+</style>
+
+<div id="maranatha-info-page" aria-hidden="true">
+    <header class="mip-header">
+        <button
+            id="mip-back"
+            class="mip-back"
+            type="button"
+            aria-label="Retour"
+        >&#8592;</button>
+
+        <div class="mip-header-text">
+            <div class="mip-brand">MARANATHA</div>
+            <h1 id="mip-title"></h1>
+        </div>
+    </header>
+
+    <div class="mip-scroll" id="mip-scroll">
+        <main class="mip-content" id="mip-content"></main>
+    </div>
+</div>
+
+<script>
+(function(){
+
+    var page =
+        document.getElementById("maranatha-info-page");
+
+    var title =
+        document.getElementById("mip-title");
+
+    var content =
+        document.getElementById("mip-content");
+
+    var scroll =
+        document.getElementById("mip-scroll");
+
+    var back =
+        document.getElementById("mip-back");
+
+    if(!page || !title || !content || !back){
+        return;
+    }
+
+    var pages = {
+
+        privacy: {
+            title: "Confidentialité et données",
+            html: `
+                <h1 class="mip-main-title">
+                    Confidentialité et données
+                </h1>
+
+                <div class="mip-update">
+                    Dernière mise à jour : 17 septembre 2026
+                </div>
+
+                <section class="mip-section">
+                    <h2>1. Notre engagement</h2>
+                    <p>
+                        Maranatha est une application chrétienne conçue
+                        pour accompagner les utilisateurs dans la prière,
+                        l'écoute de prédications, l'accès à des
+                        enseignements et contenus chrétiens ainsi que la
+                        participation aux programmes spirituels proposés
+                        à travers la plateforme.
+                    </p>
+                    <p>
+                        Nous accordons une importance particulière au
+                        respect de la vie privée et à la protection des
+                        informations confiées à l'application.
+                    </p>
+                    <p>
+                        La présente politique explique quelles données
+                        peuvent être traitées par Maranatha, pourquoi
+                        elles sont utilisées et quels choix sont proposés
+                        aux utilisateurs.
+                    </p>
+                </section>
+
+                <section class="mip-section">
+                    <h2>2. Données pouvant être traitées</h2>
+                    <p>
+                        Selon les fonctionnalités utilisées, Maranatha
+                        peut traiter certaines informations nécessaires
+                        au fonctionnement de l'application.
+                    </p>
+                    <p>
+                        Il peut notamment s'agir des informations liées
+                        au compte utilisateur lorsque celui-ci est
+                        requis, des paramètres de l'application, des
+                        préférences de lecture, des informations
+                        nécessaires aux notifications ainsi que des
+                        données techniques indispensables au
+                        fonctionnement et à la sécurité du service.
+                    </p>
+                    <p>
+                        Maranatha ne demande pas aux utilisateurs de
+                        fournir des informations personnelles qui ne
+                        sont pas nécessaires au fonctionnement des
+                        services proposés.
+                    </p>
+                </section>
+
+                <section class="mip-section">
+                    <h2>3. Notifications et réveil spirituel</h2>
+                    <p>
+                        Maranatha comporte un système de notifications
+                        et de diffusion programmée permettant notamment
+                        de signaler ou de lancer certains programmes
+                        spirituels aux heures définies par
+                        l'administration de la plateforme.
+                    </p>
+                    <p>
+                        Pour permettre cette fonctionnalité,
+                        l'application peut utiliser les fonctions de
+                        notification, d'alarme et d'exécution en
+                        arrière-plan disponibles sur l'appareil.
+                    </p>
+                    <p>
+                        Selon la version d'Android et les paramètres du
+                        téléphone, l'utilisateur peut être invité à
+                        autoriser certaines de ces fonctions.
+                    </p>
+                </section>
+
+                <section class="mip-section">
+                    <h2>4. Contenus audio et multimédias</h2>
+                    <p>
+                        Maranatha permet notamment d'écouter des
+                        prédications et d'autres contenus audio.
+                    </p>
+                    <p>
+                        Lorsqu'une prédication est programmée,
+                        l'application peut préparer et lire le contenu
+                        au moment prévu, y compris lorsque l'application
+                        n'est pas affichée au premier plan, lorsque le
+                        système et les autorisations du téléphone le
+                        permettent.
+                    </p>
+                </section>
+
+                <section class="mip-section">
+                    <h2>5. Bibliothèque Maranatha</h2>
+                    <p>
+                        La Bibliothèque Maranatha peut contenir des
+                        prédications récentes, des contenus audio, des
+                        vidéos, des livres et documents PDF ainsi que
+                        différents contenus chrétiens.
+                    </p>
+                    <p>
+                        Certains fichiers peuvent être hébergés sur des
+                        infrastructures ou services techniques externes
+                        utilisés par Maranatha pour assurer leur
+                        stockage et leur diffusion.
+                    </p>
+                </section>
+
+                <section class="mip-section">
+                    <h2>6. Utilisation des données</h2>
+                    <p>
+                        Les informations traitées peuvent être utilisées
+                        pour assurer le fonctionnement de l'application,
+                        diffuser les contenus demandés, gérer les
+                        programmes et prédications, envoyer les
+                        notifications nécessaires, améliorer la
+                        stabilité du service et protéger la plateforme.
+                    </p>
+                    <p>
+                        Maranatha ne vend pas les données personnelles
+                        de ses utilisateurs.
+                    </p>
+                </section>
+
+                <section class="mip-section">
+                    <h2>7. Services techniques tiers</h2>
+                    <p>
+                        Certaines fonctions peuvent dépendre de
+                        fournisseurs techniques externes, notamment pour
+                        l'hébergement, le stockage ou la diffusion de
+                        fichiers et l'envoi de notifications.
+                    </p>
+                </section>
+
+                <section class="mip-section">
+                    <h2>8. Sécurité</h2>
+                    <p>
+                        Des mesures raisonnables sont mises en œuvre
+                        afin de protéger les données et les systèmes
+                        contre les accès non autorisés, la perte, la
+                        modification ou l'utilisation abusive.
+                    </p>
+                    <p>
+                        Aucun système informatique ou service Internet
+                        ne peut cependant garantir une sécurité absolue.
+                    </p>
+                </section>
+
+                <section class="mip-section">
+                    <h2>9. Conservation des données</h2>
+                    <p>
+                        Les informations sont conservées pendant la
+                        durée nécessaire au fonctionnement des services
+                        concernés et à la sécurité de la plateforme.
+                    </p>
+                </section>
+
+                <section class="mip-section">
+                    <h2>10. Contrôle des autorisations</h2>
+                    <p>
+                        L'utilisateur conserve le contrôle des
+                        autorisations accordées à Maranatha depuis les
+                        paramètres de son téléphone.
+                    </p>
+                    <p>
+                        La désactivation des notifications, des alarmes
+                        ou de certaines autorisations d'exécution en
+                        arrière-plan peut empêcher le réveil spirituel
+                        ou une prédication programmée de fonctionner
+                        normalement.
+                    </p>
+                </section>
+
+                <section class="mip-section">
+                    <h2>11. Mineurs</h2>
+                    <p>
+                        Lorsqu'un mineur utilise l'application, son
+                        utilisation doit respecter les règles
+                        applicables et, lorsque cela est nécessaire, se
+                        faire sous la responsabilité de son parent ou
+                        représentant légal.
+                    </p>
+                </section>
+
+                <section class="mip-section">
+                    <h2>12. Modification de cette politique</h2>
+                    <p>
+                        Cette politique pourra évoluer afin de tenir
+                        compte des nouvelles fonctionnalités, des
+                        évolutions techniques ou des obligations
+                        applicables.
+                    </p>
+                </section>
+
+                <section class="mip-section">
+                    <h2>13. Nous contacter</h2>
+                    <p>
+                        Pour toute question concernant la
+                        confidentialité ou la protection des données,
+                        contactez l'équipe Maranatha à travers les
+                        moyens de contact officiels disponibles dans
+                        l'application.
+                    </p>
+                </section>
+            `
+        },
+
+        terms: {
+            title: "Conditions d’utilisation",
+            html: `
+                <h1 class="mip-main-title">
+                    Conditions d’utilisation
+                </h1>
+
+                <div class="mip-update">
+                    Dernière mise à jour : 17 septembre 2026
+                </div>
+
+                <p class="mip-intro">
+                    Les présentes conditions définissent les règles
+                    applicables à l'utilisation de Maranatha et de ses
+                    différents services.
+                </p>
+
+                <section class="mip-section">
+                    <h2>1. Objet</h2>
+                    <p>
+                        En utilisant Maranatha, l'utilisateur accepte de
+                        respecter les présentes conditions
+                        d'utilisation.
+                    </p>
+                </section>
+
+                <section class="mip-section">
+                    <h2>2. Mission de Maranatha</h2>
+                    <p>
+                        Maranatha est une plateforme chrétienne destinée
+                        notamment à faciliter l'accès à la prière, aux
+                        prédications, aux enseignements et à différents
+                        contenus spirituels.
+                    </p>
+                </section>
+
+                <section class="mip-section">
+                    <h2>3. Utilisation de l'application</h2>
+                    <p>
+                        L'utilisateur s'engage à utiliser Maranatha de
+                        manière légale, respectueuse et conforme à sa
+                        finalité.
+                    </p>
+                    <p>
+                        Il est interdit de perturber volontairement son
+                        fonctionnement, contourner ses mécanismes de
+                        sécurité ou tenter d'accéder sans autorisation
+                        aux espaces administratifs.
+                    </p>
+                </section>
+
+                <section class="mip-section">
+                    <h2>4. Prédications programmées</h2>
+                    <p>
+                        Certains programmes peuvent être planifiés par
+                        les responsables autorisés de Maranatha.
+                    </p>
+                    <p>
+                        Lorsque les fonctions nécessaires sont activées,
+                        l'application peut utiliser les mécanismes
+                        Android appropriés pour signaler ou lancer une
+                        prédication au moment prévu.
+                    </p>
+                </section>
+
+                <section class="mip-section">
+                    <h2>5. Connexion Internet</h2>
+                    <p>
+                        Certaines fonctionnalités nécessitent une
+                        connexion Internet. Maranatha n'est pas
+                        responsable des frais de données mobiles
+                        facturés par l'opérateur de l'utilisateur.
+                    </p>
+                </section>
+
+                <section class="mip-section">
+                    <h2>6. Disponibilité du service</h2>
+                    <p>
+                        Des interruptions peuvent survenir en raison
+                        d'une maintenance, d'une mise à jour, d'un
+                        problème réseau ou d'un événement indépendant
+                        de notre volonté.
+                    </p>
+                </section>
+
+                <section class="mip-section">
+                    <h2>7. Contenus de Maranatha</h2>
+                    <p>
+                        Les prédications, textes, fichiers audio,
+                        vidéos, livres, illustrations, logos et autres
+                        ressources peuvent être protégés par des droits
+                        de propriété intellectuelle.
+                    </p>
+                </section>
+
+                <section class="mip-section">
+                    <h2>8. Livres et documents</h2>
+                    <p>
+                        La possibilité technique de consulter ou
+                        télécharger un document ne transfère pas les
+                        droits de propriété intellectuelle associés à
+                        celui-ci.
+                    </p>
+                </section>
+
+                <section class="mip-section">
+                    <h2>9. Sécurité du compte</h2>
+                    <p>
+                        L'utilisateur est responsable de la protection
+                        de ses identifiants. Les accès administratifs
+                        sont réservés aux personnes expressément
+                        autorisées.
+                    </p>
+                </section>
+
+                <section class="mip-section">
+                    <h2>10. Évolution de Maranatha</h2>
+                    <p>
+                        Des fonctionnalités peuvent être ajoutées,
+                        améliorées, remplacées ou retirées afin
+                        d'améliorer le service, sa sécurité ou sa
+                        compatibilité.
+                    </p>
+                </section>
+
+                <section class="mip-section">
+                    <h2>11. Responsabilité</h2>
+                    <p>
+                        Maranatha met principalement à disposition des
+                        contenus et outils chrétiens et spirituels.
+                        L'application ne remplace pas les services
+                        professionnels lorsqu'une situation nécessite
+                        une intervention spécialisée ou urgente.
+                    </p>
+                </section>
+
+                <section class="mip-section">
+                    <h2>12. Modification des conditions</h2>
+                    <p>
+                        Ces conditions peuvent être mises à jour lorsque
+                        les services ou le fonctionnement de Maranatha
+                        évoluent.
+                    </p>
+                </section>
+            `
+        },
+
+        help: {
+            title: "Aide & support",
+            html: `
+                <h1 class="mip-main-title">Aide & support</h1>
+
+                <p class="mip-intro">
+                    Bienvenue dans l'assistance Maranatha. Cette page
+                    vous aide à résoudre les principaux problèmes
+                    pouvant survenir lors de l'utilisation de
+                    l'application.
+                </p>
+
+                <section class="mip-section">
+                    <h2>
+                        Une prédication programmée ne démarre pas
+                    </h2>
+                    <p>
+                        Vérifiez d'abord que le volume du téléphone est
+                        suffisamment élevé.
+                    </p>
+                    <p>
+                        Assurez-vous ensuite que Maranatha dispose des
+                        autorisations nécessaires pour les
+                        notifications, les alarmes et l'exécution en
+                        arrière-plan.
+                    </p>
+                    <p>
+                        Sur certains téléphones Android, le mode
+                        économie d'énergie peut empêcher une
+                        application de fonctionner normalement lorsque
+                        l'écran est éteint. Vérifiez alors les
+                        paramètres de batterie et autorisez Maranatha à
+                        fonctionner en arrière-plan.
+                    </p>
+                </section>
+
+                <section class="mip-section">
+                    <h2>Je n'entends pas la prédication</h2>
+                    <p>
+                        Vérifiez le volume multimédia et, lorsque cela
+                        est nécessaire, le volume des alarmes de votre
+                        téléphone.
+                    </p>
+                    <p>
+                        Vérifiez également qu'aucun appareil Bluetooth,
+                        casque ou écouteur connecté ne reçoit
+                        actuellement le son.
+                    </p>
+                </section>
+
+                <section class="mip-section">
+                    <h2>La prédication ne se charge pas</h2>
+                    <p>
+                        Vérifiez votre connexion Internet.
+                    </p>
+                    <p>
+                        Si votre connexion est lente ou momentanément
+                        indisponible, patientez quelques instants puis
+                        réessayez.
+                    </p>
+                </section>
+
+                <section class="mip-section">
+                    <h2>Je ne reçois pas les notifications</h2>
+                    <p>
+                        Ouvrez les paramètres Android de Maranatha et
+                        vérifiez que les notifications sont autorisées.
+                    </p>
+                    <p>
+                        Certains fabricants ajoutent leurs propres
+                        systèmes d'économie d'énergie. Il peut être
+                        nécessaire d'autoriser explicitement Maranatha
+                        à fonctionner en arrière-plan.
+                    </p>
+                </section>
+
+                <section class="mip-section">
+                    <h2>Je veux lire un livre</h2>
+                    <p>
+                        Ouvrez Bibliothèque puis choisissez la section
+                        consacrée aux livres.
+                    </p>
+                    <p>
+                        Sélectionnez le livre souhaité puis utilisez
+                        Lire pour ouvrir le document. Lorsqu'un bouton
+                        Télécharger est disponible, il permet
+                        d'enregistrer le fichier sur votre appareil.
+                    </p>
+                </section>
+
+                <section class="mip-section">
+                    <h2>
+                        Où trouver les anciennes prédications ?
+                    </h2>
+                    <p>
+                        Après la fin d'une prédication disponible pour
+                        archivage, celle-ci peut apparaître dans
+                        Bibliothèque → Prédications récentes.
+                    </p>
+                </section>
+
+                <section class="mip-section">
+                    <h2>
+                        L'application ne fonctionne plus correctement
+                    </h2>
+                    <p>
+                        Vérifiez votre connexion Internet, fermez puis
+                        rouvrez Maranatha et, si nécessaire, redémarrez
+                        votre téléphone.
+                    </p>
+                    <p>
+                        Assurez-vous également d'utiliser une version
+                        récente de l'application.
+                    </p>
+                </section>
+
+                <section class="mip-section">
+                    <h2>Signaler un problème</h2>
+                    <p>
+                        Si le problème persiste, contactez l'équipe
+                        Maranatha en indiquant si possible le modèle du
+                        téléphone, la version Android, la fonctionnalité
+                        concernée et l'heure approximative du problème.
+                    </p>
+                    <p>
+                        Ne transmettez jamais votre mot de passe dans
+                        une demande d'assistance.
+                    </p>
+                </section>
+            `
+        },
+
+        about: {
+            title: "À propos de Maranatha",
+            html: `
+                <h1 class="mip-main-title">
+                    À propos de Maranatha
+                </h1>
+
+                <p class="mip-intro" style="text-align:center">
+                    Une application chrétienne au service de la prière,
+                    de la Parole et de la communion spirituelle.
+                </p>
+
+                <section class="mip-section">
+                    <h2>Notre vision</h2>
+                    <p>
+                        Maranatha est née d'une vision simple : utiliser
+                        la technologie pour permettre à la Parole de
+                        Dieu et aux moments de prière d'accompagner le
+                        croyant au-delà des murs de l'église.
+                    </p>
+                    <p>
+                        Maranatha souhaite rapprocher la technologie de
+                        la vie spirituelle chrétienne.
+                    </p>
+                </section>
+
+                <section class="mip-section">
+                    <h2>Le réveil spirituel</h2>
+                    <p>
+                        L'une des fonctionnalités particulières de
+                        Maranatha est son système de prédications
+                        programmées.
+                    </p>
+                    <p>
+                        Lorsqu'un programme est préparé pour une heure
+                        déterminée, l'application peut avertir
+                        l'utilisateur et déclencher la lecture prévue
+                        sur les appareils compatibles et correctement
+                        configurés.
+                    </p>
+                </section>
+
+                <section class="mip-section">
+                    <h2>La Bibliothèque Maranatha</h2>
+                    <p>
+                        La plateforme comporte une bibliothèque destinée
+                        à conserver et organiser les ressources
+                        chrétiennes : prédications récentes,
+                        enseignements audio, vidéos, livres et
+                        documents.
+                    </p>
+                </section>
+
+                <section class="mip-section">
+                    <h2>Une plateforme administrée</h2>
+                    <p>
+                        Un espace d'administration permet aux
+                        responsables autorisés de préparer et gérer les
+                        contenus proposés à la communauté ainsi que de
+                        programmer les prédications.
+                    </p>
+                </section>
+
+                <section class="mip-section">
+                    <h2>Technologie au service de la foi</h2>
+                    <p>
+                        La technologie n'est pas la finalité de
+                        Maranatha. Elle constitue un moyen permettant de
+                        proposer une expérience chrétienne accessible,
+                        organisée et adaptée aux réalités des
+                        utilisateurs.
+                    </p>
+                </section>
+
+                <section class="mip-section">
+                    <h2>Notre mission</h2>
+                    <p>
+                        Prier. Écouter. Apprendre. Partager. Se préparer.
+                    </p>
+                    <p>
+                        Maranatha veut contribuer à créer un lien entre
+                        la vie quotidienne et les moments consacrés à
+                        Dieu.
+                    </p>
+                </section>
+
+                <section class="mip-section">
+                    <h2>Le sens de Maranatha</h2>
+                    <p>
+                        Le terme « Maranatha » est une expression
+                        araméenne présente dans le Nouveau Testament,
+                        traditionnellement comprise dans le sens de :
+                    </p>
+
+                    <div class="mip-quote">
+                        « Viens, Seigneur ! »
+                    </div>
+
+                    <p>
+                        Ce nom exprime l'espérance chrétienne du retour
+                        du Seigneur Jésus-Christ.
+                    </p>
+                </section>
+
+                <div class="mip-footer">
+                    MARANATHA<br>
+                    Communauté des Églises Missionnaires Maranatha
+                </div>
+            `
+        }
+    };
+
+    function openPage(name){
+        var data = pages[name];
+
+        if(!data){
+            return;
+        }
+
+        title.textContent = data.title;
+        content.innerHTML = data.html;
+        page.classList.add("mip-open");
+        page.setAttribute("aria-hidden","false");
+
+        if(scroll){
+            scroll.scrollTop = 0;
+        }
+
+        document.documentElement.style.overflow = "hidden";
+        document.body.style.overflow = "hidden";
+    }
+
+    function closePage(){
+        page.classList.remove("mip-open");
+        page.setAttribute("aria-hidden","true");
+        document.documentElement.style.overflow = "";
+        document.body.style.overflow = "";
+    }
+
+    back.addEventListener("click",closePage);
+
+    document.addEventListener("keydown",function(event){
+        if(
+            event.key === "Escape" &&
+            page.classList.contains("mip-open")
+        ){
+            closePage();
+        }
+    });
+
+    function normalizeText(value){
+        return String(value || "")
+            .replace(/\s+/g," ")
+            .trim()
+            .toLowerCase();
+    }
+
+    document.addEventListener("click",function(event){
+
+        if(page.classList.contains("mip-open")){
+            return;
+        }
+
+        var node =
+            event.target.closest(
+                "button,a,[role='button'],div"
+            );
+
+        if(!node){
+            return;
+        }
+
+        /* MARANATHA_LEGAL_DATA_DETECTION_V1 */
+
+        var extraRow =
+            event.target.closest(
+                "[data-maranatha-settings-extra]"
+            );
+
+        var extraType =
+            extraRow
+                ? extraRow.getAttribute(
+                    "data-maranatha-settings-extra"
+                )
+                : "";
+
+        var text = normalizeText(node.textContent);
+
+        var target = null;
+
+        if(extraType === "terms"){
+            target = "terms";
+        }
+        else if(extraType === "help"){
+            target = "help";
+        }
+        else if(text === "confidentialité et données"){
+            target = "privacy";
+        }
+        else if(
+            text === "conditions d’utilisation" ||
+            text === "conditions d'utilisation"
+        ){
+            target = "terms";
+        }
+        else if(text === "aide & support"){
+            target = "help";
+        }
+        else if(
+            text === "à propos de maranatha" ||
+            text === "a propos de maranatha"
+        ){
+            target = "about";
+        }
+
+        if(!target){
+            return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+
+        openPage(target);
+
+    },true);
+
+    window.MaranathaInfoPages = {
+        open:openPage,
+        close:closePage
+    };
+
+})();
+</script>
+<!-- /MARANATHA_LEGAL_PAGES_V1 -->
+
 </body>
 </html>

@@ -683,6 +683,45 @@ function whatsappUrl(phone){
 
 async function openDocument(type){
 
+    /* MARANATHA_LEGAL_DIRECT_V3 */
+    if (type === "terms") {
+        if (
+            window.MaranathaInfoPages &&
+            typeof window.MaranathaInfoPages.open === "function"
+        ) {
+            window.MaranathaInfoPages.open("terms");
+        }
+        return;
+    }
+
+    if (type === "help") {
+        if (
+            window.MaranathaInfoPages &&
+            typeof window.MaranathaInfoPages.open === "function"
+        ) {
+            window.MaranathaInfoPages.open("help");
+        }
+        return;
+    }
+
+
+    /* MARANATHA_LEGAL_PAGES_LINK_V2 */
+    if(
+        window.MaranathaInfoPages &&
+        typeof window.MaranathaInfoPages.open === "function"
+    ){
+        if(type === "terms"){
+            window.MaranathaInfoPages.open("terms");
+            return;
+        }
+
+        if(type === "help"){
+            window.MaranathaInfoPages.open("help");
+            return;
+        }
+    }
+
+
     let title = "";
     let field = "";
 
