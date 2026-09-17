@@ -493,3 +493,685 @@
 
     text-align:center;
 }
+
+/* ==========================================================
+   MARANATHA_LIBRARY_INTERFACE_V4
+   Protection visuelle complete de la Bibliotheque
+   ========================================================== */
+
+.mlib3,
+.mlib3 *,
+.mlib3 *::before,
+.mlib3 *::after{
+    box-sizing:border-box;
+}
+
+/* ---------- CONTENEUR ---------- */
+
+.mlib3{
+    width:100% !important;
+    max-width:100% !important;
+    padding:0 12px 18px !important;
+    overflow:hidden;
+    font-family:inherit;
+}
+
+/* ---------- ONGLETS ---------- */
+
+.mlib3 .mlib3-tabs{
+    display:flex !important;
+    align-items:center !important;
+    gap:7px !important;
+    width:100% !important;
+    padding:12px 0 11px !important;
+    overflow-x:auto !important;
+    overflow-y:hidden !important;
+    scrollbar-width:none;
+}
+
+.mlib3 .mlib3-tabs::-webkit-scrollbar{
+    display:none;
+}
+
+.mlib3 button.mlib3-tab{
+    appearance:none !important;
+    -webkit-appearance:none !important;
+
+    position:relative !important;
+
+    display:inline-flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+
+    flex:0 0 auto !important;
+
+    width:auto !important;
+    min-width:auto !important;
+    max-width:none !important;
+
+    height:36px !important;
+    min-height:36px !important;
+
+    margin:0 !important;
+    padding:0 13px !important;
+
+    border:1px solid #e1e1e6 !important;
+    border-radius:10px !important;
+
+    background:#fff !important;
+    background-image:none !important;
+
+    color:#65656d !important;
+
+    font-family:inherit !important;
+    font-size:9.5px !important;
+    line-height:1 !important;
+    font-weight:650 !important;
+
+    text-align:center !important;
+    white-space:nowrap !important;
+
+    box-shadow:none !important;
+    transform:none !important;
+
+    cursor:pointer !important;
+}
+
+.mlib3 button.mlib3-tab.active{
+    border-color:#b00028 !important;
+    background:#b00028 !important;
+    background-image:none !important;
+    color:#fff !important;
+
+    box-shadow:
+        0 5px 13px rgba(176,0,40,.18) !important;
+}
+
+/* ---------- TITRE DE SECTION ---------- */
+
+.mlib3 .mlib3-title{
+    display:block !important;
+    width:auto !important;
+
+    margin:10px 2px 9px !important;
+    padding:0 !important;
+
+    background:transparent !important;
+
+    color:#222226 !important;
+
+    font-size:11px !important;
+    line-height:16px !important;
+    font-weight:750 !important;
+}
+
+/* ---------- LISTES ---------- */
+
+.mlib3 .mlib3-list{
+    display:grid !important;
+    width:100% !important;
+    gap:8px !important;
+}
+
+/* ---------- CARTE AUDIO / LIVE ---------- */
+
+.mlib3 .mlib3-row{
+    position:relative !important;
+
+    display:flex !important;
+    align-items:center !important;
+
+    width:100% !important;
+    min-width:0 !important;
+    min-height:62px !important;
+
+    gap:9px !important;
+
+    margin:0 !important;
+    padding:9px !important;
+
+    overflow:hidden !important;
+
+    border:1px solid #ededf0 !important;
+    border-radius:12px !important;
+
+    background:#fff !important;
+    background-image:none !important;
+
+    box-shadow:none !important;
+}
+
+.mlib3 .mlib3-row.live{
+    border-color:rgba(176,0,40,.18) !important;
+}
+
+/* ---------- ICONE TYPE ---------- */
+
+.mlib3 .mlib3-type{
+    position:relative !important;
+
+    display:grid !important;
+    place-items:center !important;
+
+    flex:0 0 42px !important;
+
+    width:42px !important;
+    min-width:42px !important;
+    max-width:42px !important;
+
+    height:42px !important;
+    min-height:42px !important;
+    max-height:42px !important;
+
+    margin:0 !important;
+    padding:0 !important;
+
+    overflow:hidden !important;
+
+    border:0 !important;
+    border-radius:11px !important;
+
+    background:#f3f3f5 !important;
+    background-image:none !important;
+
+    color:#717178 !important;
+
+    font-size:8px !important;
+    line-height:1 !important;
+    font-weight:800 !important;
+
+    box-shadow:none !important;
+}
+
+.mlib3 .mlib3-row.live .mlib3-type{
+    background:#fff0f3 !important;
+    color:#b00028 !important;
+}
+
+/* ---------- TEXTE ---------- */
+
+.mlib3 .mlib3-main{
+    display:block !important;
+
+    flex:1 1 auto !important;
+
+    width:auto !important;
+    min-width:0 !important;
+
+    margin:0 !important;
+    padding:0 !important;
+
+    background:transparent !important;
+}
+
+.mlib3 .mlib3-name{
+    display:block !important;
+
+    width:auto !important;
+
+    margin:0 !important;
+    padding:0 !important;
+
+    background:transparent !important;
+
+    color:#242428 !important;
+
+    font-size:10.5px !important;
+    line-height:14px !important;
+    font-weight:700 !important;
+
+    overflow:hidden !important;
+    white-space:nowrap !important;
+    text-overflow:ellipsis !important;
+}
+
+.mlib3 .mlib3-meta{
+    display:block !important;
+
+    width:auto !important;
+
+    margin:2px 0 0 !important;
+    padding:0 !important;
+
+    background:transparent !important;
+
+    color:#939399 !important;
+
+    font-size:8.5px !important;
+    line-height:12px !important;
+
+    overflow:hidden !important;
+    white-space:nowrap !important;
+    text-overflow:ellipsis !important;
+}
+
+/* ---------- BADGE EN DIRECT ---------- */
+
+.mlib3 .mlib3-live{
+    position:relative !important;
+
+    display:inline-flex !important;
+    align-items:center !important;
+
+    width:auto !important;
+    min-width:0 !important;
+    max-width:max-content !important;
+
+    height:auto !important;
+    min-height:0 !important;
+
+    gap:4px !important;
+
+    margin:3px 0 0 !important;
+    padding:0 !important;
+
+    border:0 !important;
+    border-radius:0 !important;
+
+    background:transparent !important;
+    background-image:none !important;
+
+    color:#c0002d !important;
+
+    font-size:8px !important;
+    line-height:11px !important;
+    font-weight:750 !important;
+
+    box-shadow:none !important;
+}
+
+.mlib3 .mlib3-live::before{
+    content:"" !important;
+
+    position:static !important;
+
+    display:block !important;
+
+    flex:0 0 5px !important;
+
+    width:5px !important;
+    min-width:5px !important;
+    max-width:5px !important;
+
+    height:5px !important;
+    min-height:5px !important;
+    max-height:5px !important;
+
+    margin:0 !important;
+    padding:0 !important;
+
+    border:0 !important;
+    border-radius:50% !important;
+
+    background:#e11d48 !important;
+
+    box-shadow:none !important;
+}
+
+/* ---------- ZONE ACTIONS ---------- */
+
+.mlib3 .mlib3-actions,
+.mlib3 .mlib3-video-actions,
+.mlib3 .mlib3-book-actions{
+    position:relative !important;
+
+    display:flex !important;
+    align-items:center !important;
+    justify-content:flex-end !important;
+
+    flex:0 0 auto !important;
+
+    width:auto !important;
+    min-width:0 !important;
+    max-width:100% !important;
+
+    height:auto !important;
+    min-height:0 !important;
+
+    gap:5px !important;
+
+    margin:0 !important;
+    padding:0 !important;
+
+    overflow:visible !important;
+
+    border:0 !important;
+
+    background:transparent !important;
+    background-image:none !important;
+
+    box-shadow:none !important;
+}
+
+/* ---------- TOUS LES BOUTONS D'ACTION ---------- */
+
+.mlib3 button.mlib3-open,
+.mlib3 a.mlib3-open,
+.mlib3 button.mlib3-share,
+.mlib3 a.mlib3-share,
+.mlib3 button.mlib3-download,
+.mlib3 a.mlib3-download{
+
+    appearance:none !important;
+    -webkit-appearance:none !important;
+
+    position:relative !important;
+
+    display:inline-flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+
+    flex:0 0 auto !important;
+
+    width:auto !important;
+    min-width:0 !important;
+    max-width:none !important;
+
+    height:30px !important;
+    min-height:30px !important;
+    max-height:30px !important;
+
+    margin:0 !important;
+    padding:0 10px !important;
+
+    overflow:hidden !important;
+
+    border:0 !important;
+    border-radius:8px !important;
+
+    background-image:none !important;
+
+    font-family:inherit !important;
+    font-size:8.5px !important;
+    line-height:1 !important;
+    font-weight:680 !important;
+
+    text-decoration:none !important;
+    text-align:center !important;
+    white-space:nowrap !important;
+
+    box-shadow:none !important;
+    transform:none !important;
+
+    cursor:pointer !important;
+}
+
+/* Lire / ouvrir */
+
+.mlib3 button.mlib3-open,
+.mlib3 a.mlib3-open{
+    background:#b00028 !important;
+    color:#fff !important;
+}
+
+/* Partager / télécharger */
+
+.mlib3 button.mlib3-share,
+.mlib3 a.mlib3-share,
+.mlib3 button.mlib3-download,
+.mlib3 a.mlib3-download{
+    background:#f2f2f4 !important;
+    color:#5f5f66 !important;
+}
+
+/* Etats */
+
+.mlib3 button.mlib3-open:hover,
+.mlib3 a.mlib3-open:hover{
+    background:#950022 !important;
+}
+
+.mlib3 button.mlib3-share:hover,
+.mlib3 a.mlib3-share:hover,
+.mlib3 button.mlib3-download:hover,
+.mlib3 a.mlib3-download:hover{
+    background:#e8e8eb !important;
+}
+
+/* ---------- VIDEO ---------- */
+
+.mlib3 .mlib3-video-grid{
+    display:grid !important;
+
+    grid-template-columns:
+        repeat(2,minmax(0,1fr)) !important;
+
+    width:100% !important;
+
+    gap:10px !important;
+}
+
+.mlib3 .mlib3-video{
+    width:100% !important;
+    min-width:0 !important;
+
+    margin:0 !important;
+    padding:0 !important;
+
+    background:transparent !important;
+}
+
+.mlib3 .mlib3-video-cover{
+    position:relative !important;
+
+    display:block !important;
+
+    width:100% !important;
+    height:auto !important;
+
+    aspect-ratio:16 / 9 !important;
+
+    margin:0 !important;
+    padding:0 !important;
+
+    overflow:hidden !important;
+
+    border:0 !important;
+    border-radius:11px !important;
+
+    background:#151519 !important;
+
+    box-shadow:none !important;
+}
+
+.mlib3 .mlib3-video-cover img{
+    display:block !important;
+
+    width:100% !important;
+    height:100% !important;
+
+    margin:0 !important;
+    padding:0 !important;
+
+    object-fit:cover !important;
+}
+
+.mlib3 .mlib3-play{
+    position:absolute !important;
+
+    left:50% !important;
+    top:50% !important;
+
+    transform:translate(-50%,-50%) !important;
+
+    display:grid !important;
+    place-items:center !important;
+
+    width:32px !important;
+    min-width:32px !important;
+    max-width:32px !important;
+
+    height:32px !important;
+    min-height:32px !important;
+    max-height:32px !important;
+
+    margin:0 !important;
+    padding:0 !important;
+
+    border:0 !important;
+    border-radius:50% !important;
+
+    background:#b00028 !important;
+
+    color:#fff !important;
+
+    box-shadow:
+        0 5px 14px rgba(176,0,40,.25) !important;
+}
+
+/* ---------- LIVRES ---------- */
+
+.mlib3 .mlib3-book-grid{
+    display:grid !important;
+
+    grid-template-columns:
+        repeat(2,minmax(0,1fr)) !important;
+
+    width:100% !important;
+
+    gap:11px !important;
+}
+
+.mlib3 .mlib3-book{
+    width:100% !important;
+    min-width:0 !important;
+
+    margin:0 !important;
+    padding:0 !important;
+
+    background:transparent !important;
+}
+
+.mlib3 .mlib3-book-cover{
+    position:relative !important;
+
+    display:block !important;
+
+    width:100% !important;
+    height:auto !important;
+
+    aspect-ratio:3 / 4 !important;
+
+    margin:0 !important;
+    padding:0 !important;
+
+    overflow:hidden !important;
+
+    border:0 !important;
+    border-radius:11px !important;
+
+    background:
+        linear-gradient(
+            145deg,
+            #b00028,
+            #600016
+        ) !important;
+
+    text-decoration:none !important;
+
+    box-shadow:
+        0 4px 12px rgba(0,0,0,.08) !important;
+}
+
+.mlib3 .mlib3-book-cover img{
+    display:block !important;
+
+    width:100% !important;
+    height:100% !important;
+
+    margin:0 !important;
+    padding:0 !important;
+
+    object-fit:cover !important;
+}
+
+.mlib3 .mlib3-book-name,
+.mlib3 .mlib3-video-name{
+    display:block !important;
+
+    width:auto !important;
+
+    margin:6px 0 0 !important;
+    padding:0 !important;
+
+    background:transparent !important;
+
+    color:#252529 !important;
+
+    font-size:9.7px !important;
+    line-height:13px !important;
+    font-weight:680 !important;
+}
+
+.mlib3 .mlib3-book-author{
+    display:block !important;
+
+    width:auto !important;
+
+    margin:2px 0 0 !important;
+    padding:0 !important;
+
+    background:transparent !important;
+
+    color:#96969c !important;
+
+    font-size:8px !important;
+    line-height:11px !important;
+}
+
+/* ---------- SECURITE CONTRE LES ANCIENS STYLES ---------- */
+
+/*
+   Aucun bouton de la bibliotheque ne doit devenir
+   une barre rouge de 100% de largeur.
+*/
+
+.mlib3 button:not(.mlib3-tab),
+.mlib3 a.mlib3-open,
+.mlib3 a.mlib3-share,
+.mlib3 a.mlib3-download{
+    float:none !important;
+}
+
+/* ---------- MOBILE ---------- */
+
+@media (max-width:480px){
+
+    .mlib3{
+        padding-left:10px !important;
+        padding-right:10px !important;
+    }
+
+    .mlib3 .mlib3-row{
+        gap:8px !important;
+        padding:9px 8px !important;
+    }
+
+    .mlib3 .mlib3-type{
+        flex-basis:40px !important;
+        width:40px !important;
+        min-width:40px !important;
+        max-width:40px !important;
+
+        height:40px !important;
+        min-height:40px !important;
+        max-height:40px !important;
+    }
+
+    .mlib3 button.mlib3-open,
+    .mlib3 a.mlib3-open,
+    .mlib3 button.mlib3-share,
+    .mlib3 a.mlib3-share,
+    .mlib3 button.mlib3-download,
+    .mlib3 a.mlib3-download{
+        height:29px !important;
+        min-height:29px !important;
+        max-height:29px !important;
+
+        padding-left:8px !important;
+        padding-right:8px !important;
+
+        font-size:8px !important;
+    }
+}
+

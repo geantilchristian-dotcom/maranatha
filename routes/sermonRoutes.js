@@ -91,6 +91,43 @@ router.get('/', async (_req, res) => {
   }
 });
 
+
+/* ==========================================================
+   MARANATHA_SERMON_RECENT_V1
+   Predications terminees pour l'espace public
+   ========================================================== */
+
+router.get('/recent', async (_req, res) => {
+  try {
+    const sermons = await Sermon.find({
+      statut: 'termine',
+      audioUrl: { $exists: true, $ne: '' },
+    })
+      .sort({ dateDiffusion: -1 })
+      .limit(20)
+      .select({
+        titre: 1,
+        description: 1,
+        audioUrl: 1,
+        dateDiffusion: 1,
+        dateFin: 1,
+        dureeSecondes: 1,
+        statut: 1,
+      })
+      .lean();
+
+    return res.json(sermons);
+  } catch (error) {
+    console.error('[sermons/recent]', error.message);
+
+    return res.status(500).json({
+      error: 'Recuperation des predications recentes impossible',
+    });
+  }
+});
+
+/* MARANATHA_SERMON_RECENT_V1_END */
+
 router.post('/schedule', adminOnly, upload.single('audio'), async (req, res) => {
   try {
     const titre = String(req.body.titre || '').trim().slice(0, 180);
@@ -113,14 +150,55 @@ router.post('/schedule', adminOnly, upload.single('audio'), async (req, res) => 
     let dureeSecondes = 0;
 
     if (req.file) {
+      /* MARANATHA_AUDIO_DURATION_METADATA_V3 */
+      try {
+        const { parseBuffer } =
+          await import('music-metadata');
+
+        const metadata =
+          await parseBuffer(
+            req.file.buffer,
+            req.file.mimetype
+              ? { mimeType: req.file.mimetype }
+              : undefined
+          );
+
+        dureeSecondes =
+          Number(
+            metadata?.format?.duration || 0
+          );
+
+        console.log(
+          '[Audio/duree detectee]',
+          dureeSecondes,
+          'secondes'
+        );
+      } catch (error) {
+        console.warn(
+          '[Audio/duree non detectee]',
+          error.message || error
+        );
+      }
+
       const resultatUpload = await uploadAudio(
         req.file.buffer,
         req.file.originalname,
         { withMetadata: true },
       );
 
-      audioUrl = resultatUpload.url;
-      dureeSecondes = resultatUpload.durationSeconds;
+      if (typeof resultatUpload === 'string') {
+        audioUrl = resultatUpload;
+      } else {
+        audioUrl = String(resultatUpload?.url || '').trim();
+      }
+      if (typeof resultatUpload !== 'string') {
+        if (dureeSecondes <= 0) {
+          dureeSecondes =
+            Number(
+              resultatUpload?.durationSeconds || 0
+            );
+        }
+      }
     }
 
     if (!audioUrl) {

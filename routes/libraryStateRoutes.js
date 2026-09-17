@@ -1,4 +1,4 @@
-const express = require("express");
+﻿const express = require("express");
 const multer = require("multer");
 const LibraryState =
   require("../models/LibraryState");
@@ -24,7 +24,7 @@ router.get(
         value:
           state
             ? state.value
-            : [],
+            : { recent: [], live: [], audio: [], video: [], book: [] },
         updatedAt:
           state
             ? state.updatedAt
@@ -39,7 +39,7 @@ router.get(
         .status(500)
         .json({
           error:
-            "Impossible de charger la bibliothèque.",
+            "Impossible de charger la bibliothÃ¨que.",
         });
     }
   }
@@ -62,7 +62,7 @@ router.put(
           .status(400)
           .json({
             error:
-              "Données de bibliothèque absentes.",
+              "DonnÃ©es de bibliothÃ¨que absentes.",
           });
       }
       const value =
@@ -77,7 +77,7 @@ router.put(
           .status(413)
           .json({
             error:
-              "La bibliothèque est trop volumineuse.",
+              "La bibliothÃ¨que est trop volumineuse.",
           });
       }
       const state =
@@ -114,7 +114,7 @@ router.put(
         .status(500)
         .json({
           error:
-            "Impossible d'enregistrer la bibliothèque.",
+            "Impossible d'enregistrer la bibliothÃ¨que.",
         });
     }
   }
@@ -147,7 +147,7 @@ const upload =
           allowed
             ? null
             : new Error(
-                "Type de fichier non autorisé."
+                "Type de fichier non autorisÃ©."
               ),
           allowed
         );
@@ -192,7 +192,7 @@ function uploadParser(
     );
   }
   /*
-   * Compatibilité avec l'ancienne interface
+   * CompatibilitÃ© avec l'ancienne interface
    * qui envoyait directement le fichier brut.
    */
   return express.raw({
@@ -259,7 +259,7 @@ router.post(
           .json({
             ok: false,
             error:
-              "Aucun fichier reçu.",
+              "Aucun fichier reÃ§u.",
           });
       }
       const url =
@@ -285,10 +285,104 @@ router.post(
           ok: false,
           error:
             error.message ||
-            "Téléversement impossible.",
+            "TÃ©lÃ©versement impossible.",
         });
     }
   }
 );
+
+/* ==========================================================
+   MARANATHA_LIBRARY_PDF_READER_ROUTE_V1
+   Lecture PDF Cloudinary en mode inline
+   ========================================================== */
+
+router.get("/read-pdf", async (req, res) => {
+  try {
+    const rawUrl = String(req.query.url || "").trim();
+
+    if (!rawUrl) {
+      return res.status(400).json({
+        ok: false,
+        error: "URL PDF manquante."
+      });
+    }
+
+    let parsed;
+
+    try {
+      parsed = new URL(rawUrl);
+    } catch (_error) {
+      return res.status(400).json({
+        ok: false,
+        error: "URL PDF invalide."
+      });
+    }
+
+    if (
+      parsed.protocol !== "https:" ||
+      parsed.hostname !== "res.cloudinary.com"
+    ) {
+      return res.status(403).json({
+        ok: false,
+        error: "Source PDF non autorisee."
+      });
+    }
+
+    const response = await fetch(rawUrl, {
+      method: "GET",
+      redirect: "follow"
+    });
+
+    if (!response.ok) {
+      return res.status(502).json({
+        ok: false,
+        error: "Impossible de recuperer le PDF.",
+        status: response.status
+      });
+    }
+
+    const contentType =
+      String(response.headers.get("content-type") || "")
+        .toLowerCase();
+
+    if (
+      contentType &&
+      !contentType.includes("application/pdf") &&
+      !contentType.includes("application/octet-stream")
+    ) {
+      return res.status(415).json({
+        ok: false,
+        error: "La ressource recue n est pas un PDF."
+      });
+    }
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", 'inline; filename="maranatha-livre.pdf"');
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    res.setHeader("Cache-Control", "private, max-age=300");
+
+    const arrayBuffer = await response.arrayBuffer();
+    const pdfBuffer = Buffer.from(arrayBuffer);
+
+    res.setHeader("Content-Length", String(pdfBuffer.length));
+
+    return res.send(pdfBuffer);
+
+  } catch (error) {
+    console.error("[LIBRARY PDF READER]", error);
+
+    if (res.headersSent) {
+      return;
+    }
+
+    return res.status(500).json({
+      ok: false,
+      error: "Lecture du PDF impossible."
+    });
+  }
+});
+
+/* MARANATHA_LIBRARY_PDF_READER_ROUTE_V1_END */
+
 module.exports =
   router;

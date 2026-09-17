@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+﻿const mongoose = require("mongoose");
 const libraryStateSchema =
   new mongoose.Schema(
     {
@@ -10,14 +10,14 @@ const libraryStateSchema =
       },
       /*
        * On conserve volontairement la structure exacte
-       * utilisée par l'interface actuelle.
+       * utilisÃ©e par l'interface actuelle.
        *
-       * Cela évite de casser le design ou les données
+       * Cela Ã©vite de casser le design ou les donnÃ©es
        * existantes pendant la migration.
        */
       value: {
         type: mongoose.Schema.Types.Mixed,
-        default: [],
+      default: () => ({ recent: [], live: [], audio: [], video: [], book: [] }),
       },
       updatedAt: {
         type: Date,

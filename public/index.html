@@ -2761,7 +2761,7 @@ svg {
 }
 </style>
 <link rel="stylesheet" href="/banner-carousel-local.css?v=1">
-<link rel="stylesheet" href="/library-user-v3.css?v=1">
+<link rel="stylesheet" href="/library-user-v3.css?v=20260917-interface-v4">
 <link rel="stylesheet" href="/program-user-v2.css?v=3">
 <link rel="stylesheet" href="/bible-user-v2.css?v=5">
 <link rel="stylesheet" href="/bible-study-user-v3.css?v=1">
@@ -3563,16 +3563,10 @@ async function loadBroadcast() {
                             ).getTime()
                     )[0];
         }
-        if (
-            !selected
-        ) {
-            selected =
-                sermons.find(
-                    sermon =>
-                        sermon &&
-                        sermon.audioUrl
-                );
-        }
+        /* MARANATHA_NO_OLD_SERMON_FALLBACK_V1
+           Aucun ancien sermon ne doit remplacer
+           un direct ou une programmation future.
+        */
         if (
             !selected
         ) {
@@ -6804,10 +6798,29 @@ function showMessageForm(
   }
 
   function pickLive(list) {
+    var maintenant = Date.now();
+
     return list.find(function (item) {
-      return item && item.statut === "en_cours" && item.audioUrl;
-    }) || list.find(function (item) {
-      return item && item.audioUrl;
+      if (
+        !item ||
+        item.statut !== "en_cours" ||
+        !item.audioUrl
+      ) {
+        return false;
+      }
+
+      if (item.dateFin) {
+        var fin = new Date(item.dateFin).getTime();
+
+        if (
+          Number.isFinite(fin) &&
+          fin <= maintenant
+        ) {
+          return false;
+        }
+      }
+
+      return true;
     }) || null;
   }
 
@@ -7031,7 +7044,7 @@ function showMessageForm(
 <script src="/profile-final.js?v=20260916-fix3"></script>
 <script src="/settings-final.js?v=20260916-fix3"></script>
 <script src="/library-sheet-guard.js?v=20260916-fix3"></script>
-<script src="/library-user-bridge.js?v=20260916-fix3"></script>
+<script src="/library-user-bridge.js?v=20260917-anchor-fix1"></script>
 <script src="/media-user-v2.js?v=20260916-fix3"></script>
 <script src="/program-user-v2.js?v=20260916-fix3"></script>
 <script src="/bible-user-v2.js?v=20260916-fix3"></script>

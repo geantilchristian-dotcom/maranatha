@@ -69,6 +69,112 @@ function __maranathaLibraryStrictlyOpen(){
     let activeTab =
         "recent";
 
+    /* ======================================================
+       MARANATHA_RECENT_SERMONS_API_V1
+       Predications terminees venant du serveur
+       ====================================================== */
+
+    let recentSermons = [];
+
+    async function loadRecentSermons(){
+
+        try{
+
+            const response =
+                await fetch(
+                    "/api/sermons/recent",
+                    {
+                        cache:"no-store"
+                    }
+                );
+
+            if(!response.ok){
+                throw new Error(
+                    "HTTP " +
+                    response.status
+                );
+            }
+
+            const data =
+                await response.json();
+
+            recentSermons =
+                (
+                    Array.isArray(data)
+                        ? data
+                        : []
+                )
+                .filter(function(sermon){
+
+                    return (
+                        sermon &&
+                        sermon.audioUrl
+                    );
+
+                })
+                .map(function(sermon){
+
+                    return {
+                        id:
+                            sermon._id ||
+                            sermon.id ||
+                            "",
+
+                        title:
+                            sermon.titre ||
+                            "Prédication Maranatha",
+
+                        url:
+                            sermon.audioUrl,
+
+                        speaker:
+                            "Prédication",
+
+                        active:
+                            true,
+
+                        sourceMode:
+                            "sermon",
+
+                        dateDiffusion:
+                            sermon.dateDiffusion,
+
+                        dateFin:
+                            sermon.dateFin,
+
+                        dureeSecondes:
+                            sermon.dureeSecondes,
+
+                        statut:
+                            sermon.statut
+                    };
+
+                });
+
+            if(
+                activeTab === "recent" &&
+                typeof render === "function"
+            ){
+                render();
+            }
+
+        }catch(error){
+
+            console.warn(
+                "[MARANATHA RECENT SERMONS]",
+                error
+            );
+
+        }
+    }
+
+    loadRecentSermons();
+
+    setInterval(
+        loadRecentSermons,
+        30000
+    );
+
 
     /* ======================================================
        STOCKAGE PARTAGE ADMIN / FIDELE
@@ -437,9 +543,7 @@ function __maranathaLibraryStrictlyOpen(){
                             ? `
                                 <a
                                     class="mlib3-open"
-                                    href="${esc(item.url)}"
-                                    target="_blank"
-                                    rel="noopener noreferrer">
+                                    href="${esc(item.url)}">
 
                                     ${action}
 
@@ -597,8 +701,8 @@ function __maranathaLibraryStrictlyOpen(){
                                 <a
                                     class="mlib3-book-cover"
                                     href="${esc(item.url || "#")}"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
+                                    data-bib-read-pdf
+                                    data-url="${esc(item.url || "")}"
                                     title="Ouvrir le livre">
 
                                     ${
@@ -647,8 +751,8 @@ function __maranathaLibraryStrictlyOpen(){
                                                 <a
                                                     class="mlib3-open"
                                                     href="${esc(item.url)}"
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
+                                                    data-bib-read-pdf
+                                                    data-url="${esc(item.url)}"
                                                     title="Lire le livre">
                                                     Lire
                                                 </a>
@@ -707,9 +811,11 @@ function __maranathaLibraryStrictlyOpen(){
 
 
         const list =
-            visibleItems(
-                activeTab
-            );
+            activeTab === "recent"
+                ? recentSermons
+                : visibleItems(
+                    activeTab
+                );
 
 
         if(!list.length){
@@ -1096,6 +1202,45 @@ function __maranathaLibraryStrictlyOpen(){
     /*
      * Synchronisation avec l'autre onglet navigateur.
      */
+
+
+    /* MARANATHA_PDF_READER_V1 */
+    document.addEventListener(
+        "click",
+        function(event){
+
+            const reader =
+                event.target.closest(
+                    "[data-bib-read-pdf]"
+                );
+
+            if(!reader){
+                return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+
+            const url =
+                reader.dataset.url ||
+                reader.getAttribute("href");
+
+            if(!url || url === "#"){
+                return;
+            }
+
+            const readUrl =
+                "/api/library/read-pdf?url=" +
+                encodeURIComponent(url);
+
+            window.open(
+                readUrl,
+                "_blank",
+                "noopener,noreferrer"
+            );
+        },
+        false
+    );
 
     window.addEventListener(
         "storage",

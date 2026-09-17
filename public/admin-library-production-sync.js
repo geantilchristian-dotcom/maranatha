@@ -1,4 +1,4 @@
-(function(){
+﻿(function(){
 "use strict";
 const KEY =
   "maranatha_library_v2";
@@ -107,7 +107,7 @@ async function saveRemote(
     );
   if(!response.ok){
     let message =
-      "Bibliothèque HTTP " +
+      "BibliothÃ¨que HTTP " +
       response.status;
     try {
       const result =
@@ -125,82 +125,176 @@ async function saveRemote(
   );
 }
 async function loadRemote(){
-  const response =
-    await nativeFetch(
-      "/api/library/state",
-      {
-        cache:
-          "no-store",
-      }
-    );
-  if(!response.ok){
-    throw new Error(
-      "Bibliothèque HTTP " +
-      response.status
-    );
-  }
-  const result =
-    await response.json();
-  const remote =
-    Object.prototype.hasOwnProperty.call(
-      result,
-      "value"
-    )
-      ? result.value
-      : [];
-  const local =
-    parse(
-      localStorage.getItem(KEY)
-    );
-  const remoteEmpty =
-    Array.isArray(remote)
-      ? remote.length === 0
-      : (
-          remote == null ||
-          (
-            typeof remote === "object" &&
-            Object.keys(remote).length === 0
-          )
-        );
-  const localHasData =
-    Array.isArray(local)
-      ? local.length > 0
-      : (
-          local &&
-          typeof local === "object" &&
-          Object.keys(local).length > 0
-        );
-  /*
-   * Première migration :
-   * si MongoDB est vide mais le navigateur admin
-   * contient déjà la vraie bibliothèque, on la conserve.
-   */
-  if(
-    remoteEmpty &&
-    localHasData &&
-    authenticated()
-  ){
-    await saveRemote(
-      local
-    );
-    cache(
-      local
-    );
-    console.log(
-      "[BIBLIOTHEQUE] Anciennes données locales migrées vers MongoDB."
-    );
-    return;
-  }
-  cache(
-    remote
-  );
-  console.log(
-    "[BIBLIOTHEQUE] MongoDB -> Admin"
-  );
+
+const emptyLibrary = () => ({
+recent: [],
+live: [],
+audio: [],
+video: [],
+book: [],
+});
+
+const normalizeLibrary = (value) => {
+
+const clean = emptyLibrary();
+
+if(
+!value ||
+Array.isArray(value) ||
+typeof value !== "object"
+){
+return clean;
+}
+
+Object.keys(clean).forEach(
+(key) => {
+clean[key] =
+Array.isArray(value[key])
+? value[key]
+: [];
+}
+);
+
+return clean;
+};
+
+const hasRealData = (value) => {
+
+return [
+"recent",
+"live",
+"audio",
+"video",
+"book",
+].some(
+(key) =>
+Array.isArray(value[key]) &&
+value[key].length > 0
+);
+
+};
+
+const response =
+await nativeFetch(
+"/api/library/state",
+{
+cache: "no-store",
+}
+);
+
+if(!response.ok){
+throw new Error(
+"Bibliothèque HTTP " +
+response.status
+);
+}
+
+const result =
+await response.json();
+
+const remoteRaw =
+Object.prototype.hasOwnProperty.call(
+result,
+"value"
+)
+? result.value
+: null;
+
+const remote =
+normalizeLibrary(
+remoteRaw
+);
+
+const local =
+normalizeLibrary(
+parse(
+localStorage.getItem(KEY)
+)
+);
+
+const remoteHasData =
+hasRealData(remote);
+
+const localHasData =
+hasRealData(local);
+
+/*
+ * Si MongoDB est vide mais que le navigateur
+ * contient de vraies données, on conserve le local.
+ */
+if(
+!remoteHasData &&
+localHasData &&
+authenticated()
+){
+
+await saveRemote(
+local
+);
+
+cache(
+local
+);
+
+console.log(
+"[BIBLIOTHEQUE] Données locales conservées et envoyées vers MongoDB."
+);
+
+return;
+}
+
+/*
+ * Si MongoDB contient de vraies données,
+ * MongoDB devient la source de référence.
+ */
+if(remoteHasData){
+
+cache(
+remote
+);
+
+console.log(
+"[BIBLIOTHEQUE] MongoDB -> Admin"
+);
+
+return;
+}
+
+/*
+ * Les deux côtés sont réellement vides.
+ * On utilise malgré tout le nouveau format normalisé.
+ */
+cache(
+remote
+);
+
+console.log(
+"[BIBLIOTHEQUE] Bibliothèque vide normalisée."
+);
+
+/*
+ * Convertit également l'ancien [] MongoDB
+ * vers la nouvelle structure, si l'admin est connecté.
+ */
+if(
+authenticated() &&
+Array.isArray(remoteRaw)
+){
+
+await saveRemote(
+remote
+);
+
+console.log(
+"[BIBLIOTHEQUE] Ancien format MongoDB [] corrigé."
+);
+
+}
+
 }
 /*
  * Ajoute automatiquement le mot de passe Admin
- * à l'upload Cloudinary de la Bibliothèque.
+ * Ã  l'upload Cloudinary de la BibliothÃ¨que.
  */
 window.fetch =
   function(

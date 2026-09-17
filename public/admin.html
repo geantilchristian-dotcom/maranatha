@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
@@ -784,7 +784,7 @@ body,
 <!-- LOGIN -->
 <div id="login-page">
   <div class="login-card">
-    <div class="logo-icon">⛪</div>
+    <div class="logo-icon">â›ª</div>
     <div class="logo-title">MARANATHA</div>
     <div class="logo-sub">Espace réservé au Pasteur</div>
     <input type="password" id="password-input" placeholder="Mot de passe" onkeydown="if(event.key==='Enter')login()" />
@@ -798,7 +798,7 @@ body,
 
   <header>
     <div class="header-left">
-      <div class="header-logo">⛪</div>
+      <div class="header-logo">â›ª</div>
       <div>
         <div class="header-title">MARANATHA</div>
         <div class="header-sub">Tableau de bord du Pasteur</div>
@@ -5448,6 +5448,60 @@ setTimeout(
 <script src="/admin-params-v2.js?v=2"></script>
   <script src="/admin-auth-production-v3.js?v=20260916-fix3"></script>
   <script src="/admin-members-production-sync.js?v=20260916-fix3"></script>
-  <script src="/admin-library-production-sync.js?v=20260916-fix3"></script>
+  <script src="/admin-library-production-sync.js?v=20260917-state-fix1"></script>
+
+<!-- MARANATHA_SERMON_AUTO_DATETIME_V1 -->
+<script>
+(function () {
+
+    function pad(n) {
+        return String(n).padStart(2, "0");
+    }
+
+    function setSermonDateNow() {
+
+        const input =
+            document.getElementById("f-date");
+
+        if (!input) return;
+
+        const now = new Date();
+
+        // La route serveur exige au moins
+        // 30 secondes dans le futur.
+        now.setMinutes(now.getMinutes() + 1);
+        now.setSeconds(0, 0);
+
+        const value =
+            now.getFullYear() + "-" +
+            pad(now.getMonth() + 1) + "-" +
+            pad(now.getDate()) + "T" +
+            pad(now.getHours()) + ":" +
+            pad(now.getMinutes());
+
+        input.value = value;
+        input.min = value;
+    }
+
+    if (document.readyState === "loading") {
+
+        document.addEventListener(
+            "DOMContentLoaded",
+            setSermonDateNow,
+            { once: true }
+        );
+
+    } else {
+
+        setSermonDateNow();
+    }
+
+    window.MARANATHA_SET_SERMON_DATE_NOW =
+        setSermonDateNow;
+
+})();
+</script>
+<!-- MARANATHA_SERMON_AUTO_DATETIME_V1_END -->
+
 </body>
 </html>
