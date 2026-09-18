@@ -691,11 +691,9 @@ function shell(){
 
 
             <div id="mbible-offline-tools" style="margin:16px 0;padding:14px;border:1px solid #ead5d9;border-radius:16px;background:#fff8f9;">
-                <button type="button" id="mbible-download-offline" style="width:100%;padding:12px 14px;border:0;border-radius:12px;background:#c0001a;color:#fff;font-weight:800;">
-                    Télécharger la Bible hors connexion
-                </button>
-                <div id="mbible-offline-status" style="margin-top:8px;color:#7b8294;font-size:12px;text-align:center;">
-                    À faire une seule fois avec Internet.
+                <strong style="display:block;color:#172033;font-size:14px;">Bible intégrée à l'application</strong>
+                <div style="margin-top:8px;color:#7b8294;font-size:12px;">
+                    Dans l'application Android, utilisez l'onglet Bible pour lire les textes hors connexion.
                 </div>
             </div>
 
@@ -873,7 +871,7 @@ async function loadChapter(){
             ".<br><br>" +
             (navigator.onLine
                 ? esc(error.message)
-                : "Connectez-vous une première fois pour enregistrer ce chapitre hors connexion.") +
+                : "La Bible hors connexion est disponible dans l'onglet Bible de l'application native.") +
             "</div>";
     }
 }
@@ -884,15 +882,6 @@ async function loadChapter(){
    ========================================================== */
 
 function bind(){
-
-    document.getElementById("mbible-download-offline")?.addEventListener(
-        "click",
-        function(){
-            downloadBibleOffline();
-        }
-    );
-
-    updateOfflineUi();
 
     /*
      * Langue
