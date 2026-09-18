@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
@@ -2443,9 +2443,18 @@ body,
     try {
       const r = await fetch(`${API}/prieres`, { method:'POST', headers:{...authHeaders(),'Content-Type':'application/json'}, body: JSON.stringify({titre,texte}) });
       if (!r.ok) throw new Error('Erreur');
+      const resultat = await r.json();
       document.getElementById('p-titre').value = '';
       document.getElementById('p-texte').value = '';
-      toast('Parole publiée', 'success');
+      const notification = resultat && resultat.notification;
+      if (notification && notification.ok) {
+        toast(`Parole publiée · ${notification.successCount} notification(s) envoyée(s)`, 'success');
+      } else {
+        const raison = notification && notification.error
+          ? notification.error
+          : 'résultat Firebase indisponible';
+        toast(`Parole publiée, notification non envoyée : ${raison}`, 'error');
+      }
       chargerPrieresAdmin();
     } catch(e) { toast('Erreur lors de l\'ajout', 'error'); }
   }
