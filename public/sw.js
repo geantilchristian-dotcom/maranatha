@@ -1,5 +1,6 @@
-const CACHE = "maranatha-v20260910-final";
+const CACHE = "maranatha-v20260918-offline1";
 const STATIC = [
+  "/",
   "/manifest.json",
   "/logo.jpg",
   "/logo-192.png",
@@ -8,7 +9,15 @@ const STATIC = [
 
 self.addEventListener("install", event => {
   event.waitUntil(
-    caches.open(CACHE).then(cache => cache.addAll(STATIC)).catch(() => {})
+    caches.open(CACHE).then(async cache => {
+      await Promise.all(
+        STATIC.map(url =>
+          cache.add(url).catch(error =>
+            console.warn("[MARANATHA SW] Cache impossible", url, error)
+          )
+        )
+      );
+    })
   );
   self.skipWaiting();
 });
@@ -16,19 +25,23 @@ self.addEventListener("install", event => {
 self.addEventListener("activate", event => {
   event.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(keys.filter(key => key !== CACHE).map(key => caches.delete(key)))
+      Promise.all(
+        keys
+          .filter(key => key !== CACHE)
+          .map(key => caches.delete(key))
+      )
     )
   );
   self.clients.claim();
 });
 
 self.addEventListener("fetch", event => {
-  if (event.request.method !== "GET") return;
+  if(event.request.method !== "GET") return;
 
   const url = new URL(event.request.url);
-  if (url.pathname.startsWith("/api/")) return;
+  if(url.pathname.startsWith("/api/")) return;
 
-  if (event.request.mode === "navigate") {
+  if(event.request.mode === "navigate"){
     event.respondWith(
       fetch(event.request)
         .then(response => {
@@ -36,7 +49,11 @@ self.addEventListener("fetch", event => {
           caches.open(CACHE).then(cache => cache.put(event.request, copy));
           return response;
         })
-        .catch(() => caches.match(event.request).then(cached => cached || caches.match("/")))
+        .catch(() =>
+          caches.match(event.request).then(cached =>
+            cached || caches.match("/")
+          )
+        )
     );
     return;
   }
@@ -44,8 +61,10 @@ self.addEventListener("fetch", event => {
   event.respondWith(
     caches.match(event.request).then(cached => {
       return cached || fetch(event.request).then(response => {
-        const copy = response.clone();
-        caches.open(CACHE).then(cache => cache.put(event.request, copy));
+        if(response.ok){
+          const copy = response.clone();
+          caches.open(CACHE).then(cache => cache.put(event.request, copy));
+        }
         return response;
       });
     })
@@ -53,7 +72,11 @@ self.addEventListener("fetch", event => {
 });
 
 self.addEventListener("message", event => {
-  if (event.data && event.data.type === "KEEP_ALIVE" && event.ports[0]) {
-    event.ports[0].postMessage({ alive: true });
+  if(
+    event.data &&
+    event.data.type === "KEEP_ALIVE" &&
+    event.ports[0]
+  ){
+    event.ports[0].postMessage({alive: true});
   }
 });
