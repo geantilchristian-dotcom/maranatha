@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../services/notification_service.dart';
-import 'web_screen.dart';
+import 'offline_shell_screen.dart';
 
 class AlarmSetupScreen extends StatefulWidget {
   const AlarmSetupScreen({super.key});
@@ -73,7 +73,7 @@ class _AlarmSetupScreenState extends State<AlarmSetupScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute<void>(builder: (_) => const WebScreen()),
+        MaterialPageRoute<void>(builder: (_) => const OfflineShellScreen()),
       );
     });
   }
@@ -102,7 +102,7 @@ class _AlarmSetupScreenState extends State<AlarmSetupScreen>
 
     if (!mounted) return;
     await Navigator.of(context).pushReplacement(
-      MaterialPageRoute<void>(builder: (_) => const WebScreen()),
+      MaterialPageRoute<void>(builder: (_) => const OfflineShellScreen()),
     );
   }
 

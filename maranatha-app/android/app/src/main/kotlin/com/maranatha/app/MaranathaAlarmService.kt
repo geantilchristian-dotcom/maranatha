@@ -25,6 +25,8 @@ class MaranathaAlarmService : Service() {
             "com.maranatha.app.REVEIL_STOP"
         const val ACTION_SNOOZE =
             "com.maranatha.app.REVEIL_SNOOZE"
+        const val EXTRA_FORCE_RESTORE =
+            "com.maranatha.app.REVEIL_FORCE_RESTORE"
         private const val TAG =
             "MaranathaAlarm"
     }
@@ -76,17 +78,26 @@ class MaranathaAlarmService : Service() {
                     stopAlarm()
                     return START_NOT_STICKY
                 }
-                startAlarm(alarm)
-                return START_NOT_STICKY
+                startAlarm(
+                    alarm,
+                    intent.getBooleanExtra(EXTRA_FORCE_RESTORE, false)
+                )
+                return START_STICKY
             }
             else -> {
+                val active = AlarmStore.getActive(this)
+                if (active != null && AlarmStore.isModeEnabled(this)) {
+                    startAlarm(active, forceRestore = true)
+                    return START_STICKY
+                }
                 stopAlarm()
                 return START_NOT_STICKY
             }
         }
     }
     private fun startAlarm(
-        alarm: SermonAlarm
+        alarm: SermonAlarm,
+        forceRestore: Boolean = false,
     ) {
         Log.i(
             TAG,
@@ -112,6 +123,7 @@ class MaranathaAlarmService : Service() {
             return
         }
         if (
+            !forceRestore &&
             AlarmStore.wasStartedRecently(
                 this,
                 alarm.id,
@@ -127,6 +139,7 @@ class MaranathaAlarmService : Service() {
         }
         releasePlayer()
         currentAlarm = alarm
+        AlarmStore.saveActive(this, alarm)
         acquireWakeLock()
         val notification =
             buildNotification(
@@ -591,6 +604,7 @@ class MaranathaAlarmService : Service() {
             currentAlarm
         releasePlayer()
         currentAlarm = null
+        AlarmStore.clearActive(this)
         if (
             alarmToClean != null
         ) {

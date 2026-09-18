@@ -51,15 +51,25 @@ class BootReceiver : BroadcastReceiver() {
             Intent.ACTION_TIMEZONE_CHANGED,
             "android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED" -> {
                 AlarmScheduler.rescheduleAll(context)
+                AlarmStore.getActive(context)?.let { active ->
+                    if (AlarmStore.isModeEnabled(context)) {
+                        AlarmLauncher.start(context, active, forceRestore = true)
+                    }
+                }
             }
         }
     }
 }
 
 object AlarmLauncher {
-    fun start(context: Context, alarm: SermonAlarm) {
+    fun start(
+        context: Context,
+        alarm: SermonAlarm,
+        forceRestore: Boolean = false,
+    ) {
         val intent = Intent(context, MaranathaAlarmService::class.java).apply {
             action = MaranathaAlarmService.ACTION_START
+            putExtra(MaranathaAlarmService.EXTRA_FORCE_RESTORE, forceRestore)
             with(AlarmScheduler) { putAlarm(alarm) }
         }
 
@@ -71,6 +81,7 @@ object AlarmLauncher {
     }
 
     fun stop(context: Context) {
+        AlarmStore.clearActive(context)
         context.stopService(
             Intent(context, MaranathaAlarmService::class.java),
         )

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'services/notification_service.dart';
 
-import 'screens/offline_shell_screen.dart';
+import 'screens/alarm_setup_screen.dart';
 import 'screens/web_screen.dart';
 
 void main() {
@@ -60,7 +60,7 @@ class _MaranathaAppState extends State<MaranathaApp> {
         scaffoldBackgroundColor: const Color(0xFFF4F3F8),
         useMaterial3: true,
       ),
-      home: const OfflineShellScreen(),
+      home: const AlarmSetupScreen(),
     );
   }
 }

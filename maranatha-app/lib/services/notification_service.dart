@@ -15,7 +15,7 @@ class NotificationService {
   static final NotificationService instance = NotificationService._();
   static const MethodChannel _systemChannel = MethodChannel('maranatha/system');
   static const String _installationIdKey = 'maranatha_installation_id';
-  static const String _appVersion = '1.3.1+9';
+  static const String _appVersion = '1.3.2+12';
 
   final StreamController<String> _tokenController =
       StreamController<String>.broadcast();

@@ -11,6 +11,7 @@ object AlarmStore {
     private const val KEY_FCM_TOKEN = "fcm_token"
     private const val KEY_LAST_STARTED_ID = "last_started_id"
     private const val KEY_LAST_STARTED_AT = "last_started_at"
+    private const val KEY_ACTIVE_ALARM = "active_alarm"
 
     @Synchronized
     fun save(context: Context, alarm: SermonAlarm) {
@@ -103,17 +104,30 @@ object AlarmStore {
         return lastId == id && System.currentTimeMillis() - lastAt in 0..windowMillis
     }
 
+    @Synchronized
+    fun saveActive(context: Context, alarm: SermonAlarm) {
+        preferences(context)
+            .edit()
+            .putString(KEY_ACTIVE_ALARM, alarmToJson(alarm).toString())
+            .commit()
+    }
+
+    @Synchronized
+    fun getActive(context: Context): SermonAlarm? {
+        val raw = preferences(context).getString(KEY_ACTIVE_ALARM, null) ?: return null
+        return runCatching { alarmFromJson(JSONObject(raw)) }.getOrNull()
+    }
+
+    @Synchronized
+    fun clearActive(context: Context) {
+        preferences(context).edit().remove(KEY_ACTIVE_ALARM).commit()
+    }
+
     private fun writeAll(context: Context, alarms: Collection<SermonAlarm>) {
         val array = JSONArray()
 
         alarms.forEach { alarm ->
-            array.put(
-                JSONObject()
-                    .put("id", alarm.id)
-                    .put("title", alarm.title)
-                    .put("audioUrl", alarm.audioUrl)
-                    .put("triggerAtMillis", alarm.triggerAtMillis),
-            )
+            array.put(alarmToJson(alarm))
         }
 
         preferences(context).edit().putString(KEY_ALARMS, array.toString()).apply()
@@ -121,4 +135,25 @@ object AlarmStore {
 
     private fun preferences(context: Context) =
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+
+    private fun alarmToJson(alarm: SermonAlarm) =
+        JSONObject()
+            .put("id", alarm.id)
+            .put("title", alarm.title)
+            .put("audioUrl", alarm.audioUrl)
+            .put("triggerAtMillis", alarm.triggerAtMillis)
+
+    private fun alarmFromJson(item: JSONObject): SermonAlarm? {
+        val id = item.optString("id").trim()
+        val title = item.optString("title").trim()
+        val audioUrl = item.optString("audioUrl").trim()
+        val triggerAtMillis = item.optLong("triggerAtMillis", 0L)
+        if (id.isEmpty() || audioUrl.isEmpty() || triggerAtMillis <= 0L) return null
+        return SermonAlarm(
+            id = id,
+            title = title.ifEmpty { "Prédication Maranatha" },
+            audioUrl = audioUrl,
+            triggerAtMillis = triggerAtMillis,
+        )
+    }
 }
