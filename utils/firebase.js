@@ -166,9 +166,32 @@ async function envoyerArretMasse(tokens, sermonId) {
   );
 }
 
+async function envoyerPublicationNouvelleMasse(tokens, publication) {
+  const type = String(publication.type || '');
+  const id = String(publication.id || '');
+  const titre = String(publication.titre || '');
+  const titresParType = {
+    etude: 'Nouvelle étude biblique',
+    priere: 'Nouvelle prière',
+    livre: 'Nouveau livre',
+    video: 'Nouvelle vidéo',
+    bibliotheque: 'Nouvelle publication',
+  };
+  return envoyerDonneesMasse(tokens, {
+    type: 'PUBLICATION_NOUVELLE',
+    publication_type: type,
+    publication_id: id,
+    publication_titre: titre,
+    publication_path: `/?notification=publication&type=${encodeURIComponent(type)}&id=${encodeURIComponent(id)}`,
+    notification_title: titresParType[type] || 'Nouvelle publication',
+    notification_body: titre,
+  });
+}
+
 module.exports = {
   envoyerProgrammationMasse,
   envoyerAnnulationMasse,
   envoyerArretMasse,
   envoyerDemarrageMasse,
+  envoyerPublicationNouvelleMasse,
 };

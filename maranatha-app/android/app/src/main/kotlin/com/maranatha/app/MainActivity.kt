@@ -16,16 +16,33 @@ class MainActivity : FlutterActivity() {
     companion object {
         private const val CHANNEL = "maranatha/system"
         private const val NOTIFICATION_PERMISSION_REQUEST = 5102
+        const val EXTRA_PUBLICATION_PATH = "publication_path"
     }
+    private var systemChannel: MethodChannel? = null
+    private var pendingPublicationPath: String? = null
     override fun configureFlutterEngine(
         flutterEngine: FlutterEngine
     ) {
         super.configureFlutterEngine(flutterEngine)
-        MethodChannel(
+        val channel = MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
             CHANNEL
-        ).setMethodCallHandler { call, result ->
+        )
+        systemChannel = channel
+        channel.setMethodCallHandler { call, result ->
             when (call.method) {
+                "getPendingPublicationPath" -> {
+                    result.success(pendingPublicationPath)
+                    pendingPublicationPath = null
+                }
+                "openPublication" -> {
+                    val path = call.argument<String>("path")
+                    if (path != null && isSafePublicationPath(path)) {
+                        pendingPublicationPath = path
+                        systemChannel?.invokeMethod("openPublication", path)
+                    }
+                    result.success(true)
+                }
                 "syncSchedules" -> {
                     val values =
                         call.arguments as? List<*>
@@ -306,6 +323,27 @@ class MainActivity : FlutterActivity() {
                 }
             }
         }
+        handlePublicationIntent(intent)
+    }
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handlePublicationIntent(intent)
+    }
+    private fun handlePublicationIntent(intent: Intent?) {
+        val path = intent?.getStringExtra(EXTRA_PUBLICATION_PATH)
+            ?.trim()
+            ?.takeIf { isSafePublicationPath(it) } ?: return
+        pendingPublicationPath = path
+        systemChannel?.invokeMethod("openPublication", path)
+    }
+    private fun isSafePublicationPath(path: String): Boolean {
+        return path.startsWith("/") && !path.startsWith("//") &&
+            !path.contains('\\') && !path.contains('\u0000') &&
+            !path.contains("://") && runCatching {
+                val uri = Uri.parse(path)
+                uri.scheme == null && uri.host == null
+            }.getOrDefault(false)
     }
     override fun onResume() {
         super.onResume()

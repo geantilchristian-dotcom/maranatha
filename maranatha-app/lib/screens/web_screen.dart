@@ -11,7 +11,9 @@ import '../config/app_config.dart';
 import '../services/notification_service.dart';
 
 class WebScreen extends StatefulWidget {
-  const WebScreen({super.key});
+  const WebScreen({super.key, this.initialPath});
+
+  final String? initialPath;
 
   @override
   State<WebScreen> createState() => _WebScreenState();
@@ -112,7 +114,31 @@ class _WebScreenState extends State<WebScreen> {
       );
     }
 
-    unawaited(controller.loadRequest(appUri));
+    unawaited(controller.loadRequest(_initialUri));
+  }
+
+  Uri get _initialUri {
+    final raw = widget.initialPath?.trim();
+    if (raw == null ||
+        raw.isEmpty ||
+        !raw.startsWith('/') ||
+        raw.startsWith('//') ||
+        raw.contains('\\') ||
+        raw.contains('\u0000') ||
+        raw.contains('://')) {
+      return appUri;
+    }
+    final pathUri = Uri.tryParse(raw);
+    if (pathUri == null ||
+        pathUri.scheme.isNotEmpty ||
+        pathUri.host.isNotEmpty) {
+      return appUri;
+    }
+    return appUri.replace(
+      path: pathUri.path,
+      query: pathUri.hasQuery ? pathUri.query : null,
+      fragment: pathUri.hasFragment ? pathUri.fragment : null,
+    );
   }
 
   Future<void> _injectFcmToken({String? token}) async {
@@ -164,10 +190,8 @@ class _WebScreenState extends State<WebScreen> {
           break;
         case 'volume':
           final rawVolume = decoded['value'];
-          final volumeValue =
-              rawVolume is num ? rawVolume.toDouble() : 1.0;
-          final safeVolume =
-              volumeValue.clamp(0.0, 1.0).toDouble();
+          final volumeValue = rawVolume is num ? rawVolume.toDouble() : 1.0;
+          final safeVolume = volumeValue.clamp(0.0, 1.0).toDouble();
           await _player.setVolume(safeVolume);
           await _runJavaScriptSafely(
             'if(window._flutterUpdate)window._flutterUpdate({volume:$safeVolume});',
@@ -282,7 +306,7 @@ class _WebScreenState extends State<WebScreen> {
       _isLoading = true;
       _progress = 0;
     });
-    await _controller.loadRequest(appUri);
+    await _controller.loadRequest(_initialUri);
   }
 
   Future<void> _handleBack() async {

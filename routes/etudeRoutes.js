@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const Etude = require('../models/Etude');
 const adminOnly = require('../utils/adminAuth');
 const { cleanText, cleanHttpUrl } = require('../utils/security');
+const { notifierPublicationNouvelle } = require('../utils/publicationNotifications');
 
 const router = express.Router();
 
@@ -53,6 +54,7 @@ router.post('/', adminOnly, async (req, res) => {
     const payload = payloadFrom(req.body || {});
     if (!payload.titre) return res.status(400).json({ error: 'Titre obligatoire' });
     const doc = await Etude.create(payload);
+    if (doc.actif) notifierPublicationNouvelle('etude', doc);
     return res.status(201).json(doc);
   } catch (error) {
     return res.status(400).json({ error: 'Publication impossible' });
@@ -65,12 +67,16 @@ router.put('/:id', adminOnly, async (req, res) => {
       return res.status(400).json({ error: 'Identifiant invalide' });
     }
     const payload = payloadFrom(req.body || {});
+    const previous = await Etude.findById(req.params.id).select({ actif: 1 }).lean();
     const doc = await Etude.findByIdAndUpdate(
       req.params.id,
       { $set: payload },
       { new: true, runValidators: true },
     );
     if (!doc) return res.status(404).json({ error: 'Étude introuvable' });
+    if (previous && !previous.actif && payload.actif === true) {
+      notifierPublicationNouvelle('etude', doc);
+    }
     return res.json(doc);
   } catch (error) {
     return res.status(400).json({ error: 'Modification impossible' });

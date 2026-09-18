@@ -1,8 +1,8 @@
 (function () {
   "use strict";
 
-  const VERSION = "1.3.0-8";
-  const EXPECTED_SIZE = 53884587;
+  const VERSION = "1.3.1-9";
+  const EXPECTED_SIZE = 54553497;
   const PART_COUNT = 7;
 
   function partUrl(index) {

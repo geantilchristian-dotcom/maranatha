@@ -15,9 +15,11 @@ class NotificationService {
   static final NotificationService instance = NotificationService._();
   static const MethodChannel _systemChannel = MethodChannel('maranatha/system');
   static const String _installationIdKey = 'maranatha_installation_id';
-  static const String _appVersion = '1.2.0+7';
+  static const String _appVersion = '1.3.1+9';
 
   final StreamController<String> _tokenController =
+      StreamController<String>.broadcast();
+  final StreamController<String> _publicationController =
       StreamController<String>.broadcast();
 
   Timer? _syncTimer;
@@ -26,10 +28,43 @@ class NotificationService {
   bool _registering = false;
 
   Stream<String> get tokenChanges => _tokenController.stream;
+  Stream<String> get publicationChanges => _publicationController.stream;
+
+  bool _callbackInstalled = false;
+
+  void installerCallback() {
+    if (_callbackInstalled) return;
+    _callbackInstalled = true;
+    _systemChannel.setMethodCallHandler((call) async {
+      if (call.method != 'openPublication') return;
+      final path = _safePublicationPath(call.arguments?.toString());
+      if (path != null && !_publicationController.isClosed) {
+        _publicationController.add(path);
+      }
+    });
+  }
 
   Future<void> initialiser() async {
     if (_initialized) return;
     _initialized = true;
+
+    installerCallback();
+    try {
+      final pending = await _systemChannel.invokeMethod<String>(
+        'getPendingPublicationPath',
+      );
+      final path = _safePublicationPath(pending);
+      if (path != null && !_publicationController.isClosed) {
+        _publicationController.add(path);
+      }
+    } catch (error) {
+      debugPrint('Impossible de récupérer la publication en attente : $error');
+    }
+    try {
+      await demanderNotifications();
+    } catch (error) {
+      debugPrint('Impossible de demander les notifications : $error');
+    }
 
     await _publierToken();
     await enregistrerAppareil();
@@ -228,9 +263,8 @@ class NotificationService {
 
     final random = Random.secure();
     final bytes = List<int>.generate(24, (_) => random.nextInt(256));
-    final generated = bytes
-        .map((value) => value.toRadixString(16).padLeft(2, '0'))
-        .join();
+    final generated =
+        bytes.map((value) => value.toRadixString(16).padLeft(2, '0')).join();
 
     await preferences.setString(_installationIdKey, generated);
     return generated;
@@ -246,6 +280,24 @@ class NotificationService {
   Future<void> disposer() async {
     _syncTimer?.cancel();
     await _tokenController.close();
+    await _publicationController.close();
     _initialized = false;
+  }
+
+  String? _safePublicationPath(String? raw) {
+    final value = raw?.trim();
+    if (value == null ||
+        value.isEmpty ||
+        !value.startsWith('/') ||
+        value.startsWith('//') ||
+        value.contains('\\') ||
+        value.contains('\u0000') ||
+        value.contains('://')) {
+      return null;
+    }
+    final uri = Uri.tryParse(value);
+    if (uri == null || uri.scheme.isNotEmpty || uri.host.isNotEmpty)
+      return null;
+    return value;
   }
 }

@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const Video = require('../models/Video');
 const adminOnly = require('../utils/adminAuth');
 const { cleanText, cleanHttpUrl } = require('../utils/security');
+const { notifierPublicationNouvelle } = require('../utils/publicationNotifications');
 
 const router = express.Router();
 
@@ -34,6 +35,7 @@ router.post('/', adminOnly, async (req, res) => {
     const payload = payloadFrom(req.body);
     if (!payload.titre) return res.status(400).json({ error: 'Titre obligatoire' });
     const doc = await Video.create(payload);
+    notifierPublicationNouvelle('video', doc);
     return res.status(201).json(doc);
   } catch (error) {
     return res.status(400).json({ error: 'Publication impossible' });

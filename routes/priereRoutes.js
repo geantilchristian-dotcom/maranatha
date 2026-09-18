@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const Priere = require('../models/Priere');
 const adminOnly = require('../utils/adminAuth');
 const { cleanText } = require('../utils/security');
+const { notifierPublicationNouvelle } = require('../utils/publicationNotifications');
 
 const router = express.Router();
 
@@ -40,6 +41,7 @@ router.post('/', adminOnly, async (req, res) => {
       return res.status(400).json({ error: 'Titre et texte obligatoires' });
     }
     const doc = await Priere.create(payload);
+    if (doc.actif) notifierPublicationNouvelle('priere', doc);
     return res.status(201).json(doc);
   } catch (error) {
     return res.status(400).json({ error: 'Publication impossible' });
@@ -49,12 +51,17 @@ router.post('/', adminOnly, async (req, res) => {
 router.put('/:id', adminOnly, async (req, res) => {
   try {
     if (!mongoose.isValidObjectId(req.params.id)) return res.status(400).json({ error: 'Identifiant invalide' });
+    const previous = await Priere.findById(req.params.id).select({ actif: 1 }).lean();
+    const payload = payloadFrom(req.body);
     const doc = await Priere.findByIdAndUpdate(
       req.params.id,
-      { $set: payloadFrom(req.body) },
+      { $set: payload },
       { new: true, runValidators: true },
     );
     if (!doc) return res.status(404).json({ error: 'Prière introuvable' });
+    if (previous && !previous.actif && payload.actif === true) {
+      notifierPublicationNouvelle('priere', doc);
+    }
     return res.json(doc);
   } catch (error) {
     return res.status(400).json({ error: 'Modification impossible' });

@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const Livre = require('../models/Livre');
 const adminOnly = require('../utils/adminAuth');
 const { cleanText, cleanHttpUrl } = require('../utils/security');
+const { notifierPublicationNouvelle } = require('../utils/publicationNotifications');
 
 const router = express.Router();
 
@@ -43,6 +44,7 @@ router.post('/', adminOnly, async (req, res) => {
     const payload = payloadFrom(req.body);
     if (!payload.titre) return res.status(400).json({ error: 'Titre obligatoire' });
     const doc = await Livre.create(payload);
+    notifierPublicationNouvelle('livre', doc);
     return res.status(201).json(doc);
   } catch (error) {
     return res.status(400).json({ error: 'Publication impossible' });

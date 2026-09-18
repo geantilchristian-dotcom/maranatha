@@ -5,6 +5,7 @@ const Livre = require('../models/Livre');
 const Video = require('../models/Video');
 const adminOnly = require('../utils/adminAuth');
 const { cleanText, cleanHttpUrl } = require('../utils/security');
+const { notifierPublicationNouvelle } = require('../utils/publicationNotifications');
 
 const router = express.Router();
 const TYPES = new Set(['video', 'photo', 'audio', 'book']);
@@ -133,6 +134,7 @@ router.post('/', adminOnly, async (req, res) => {
       ordre: Number.isFinite(Number(req.body.ordre)) ? Number(req.body.ordre) : 0,
     });
 
+    if (doc.actif) notifierPublicationNouvelle('bibliotheque', doc);
     return res.status(201).json(normaliseNew(doc));
   } catch (error) {
     console.error('[bibliotheque/create]', error.message);
@@ -155,6 +157,7 @@ router.put('/:id', adminOnly, async (req, res) => {
     if (typeof req.body.actif === 'boolean') allowed.actif = req.body.actif;
     if (Number.isFinite(Number(req.body.ordre))) allowed.ordre = Number(req.body.ordre);
 
+    const previous = await Bibliotheque.findById(req.params.id).select({ actif: 1 }).lean();
     const doc = await Bibliotheque.findByIdAndUpdate(
       req.params.id,
       { $set: allowed },
@@ -162,6 +165,9 @@ router.put('/:id', adminOnly, async (req, res) => {
     );
 
     if (!doc) return res.status(404).json({ error: 'Contenu introuvable' });
+    if (previous && !previous.actif && allowed.actif === true) {
+      notifierPublicationNouvelle('bibliotheque', doc);
+    }
     return res.json(normaliseNew(doc));
   } catch (error) {
     return res.status(400).json({ error: 'Modification impossible' });
