@@ -88,6 +88,346 @@ let state = {
 };
 
 
+
+/* ==========================================================
+   STOCKAGE HORS CONNEXION
+   ========================================================== */
+
+const BIBLE_DB_NAME = "maranatha_bible_offline";
+const BIBLE_DB_VERSION = 1;
+const BIBLE_STORE = "chapters";
+const BIBLE_STATUS_KEY = "maranatha_bible_offline_status_v1";
+const BIBLE_LANGUAGES = ["fr", "sw"];
+const BIBLE_TOTAL_CHAPTERS = CHAPTER_COUNTS.reduce(
+    function(total, count){
+        return total + count;
+    },
+    0
+) * BIBLE_LANGUAGES.length;
+
+let bibleDatabasePromise = null;
+let bibleDownloadPromise = null;
+
+function bibleCacheKey(language, bookNum, chapter){
+    return language + ":" + bookNum + ":" + chapter;
+}
+
+function openBibleDatabase(){
+    if(!window.indexedDB){
+        return Promise.reject(
+            new Error("Le stockage hors connexion n’est pas disponible sur cet appareil.")
+        );
+    }
+
+    if(bibleDatabasePromise){
+        return bibleDatabasePromise;
+    }
+
+    bibleDatabasePromise = new Promise(function(resolve, reject){
+        const request = window.indexedDB.open(
+            BIBLE_DB_NAME,
+            BIBLE_DB_VERSION
+        );
+
+        request.onupgradeneeded = function(){
+            const database = request.result;
+            if(!database.objectStoreNames.contains(BIBLE_STORE)){
+                database.createObjectStore(
+                    BIBLE_STORE,
+                    {keyPath: "key"}
+                );
+            }
+        };
+
+        request.onsuccess = function(){
+            resolve(request.result);
+        };
+
+        request.onerror = function(){
+            reject(request.error || new Error("Base hors connexion indisponible."));
+        };
+    });
+
+    return bibleDatabasePromise;
+}
+
+function readCachedChapter(language, bookNum, chapter){
+    return openBibleDatabase()
+        .then(function(database){
+            return new Promise(function(resolve){
+                const request = database
+                    .transaction(BIBLE_STORE, "readonly")
+                    .objectStore(BIBLE_STORE)
+                    .get(bibleCacheKey(language, bookNum, chapter));
+
+                request.onsuccess = function(){
+                    resolve(request.result || null);
+                };
+
+                request.onerror = function(){
+                    resolve(null);
+                };
+            });
+        })
+        .catch(function(){
+            return null;
+        });
+}
+
+function saveCachedChapter(language, bookNum, chapter, result){
+    return openBibleDatabase()
+        .then(function(database){
+            return new Promise(function(resolve, reject){
+                const request = database
+                    .transaction(BIBLE_STORE, "readwrite")
+                    .objectStore(BIBLE_STORE)
+                    .put({
+                        key: bibleCacheKey(language, bookNum, chapter),
+                        language: language,
+                        bookNum: bookNum,
+                        chapter: chapter,
+                        verses: result.verses,
+                        version: result.version || bibleVersion(),
+                        savedAt: Date.now()
+                    });
+
+                request.onsuccess = function(){
+                    resolve();
+                };
+
+                request.onerror = function(){
+                    reject(request.error || new Error("Impossible d’enregistrer le chapitre."));
+                };
+            });
+        });
+}
+
+function readBibleDownloadStatus(){
+    try{
+        const raw = localStorage.getItem(BIBLE_STATUS_KEY);
+        return raw ? JSON.parse(raw) : null;
+    }catch(_error){
+        return null;
+    }
+}
+
+function writeBibleDownloadStatus(status){
+    try{
+        localStorage.setItem(
+            BIBLE_STATUS_KEY,
+            JSON.stringify(status)
+        );
+    }catch(_error){}
+}
+
+function updateOfflineUi(){
+    const button = document.getElementById("mbible-download-offline");
+    const statusNode = document.getElementById("mbible-offline-status");
+    const status = readBibleDownloadStatus();
+
+    if(!button || !statusNode){
+        return;
+    }
+
+    if(status && status.status === "complete"){
+        button.disabled = true;
+        button.textContent = "Bible disponible hors connexion";
+        statusNode.textContent = "Français + Kiswahili enregistrés sur cet appareil.";
+        return;
+    }
+
+    if(status && status.status === "downloading"){
+        button.disabled = true;
+        button.textContent = "Téléchargement en cours…";
+        statusNode.textContent =
+            String(status.completed || 0) +
+            " / " +
+            String(status.total || BIBLE_TOTAL_CHAPTERS) +
+            " chapitres enregistrés";
+        return;
+    }
+
+    button.disabled = false;
+    button.textContent = "Télécharger la Bible hors connexion";
+
+    if(status && status.completed){
+        statusNode.textContent =
+            String(status.completed) +
+            " chapitres disponibles. Reprendre le téléchargement complet.";
+    }else if(!window.indexedDB){
+        statusNode.textContent = "Le stockage hors connexion n’est pas disponible sur cet appareil.";
+    }else{
+        statusNode.textContent = "À faire une seule fois avec Internet.";
+    }
+}
+
+function renderChapterResult(content, result, isOffline){
+    state.verses = result.verses || [];
+
+    if(!state.verses.length){
+        content.innerHTML =
+            '<div class="mbible-empty">' +
+            (state.language === "sw"
+                ? "Hakuna mistari katika sura hii."
+                : "Aucun verset disponible.") +
+            "</div>";
+        return;
+    }
+
+    const offlineNote = isOffline
+        ? '<div class="mbible-offline-note">Disponible hors connexion</div>'
+        : "";
+
+    content.innerHTML =
+        offlineNote +
+        '<div class="mbible-passage">' +
+        state.verses.map(function(item){
+            return (
+                '<div class="mbible-verse">' +
+                    '<span class="mbible-verse-number">' +
+                        esc(item.verse) +
+                    '</span>' +
+                    '<div class="mbible-verse-text">' +
+                        formatBibleText(item.text) +
+                    '</div>' +
+                '</div>'
+            );
+        }).join("") +
+        "</div>";
+}
+
+async function fetchOnlineChapter(language, bookNum, chapter){
+    const version = language === "sw" ? "SUV" : "FR";
+    const url =
+        "/api/bible/" +
+        bookNum +
+        "/" +
+        chapter +
+        "?version=" +
+        encodeURIComponent(version);
+
+    const response = await fetch(
+        url,
+        {cache: "no-store"}
+    );
+
+    let result = {};
+    try{
+        result = await response.json();
+    }catch(_error){}
+
+    if(
+        !response.ok ||
+        !Array.isArray(result.verses)
+    ){
+        throw new Error(
+            result.error || "Chapitre indisponible."
+        );
+    }
+
+    return {
+        verses: result.verses,
+        version: result.version || version
+    };
+}
+
+async function downloadBibleOffline(){
+    if(bibleDownloadPromise){
+        return bibleDownloadPromise;
+    }
+
+    bibleDownloadPromise = (async function(){
+        const tasks = [];
+        BIBLE_LANGUAGES.forEach(function(language){
+            for(let bookNum = 1; bookNum <= 66; bookNum++){
+                const maxChapter = CHAPTER_COUNTS[bookNum - 1] || 1;
+                for(let chapter = 1; chapter <= maxChapter; chapter++){
+                    tasks.push({language, bookNum, chapter});
+                }
+            }
+        });
+
+        let cursor = 0;
+        let completed = 0;
+        let failed = 0;
+        const total = tasks.length;
+
+        writeBibleDownloadStatus({
+            status: "downloading",
+            completed: 0,
+            total: total,
+            failed: 0,
+            updatedAt: Date.now()
+        });
+        updateOfflineUi();
+
+        async function worker(){
+            while(cursor < tasks.length){
+                const task = tasks[cursor++];
+
+                try{
+                    const cached = await readCachedChapter(
+                        task.language,
+                        task.bookNum,
+                        task.chapter
+                    );
+
+                    if(!cached){
+                        const result = await fetchOnlineChapter(
+                            task.language,
+                            task.bookNum,
+                            task.chapter
+                        );
+                        await saveCachedChapter(
+                            task.language,
+                            task.bookNum,
+                            task.chapter,
+                            result
+                        );
+                    }
+                    completed++;
+                }catch(error){
+                    failed++;
+                    console.warn(
+                        "[MARANATHA BIBLE OFFLINE]",
+                        task,
+                        error
+                    );
+                }
+
+                writeBibleDownloadStatus({
+                    status: "downloading",
+                    completed: completed,
+                    total: total,
+                    failed: failed,
+                    updatedAt: Date.now()
+                });
+                updateOfflineUi();
+            }
+        }
+
+        await Promise.all([
+            worker(),
+            worker(),
+            worker()
+        ]);
+
+        writeBibleDownloadStatus({
+            status: failed === 0 ? "complete" : "partial",
+            completed: completed,
+            total: total,
+            failed: failed,
+            updatedAt: Date.now()
+        });
+        updateOfflineUi();
+    })().finally(function(){
+        bibleDownloadPromise = null;
+        updateOfflineUi();
+    });
+
+    return bibleDownloadPromise;
+}
+
 /* ==========================================================
    OUTILS
    ========================================================== */
@@ -349,6 +689,16 @@ function shell(){
             </div>
 
 
+
+            <div id="mbible-offline-tools" style="margin:16px 0;padding:14px;border:1px solid #ead5d9;border-radius:16px;background:#fff8f9;">
+                <button type="button" id="mbible-download-offline" style="width:100%;padding:12px 14px;border:0;border-radius:12px;background:#c0001a;color:#fff;font-weight:800;">
+                    Télécharger la Bible hors connexion
+                </button>
+                <div id="mbible-offline-status" style="margin-top:8px;color:#7b8294;font-size:12px;text-align:center;">
+                    À faire une seule fois avec Internet.
+                </div>
+            </div>
+
             <!-- LIVRE + CHAPITRE -->
 
             <div class="mbible-controls">
@@ -472,163 +822,59 @@ async function loadChapter(){
             "mbible-content"
         );
 
-
     if(!content){
         return;
     }
 
+    content.innerHTML =
+        '<div class="mbible-loading">' +
+        (state.language === "sw"
+            ? "Inapakia sura..."
+            : "Chargement du chapitre...") +
+        "</div>";
 
-    content.innerHTML = `
-        <div class="mbible-loading">
-
-            ${
-                state.language === "sw"
-                    ? "Inapakia sura..."
-                    : "Chargement du chapitre..."
-            }
-
-        </div>
-    `;
-
+    const language = state.language;
 
     try{
+        const result = await fetchOnlineChapter(
+            language,
+            state.bookNum,
+            state.chapter
+        );
 
-        const url =
-            "/api/bible/" +
-            state.bookNum +
-            "/" +
-            state.chapter +
-            "?version=" +
-            encodeURIComponent(
-                bibleVersion()
-            );
+        await saveCachedChapter(
+            language,
+            state.bookNum,
+            state.chapter,
+            result
+        );
 
+        renderChapterResult(content, result, false);
+    }catch(error){
+        const cached = await readCachedChapter(
+            language,
+            state.bookNum,
+            state.chapter
+        );
 
-        const response =
-            await fetch(
-                url,
-                {
-                    cache:"no-store"
-                }
-            );
-
-
-        let result = {};
-
-
-        try{
-
-            result =
-                await response.json();
-
-        }catch(_error){}
-
-
-        if(
-            !response.ok ||
-            !Array.isArray(
-                result.verses
-            )
-        ){
-
-            throw new Error(
-                result.error ||
-                "Chapitre indisponible."
-            );
-        }
-
-
-        state.verses =
-            result.verses;
-
-
-        if(!state.verses.length){
-
-            content.innerHTML = `
-                <div class="mbible-empty">
-
-                    ${
-                        state.language === "sw"
-                            ? "Hakuna mistari katika sura hii."
-                            : "Aucun verset disponible."
-                    }
-
-                </div>
-            `;
-
-
+        if(cached && Array.isArray(cached.verses)){
+            renderChapterResult(content, cached, true);
             return;
         }
 
-
-        content.innerHTML = `
-            <div class="mbible-passage">
-
-                ${
-                    state.verses
-                    .map(
-                        function(item){
-
-                            return `
-                                <div class="mbible-verse">
-
-                                    <span class="mbible-verse-number">
-                                        ${esc(item.verse)}
-                                    </span>
-
-
-                                    <div class="mbible-verse-text">
-                                        ${formatBibleText(item.text)}
-                                    </div>
-
-                                </div>
-                            `;
-
-                        }
-                    )
-                    .join("")
-                }
-
-            </div>
-        `;
-
-
-        console.log(
-            "[MARANATHA BIBLE]",
-            state.language,
-            bookName(),
-            state.chapter,
-            result.version ||
-            bibleVersion()
-        );
-
-
-    }catch(error){
-
-        console.error(
-            "[MARANATHA BIBLE]",
-            error
-        );
-
-
-        content.innerHTML = `
-            <div class="mbible-error">
-
-                ${
-                    state.language === "sw"
-                        ? "Imeshindikana kupakia "
-                        : "Impossible de charger "
-                }
-
-                ${esc(bookName())}
-                ${state.chapter}.
-
-                <br><br>
-
-                ${esc(error.message)}
-
-            </div>
-        `;
+        content.innerHTML =
+            '<div class="mbible-error">' +
+            (state.language === "sw"
+                ? "Imeshindikana kupakia "
+                : "Impossible de charger ") +
+            esc(bookName()) +
+            " " +
+            esc(state.chapter) +
+            ".<br><br>" +
+            (navigator.onLine
+                ? esc(error.message)
+                : "Connectez-vous une première fois pour enregistrer ce chapitre hors connexion.") +
+            "</div>";
     }
 }
 
@@ -638,6 +884,15 @@ async function loadChapter(){
    ========================================================== */
 
 function bind(){
+
+    document.getElementById("mbible-download-offline")?.addEventListener(
+        "click",
+        function(){
+            downloadBibleOffline();
+        }
+    );
+
+    updateOfflineUi();
 
     /*
      * Langue
