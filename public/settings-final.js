@@ -2,7 +2,6 @@
   "use strict";
 
   const STYLE_ID = "maranatha-settings-final-style";
-  const APK_URL = "/downloads/MARANATHA.apk?v=1.3.0-8";
   const VERSION = "1.2.4";
 
   function injectStyles() {
@@ -442,26 +441,22 @@
   async function downloadApp() {
     const button = document.getElementById("ms-download");
     const original = button ? button.querySelector(".ms-name") : null;
-    if (original) original.textContent = "Vérification de l’APK...";
+    if (original) original.textContent = "Préparation de l’APK...";
 
     try {
-      const response = await fetch(APK_URL, {
-        method: "HEAD",
-        cache: "no-store"
-      });
-
-      if (!response.ok) {
-        throw new Error("APK_NOT_FOUND");
+      if (!window.MaranathaApk) {
+        throw new Error("APK_DOWNLOADER_NOT_FOUND");
       }
 
-      const link = document.createElement("a");
-      link.href = APK_URL;
-      link.download = "MARANATHA.apk";
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
+      await window.MaranathaApk.download({
+        onProgress: function (loaded, total) {
+          if (original) {
+            original.textContent = `Téléchargement ${loaded}/${total}`;
+          }
+        }
+      });
     } catch (_) {
-      showToast("L’APK n’est pas encore présent dans public/downloads/MARANATHA.apk.");
+      showToast("Le téléchargement de l’APK a échoué. Vérifiez votre connexion puis réessayez.");
     } finally {
       if (original) original.textContent = "Télécharger l’application";
     }

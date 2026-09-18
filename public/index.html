@@ -6758,11 +6758,11 @@ function showMessageForm(
   }
 </style>
 
+<script src="/apk-download.js?v=1.3.0-8"></script>
 <script>
 (function () {
   "use strict";
 
-  var APK_URL = "/downloads/MARANATHA.apk?v=1.3.0-8";
   var SUGGEST_KEY = "maranatha-apk-suggestion-v1";
 
   function isNativeApp() {
@@ -6850,9 +6850,29 @@ function showMessageForm(
       '<div class="ma-title">Installer l’application MARANATHA</div>' +
       '<div class="ma-text">Recevez les prédications et le réveil Maranatha directement sur votre téléphone.</div>' +
       '<div class="ma-actions">' +
-        '<a class="ma-primary" href="' + APK_URL + '" download>Télécharger l’application</a>' +
+        '<a class="ma-primary" href="#">Télécharger l’application</a>' +
         '<button class="ma-secondary" type="button">Plus tard</button>' +
       '</div>';
+
+    var download = box.querySelector(".ma-primary");
+    if (download) {
+      download.addEventListener("click", async function (event) {
+        event.preventDefault();
+        var originalText = download.textContent;
+        try {
+          if (!window.MaranathaApk) throw new Error("APK_DOWNLOADER_NOT_FOUND");
+          await window.MaranathaApk.download({
+            onProgress: function (loaded, total) {
+              download.textContent = "Téléchargement " + loaded + "/" + total;
+            }
+          });
+        } catch (_) {
+          window.alert("Le téléchargement de l’APK a échoué. Vérifiez votre connexion puis réessayez.");
+        } finally {
+          download.textContent = originalText;
+        }
+      });
+    }
 
     var close = box.querySelector(".ma-secondary");
     if (close) {
@@ -6989,9 +7009,24 @@ function showMessageForm(
       var actions = panel.querySelector(".ma-actions");
       var appLink = document.createElement("a");
       appLink.className = "ma-secondary";
-      appLink.href = APK_URL;
-      appLink.setAttribute("download", "");
+      appLink.href = "#";
       appLink.textContent = "Installer l’app";
+      appLink.addEventListener("click", async function (event) {
+        event.preventDefault();
+        var originalText = appLink.textContent;
+        try {
+          if (!window.MaranathaApk) throw new Error("APK_DOWNLOADER_NOT_FOUND");
+          await window.MaranathaApk.download({
+            onProgress: function (loaded, total) {
+              appLink.textContent = "Téléchargement " + loaded + "/" + total;
+            }
+          });
+        } catch (_) {
+          window.alert("Le téléchargement de l’APK a échoué. Vérifiez votre connexion puis réessayez.");
+        } finally {
+          appLink.textContent = originalText;
+        }
+      });
       actions.appendChild(appLink);
     }
 
