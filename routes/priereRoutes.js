@@ -41,8 +41,13 @@ router.post('/', adminOnly, async (req, res) => {
       return res.status(400).json({ error: 'Titre et texte obligatoires' });
     }
     const doc = await Priere.create(payload);
-    if (doc.actif) notifierPublicationNouvelle('priere', doc);
-    return res.status(201).json(doc);
+    const notification = doc.actif
+      ? await notifierPublicationNouvelle('priere', doc)
+      : null;
+    return res.status(201).json({
+      ...doc.toObject(),
+      notification,
+    });
   } catch (error) {
     return res.status(400).json({ error: 'Publication impossible' });
   }
@@ -59,10 +64,14 @@ router.put('/:id', adminOnly, async (req, res) => {
       { new: true, runValidators: true },
     );
     if (!doc) return res.status(404).json({ error: 'Prière introuvable' });
+    let notification = null;
     if (previous && !previous.actif && payload.actif === true) {
-      notifierPublicationNouvelle('priere', doc);
+      notification = await notifierPublicationNouvelle('priere', doc);
     }
-    return res.json(doc);
+    return res.json({
+      ...doc.toObject(),
+      notification,
+    });
   } catch (error) {
     return res.status(400).json({ error: 'Modification impossible' });
   }
