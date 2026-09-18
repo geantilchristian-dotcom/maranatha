@@ -164,7 +164,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     'Une connexion directe avec la parole de Dieu.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.7),
+                      color: Colors.white.withValues(alpha: 0.7),
                       fontSize: 16,
                     ),
                   ),
@@ -196,7 +196,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       'Recevez les prédications du Pasteur en direct, même en veille. Votre téléphone se réveillera pour vous à l\'heure du prêche.',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: const Color(0xFF001220).withOpacity(0.8),
+                        color: const Color(0xFF001220).withValues(alpha: 0.8),
                         fontSize: 14,
                         height: 1.4,
                       ),
@@ -218,7 +218,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                             value: _isMaranathaEnabled,
                             activeColor: const Color(0xFFD4AF37),
                             activeTrackColor:
-                                const Color(0xFF001220).withOpacity(0.3),
+                                const Color(0xFF001220).withValues(alpha: 0.3),
                             inactiveThumbColor: Colors.grey,
                             onChanged: _basculerModeMaranatha,
                           ),

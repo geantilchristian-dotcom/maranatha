@@ -2,7 +2,7 @@
   "use strict";
 
   const STYLE_ID = "maranatha-settings-final-style";
-  const APK_URL = "/downloads/MARANATHA.apk";
+  const APK_URL = "/downloads/MARANATHA.apk?v=1.3.0-8";
   const VERSION = "1.2.4";
 
   function injectStyles() {

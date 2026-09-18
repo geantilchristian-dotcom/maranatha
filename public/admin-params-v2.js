@@ -441,7 +441,7 @@ function render(){
                             "Lien de téléchargement APK",
                             "application",
                             "apkUrl",
-                            "/downloads/MARANATHA.apk",
+                            "/downloads/MARANATHA.apk?v=1.3.0-8",
                             true
                         )}
 

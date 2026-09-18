@@ -22,7 +22,7 @@ android {
 
     defaultConfig {
         applicationId = "com.maranatha.app"
-        minSdkVersion = flutter.minSdkVersion
+        minSdkVersion = 23
         targetSdk = 35
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -49,4 +49,55 @@ dependencies {
 
     implementation platform("com.google.firebase:firebase-bom:34.16.0")
     implementation "com.google.firebase:firebase-messaging"
+}
+
+if (System.getenv("GITHUB_ACTIONS") == "true") {
+    tasks.named("assembleRelease").configure {
+        doLast {
+            def sourceApk = file("${buildDir}/outputs/flutter-apk/app-release.apk")
+            def repositoryDir = rootProject.projectDir.parentFile.parentFile
+            def publishedApk = new File(repositoryDir, "public/downloads/MARANATHA.apk")
+
+            if (!sourceApk.exists()) {
+                throw new GradleException("APK de diffusion introuvable : ${sourceApk}")
+            }
+
+            copy {
+                from sourceApk
+                into publishedApk.parentFile
+                rename { "MARANATHA.apk" }
+            }
+
+            exec {
+                workingDir repositoryDir
+                commandLine "git", "config", "user.name", "github-actions[bot]"
+            }
+            exec {
+                workingDir repositoryDir
+                commandLine "git", "config", "user.email",
+                    "41898282+github-actions[bot]@users.noreply.github.com"
+            }
+            exec {
+                workingDir repositoryDir
+                commandLine "git", "add", "public/downloads/MARANATHA.apk"
+            }
+
+            def stagedChanges = exec {
+                workingDir repositoryDir
+                commandLine "git", "diff", "--cached", "--quiet"
+                ignoreExitValue true
+            }
+
+            if (stagedChanges.exitValue != 0) {
+                exec {
+                    workingDir repositoryDir
+                    commandLine "git", "commit", "-m", "Publier l’APK Android 1.3.0"
+                }
+                exec {
+                    workingDir repositoryDir
+                    commandLine "git", "push"
+                }
+            }
+        }
+    }
 }
