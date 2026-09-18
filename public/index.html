@@ -6732,6 +6732,28 @@ function showMessageForm(
     color: #fff;
   }
 
+  .ma-download-progress {
+    display: none;
+    height: 7px;
+    margin-top: 12px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: rgba(255,255,255,.14);
+  }
+
+  .ma-download-progress.is-active {
+    display: block;
+  }
+
+  .ma-download-progress > span {
+    display: block;
+    width: 0;
+    height: 100%;
+    border-radius: inherit;
+    background: #dfb62f;
+    transition: width .18s ease;
+  }
+
   #maranatha-shared-audio {
     top: 50%;
     transform: translateY(-50%);
@@ -6758,7 +6780,7 @@ function showMessageForm(
   }
 </style>
 
-<script src="/apk-download.js?v=1.3.1-9"></script>
+<script src="/apk-download.js?v=1.3.1-9-progress-1"></script>
 <script src="/publication-deeplink.js?v=1.3.0-9"></script>
 <script>
 (function () {
@@ -6853,24 +6875,35 @@ function showMessageForm(
       '<div class="ma-actions">' +
         '<a class="ma-primary" href="#">Télécharger l’application</a>' +
         '<button class="ma-secondary" type="button">Plus tard</button>' +
-      '</div>';
+       '</div>' +
+       '<div class="ma-download-progress" role="progressbar" aria-label="Progression du téléchargement" aria-valuemin="0" aria-valuemax="100"><span></span></div>';
 
     var download = box.querySelector(".ma-primary");
+    var progress = box.querySelector(".ma-download-progress");
+    var progressFill = progress && progress.querySelector("span");
     if (download) {
       download.addEventListener("click", async function (event) {
         event.preventDefault();
         var originalText = download.textContent;
+        if (progress) progress.classList.add("is-active");
         try {
           if (!window.MaranathaApk) throw new Error("APK_DOWNLOADER_NOT_FOUND");
           await window.MaranathaApk.download({
-            onProgress: function (loaded, total) {
-              download.textContent = "Téléchargement " + loaded + "/" + total;
+            onProgress: function (_loaded, _total, details) {
+              var percent = details ? details.percent : 0;
+              download.textContent = "Téléchargement " + percent + "%";
+              if (progress) progress.setAttribute("aria-valuenow", String(percent));
+              if (progressFill) progressFill.style.width = percent + "%";
             }
           });
         } catch (_) {
           window.alert("Le téléchargement de l’APK a échoué. Vérifiez votre connexion puis réessayez.");
         } finally {
           download.textContent = originalText;
+          window.setTimeout(function () {
+            if (progress) progress.classList.remove("is-active");
+            if (progressFill) progressFill.style.width = "0";
+          }, 1200);
         }
       });
     }
@@ -7009,26 +7042,43 @@ function showMessageForm(
     if (isAndroidBrowser()) {
       var actions = panel.querySelector(".ma-actions");
       var appLink = document.createElement("a");
+      var appProgress = document.createElement("div");
+      var appProgressFill = document.createElement("span");
       appLink.className = "ma-secondary";
       appLink.href = "#";
       appLink.textContent = "Installer l’app";
+      appProgress.className = "ma-download-progress";
+      appProgress.setAttribute("role", "progressbar");
+      appProgress.setAttribute("aria-label", "Progression du téléchargement");
+      appProgress.setAttribute("aria-valuemin", "0");
+      appProgress.setAttribute("aria-valuemax", "100");
+      appProgress.appendChild(appProgressFill);
       appLink.addEventListener("click", async function (event) {
         event.preventDefault();
         var originalText = appLink.textContent;
+        appProgress.classList.add("is-active");
         try {
           if (!window.MaranathaApk) throw new Error("APK_DOWNLOADER_NOT_FOUND");
           await window.MaranathaApk.download({
-            onProgress: function (loaded, total) {
-              appLink.textContent = "Téléchargement " + loaded + "/" + total;
+            onProgress: function (_loaded, _total, details) {
+              var percent = details ? details.percent : 0;
+              appLink.textContent = "Téléchargement " + percent + "%";
+              appProgress.setAttribute("aria-valuenow", String(percent));
+              appProgressFill.style.width = percent + "%";
             }
           });
         } catch (_) {
           window.alert("Le téléchargement de l’APK a échoué. Vérifiez votre connexion puis réessayez.");
         } finally {
           appLink.textContent = originalText;
+          window.setTimeout(function () {
+            appProgress.classList.remove("is-active");
+            appProgressFill.style.width = "0";
+          }, 1200);
         }
       });
       actions.appendChild(appLink);
+      panel.appendChild(appProgress);
     }
 
     document.body.appendChild(panel);
