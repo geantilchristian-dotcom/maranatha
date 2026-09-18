@@ -8023,5 +8023,16 @@ function showMessageForm(
 </script>
 <!-- /MARANATHA_LEGAL_PAGES_V1 -->
 
+
+<script>
+(function(){
+  if(!('serviceWorker' in navigator)) return;
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('/sw.js').catch(function(error){
+      console.warn('[MARANATHA] Service worker hors connexion indisponible', error);
+    });
+  });
+})();
+</script>
 </body>
 </html>
