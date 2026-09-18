@@ -17,17 +17,48 @@
     const parts = [];
     let received = 0;
 
+    function notify(partIndex) {
+      onProgress(partIndex, PART_COUNT, {
+        received,
+        totalBytes: EXPECTED_SIZE,
+        percent: Math.min(100, Math.round((received / EXPECTED_SIZE) * 100)),
+      });
+    }
+
     for (let index = 0; index < PART_COUNT; index += 1) {
-      onProgress(index, PART_COUNT);
+      notify(index);
       const response = await fetch(partUrl(index), { cache: "no-store" });
       if (!response.ok) {
         throw new Error(`APK_PART_${index}_HTTP_${response.status}`);
       }
 
-      const bytes = await response.arrayBuffer();
-      parts.push(bytes);
-      received += bytes.byteLength;
-      onProgress(index + 1, PART_COUNT);
+      if (!response.body || typeof response.body.getReader !== "function") {
+        const bytes = await response.arrayBuffer();
+        parts.push(bytes);
+        received += bytes.byteLength;
+        notify(index + 1);
+        continue;
+      }
+
+      const reader = response.body.getReader();
+      const chunks = [];
+      let partSize = 0;
+      while (true) {
+        const item = await reader.read();
+        if (item.done) break;
+        chunks.push(item.value);
+        partSize += item.value.byteLength;
+        received += item.value.byteLength;
+        notify(index);
+      }
+      const part = new Uint8Array(partSize);
+      let offset = 0;
+      chunks.forEach(function (chunk) {
+        part.set(chunk, offset);
+        offset += chunk.byteLength;
+      });
+      parts.push(part.buffer);
+      notify(index + 1);
     }
 
     if (received !== EXPECTED_SIZE) {
