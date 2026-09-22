@@ -109,7 +109,22 @@ const allowedOrigins = String(process.env.ALLOWED_ORIGINS || '')
   .map((origin) => origin.trim())
   .filter(Boolean);
 
-app.use(
+function isLocalDevelopmentOrigin(origin) {
+  if (!origin) {
+    return false;
+  }
+  try {
+    const url = new URL(origin);
+    return (
+      (url.hostname === 'localhost' ||
+        url.hostname === '127.0.0.1') &&
+      (url.protocol === 'http:' ||
+        url.protocol === 'https:')
+    );
+  } catch (_error) {
+    return false;
+  }
+}app.use(
   cors({
     origin(origin, callback) {
       if (
