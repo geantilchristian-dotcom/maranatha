@@ -112,7 +112,12 @@ const allowedOrigins = String(process.env.ALLOWED_ORIGINS || '')
 app.use(
   cors({
     origin(origin, callback) {
-      if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
+      if (
+        !origin ||
+        allowedOrigins.length === 0 ||
+        allowedOrigins.includes(origin) ||
+        isLocalDevelopmentOrigin(origin)
+      ) {
         return callback(null, true);
       }
       return callback(new Error('Origine non autorisée'));
