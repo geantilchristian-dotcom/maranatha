@@ -44,7 +44,7 @@ class HomeHeader extends StatelessWidget {
                 ),
                 SizedBox(height: 1),
                 Text(
-                  'IL VIENT BIENTÃ”T',
+                  'IL VIENT BIENTÔT',
                   maxLines: 1,
                   style: TextStyle(
                     fontFamily: 'Manrope',

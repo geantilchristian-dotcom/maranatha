@@ -18,6 +18,28 @@ const settingsSchema = new mongoose.Schema({
     }],
     default: [],
   },
+  dailyVerse: {
+    active: {
+      type: Boolean,
+      default: false,
+    },
+    text: {
+      type: String,
+      default: '',
+    },
+    reference: {
+      type: String,
+      default: '',
+    },
+    backgroundColor: {
+      type: String,
+      default: '#F5F9FF',
+    },
+    textColor: {
+      type: String,
+      default: '#102A56',
+    },
+  },
   heroBanners: {
     type: [{
       id: {

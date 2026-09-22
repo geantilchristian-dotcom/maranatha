@@ -28,7 +28,7 @@ class HomeSearchBar extends StatelessWidget {
           fontSize: 13,
         ),
         decoration: InputDecoration(
-          hintText: 'Que cherches-tu aujourdâ€™hui ?',
+          hintText: 'Que cherches-tu aujourd’hui ?',
           hintStyle: TextStyle(
             fontFamily: 'Manrope',
             color: AppColors.textMuted,

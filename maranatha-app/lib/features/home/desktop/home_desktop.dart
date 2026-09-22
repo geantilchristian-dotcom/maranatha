@@ -4,8 +4,6 @@ import '../../library/pages/library_page.dart';
 import '../../program/pages/program_page.dart';
 import '../../search/pages/global_search_page.dart';
 
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 
 import '../../user/pages/user_modules.dart';
@@ -14,6 +12,9 @@ import '../../../core/constants/app_assets.dart';
 import '../../../core/constants/app_icons.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../bible/pages/bible_loading_page.dart';
+import '../widgets/verse_of_day_card.dart';
+import '../widgets/recent_activities.dart';
+import '../widgets/church_banner.dart';
 
 class HomeDesktop extends StatelessWidget {
   const HomeDesktop({super.key});
@@ -42,15 +43,13 @@ class HomeDesktop extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _DesktopHero(),
+                  ChurchBanner(height: 300),
                   SizedBox(height: 14),
                   _SearchAndMember(),
                   SizedBox(height: 14),
                   _DesktopVerse(),
                   SizedBox(height: 18),
-                  _ActivitiesHeader(),
-                  SizedBox(height: 10),
-                  _DesktopActivities(),
+                  RecentActivities(),
                   SizedBox(height: 18),
                   _WordOfDayButton(),
                 ],
@@ -477,208 +476,10 @@ class _SearchAndMember extends StatelessWidget {
 // ============================================================
 class _DesktopVerse extends StatelessWidget {
   const _DesktopVerse();
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 160,
-      width: double.infinity,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Container(
-            width: 160,
-            padding: const EdgeInsets.fromLTRB(24, 18, 18, 15),
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [Color(0xFF2A7AFF), Color(0xFF003DF0)],
-              ),
-            ),
-            child: const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'VERSET\nDU JOUR',
-                  style: TextStyle(
-                    fontFamily: 'Manrope',
-                    color: Colors.white,
-                    fontSize: 8.5,
-                    height: 1.3,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 1.8,
-                  ),
-                ),
-                SizedBox(height: 8),
-                SizedBox(
-                  width: 24,
-                  child: Divider(
-                    height: 2,
-                    thickness: 1.5,
-                    color: Colors.white,
-                  ),
-                ),
-                Spacer(),
-                Icon(AppIcons.bible, size: 25, color: Colors.white),
-                Spacer(),
-                _DesktopTodayDate(),
-              ],
-            ),
-          ),
-          Expanded(
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                Image.asset(
-                  AppAssets.verseBackground,
-                  fit: BoxFit.cover,
-                  alignment: Alignment.bottomRight,
-                  filterQuality: FilterQuality.high,
-                ),
-                const DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                      colors: [
-                        Color(0xFFF9FCFF),
-                        Color(0xF4F9FCFF),
-                        Color(0xC5F9FCFF),
-                        Color(0x55FFFFFF),
-                      ],
-                    ),
-                  ),
-                ),
-                const Padding(
-                  padding: EdgeInsets.fromLTRB(30, 20, 28, 18),
-                  child: Stack(
-                    children: [
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Padding(
-                          padding: EdgeInsets.only(bottom: 22),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '\u00AB Car je connais les projets que j\u2019ai form\u00E9s '
-                                'sur vous, projets de paix et non de mal, afin de vous '
-                                'donner un avenir et une esp\u00E9rance. \u00BB',
-                                style: TextStyle(
-                                  fontFamily: 'Manrope',
-                                  color: AppColors.navy,
-                                  fontSize: 15.5,
-                                  height: 1.45,
-                                  fontWeight: FontWeight.w600,
-                                  fontStyle: FontStyle.italic,
-                                ),
-                              ),
-                              SizedBox(height: 8),
-                              Text(
-                                'J\u00E9r\u00E9mie 29:11',
-                                style: TextStyle(
-                                  fontFamily: 'Manrope',
-                                  color: AppColors.textSecondary,
-                                  fontSize: 9.5,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      Align(
-                        alignment: Alignment.bottomLeft,
-                        child: Text(
-                          'UNE FOI  \u2022  UN PEUPLE  \u2022  UNE MISSION',
-                          style: TextStyle(
-                            fontFamily: 'Manrope',
-                            color: AppColors.primary,
-                            fontSize: 8,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 1.0,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _DesktopTodayDate extends StatefulWidget {
-  const _DesktopTodayDate();
-  @override
-  State<_DesktopTodayDate> createState() => _DesktopTodayDateState();
-}
-
-class _DesktopTodayDateState extends State<_DesktopTodayDate> {
-  Timer? _timer;
-  late DateTime _today;
-  static const List<String> _months = <String>[
-    'JANV.',
-    'F\u00c9VR.',
-    'MARS',
-    'AVR.',
-    'MAI',
-    'JUIN',
-    'JUIL.',
-    'AO\u00dbT',
-    'SEPT.',
-    'OCT.',
-    'NOV.',
-    'D\u00c9C.',
-  ];
-  @override
-  void initState() {
-    super.initState();
-    _today = DateTime.now();
-    _scheduleNextUpdate();
-  }
-
-  void _scheduleNextUpdate() {
-    _timer?.cancel();
-    final now = DateTime.now();
-    final tomorrow = DateTime(now.year, now.month, now.day + 1, 0, 0, 1);
-    _timer = Timer(tomorrow.difference(now), () {
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _today = DateTime.now();
-      });
-      _scheduleNextUpdate();
-    });
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
-    final day = _today.day.toString().padLeft(2, '0');
-    final month = _months[_today.month - 1];
-    return Text(
-      '$day $month\n${_today.year}',
-      style: const TextStyle(
-        fontFamily: 'Manrope',
-        color: Colors.white,
-        fontSize: 7,
-        height: 1.35,
-        fontWeight: FontWeight.w800,
-        letterSpacing: 0.8,
-      ),
-    );
+    return const VerseOfDayCard(height: 160);
   }
 }
 

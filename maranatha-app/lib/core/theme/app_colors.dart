@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 abstract final class AppColors {
-  // Bleu fourni et validÃ©
+  // Bleu fourni et validé
   static const Color primary = Color(0xFF003DF0);
   static const Color primaryDark = Color(0xFF002AAB);
   static const Color primarySoft = Color(0xFFEDF2FF);

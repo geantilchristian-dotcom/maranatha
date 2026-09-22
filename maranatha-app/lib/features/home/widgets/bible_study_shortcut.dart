@@ -9,7 +9,7 @@ class BibleStudyShortcut extends StatelessWidget {
   Widget build(BuildContext context) {
     return HomeShortcut(
       icon: AppIcons.study,
-      label: 'Ã‰tude biblique',
+      label: 'Étude biblique',
       onTap: () {},
     );
   }

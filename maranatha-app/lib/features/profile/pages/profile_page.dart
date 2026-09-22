@@ -3,10 +3,10 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../data/profile_repository.dart';
 import '../data/public_config_repository.dart';
+import '../../settings/pages/settings_page.dart' as modern_settings;
 
 Future<void> openProfilePage(BuildContext context) {
   return Navigator.of(context)
@@ -36,8 +36,6 @@ class _ProfilePageState extends State<ProfilePage> {
   MaranathaPublicConfig _config = const MaranathaPublicConfig();
   bool _loading = true;
   bool _saving = false;
-  bool _notifications = true;
-  bool _reducedMotion = false;
   @override
   void initState() {
     super.initState();
@@ -58,9 +56,6 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Future<void> _load() async {
     final profile = await ProfileRepository.instance.load();
-    final notifications = await ProfileRepository.instance
-        .notificationsEnabled();
-    final reducedMotion = await ProfileRepository.instance.reducedMotion();
     final config = await PublicConfigRepository.instance.load();
     if (!mounted) {
       return;
@@ -74,8 +69,6 @@ class _ProfilePageState extends State<ProfilePage> {
     _eglise.text = profile.eglise;
     setState(() {
       _profile = profile;
-      _notifications = notifications;
-      _reducedMotion = reducedMotion;
       _config = config;
       _loading = false;
     });
@@ -184,64 +177,6 @@ class _ProfilePageState extends State<ProfilePage> {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(value)));
   }
 
-  Future<void> _setNotifications(bool value) async {
-    await ProfileRepository.instance.setNotificationsEnabled(value);
-    if (!mounted) {
-      return;
-    }
-    setState(() {
-      _notifications = value;
-    });
-  }
-
-  Future<void> _setReducedMotion(bool value) async {
-    await ProfileRepository.instance.setReducedMotion(value);
-    if (!mounted) {
-      return;
-    }
-    setState(() {
-      _reducedMotion = value;
-    });
-  }
-
-  Future<void> _downloadApp() async {
-    var url = _config.apkUrl.trim();
-    if (url.isEmpty) {
-      url = '/downloads/MARANATHA.apk';
-    }
-    if (url.startsWith('/')) {
-      url = '${PublicConfigRepository.baseUrl}$url';
-    }
-    final uri = Uri.tryParse(url);
-    if (uri == null) {
-      _message('Lien de telechargement invalide.');
-      return;
-    }
-    final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
-    if (!opened) {
-      _message('Impossible d ouvrir le telechargement.');
-    }
-  }
-
-  Future<void> _openDocument(
-    String title,
-    String content, {
-    bool support = false,
-  }) async {
-    await Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) {
-          return _ProfileDocumentPage(
-            title: title,
-            content: content,
-            config: _config,
-            support: support,
-          );
-        },
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -286,14 +221,8 @@ class _ProfilePageState extends State<ProfilePage> {
                           _profileHeader(),
                           const SizedBox(height: 16),
                           _profileForm(desktop: desktop),
-                          const SizedBox(height: 22),
-                          const _SectionTitle(value: 'Parametres'),
-                          const SizedBox(height: 8),
-                          _generalSettings(),
-                          const SizedBox(height: 14),
-                          _audioSettings(),
-                          const SizedBox(height: 14),
-                          _applicationSettings(),
+                          const SizedBox(height: 18),
+                          _profileSettingsButton(),
                           const SizedBox(height: 18),
                           OutlinedButton.icon(
                             onPressed: _logout,
@@ -324,6 +253,65 @@ class _ProfilePageState extends State<ProfilePage> {
                 );
               },
             ),
+    );
+  }
+
+  Widget _profileSettingsButton() {
+    return Material(
+      color: Colors.white,
+      child: InkWell(
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => const modern_settings.SettingsPage(),
+            ),
+          );
+        },
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            border: Border.all(color: _border),
+          ),
+          child: const Row(
+            children: <Widget>[
+              CircleAvatar(
+                radius: 21,
+                backgroundColor: Color(0xFFEEF3FF),
+                child: Icon(Icons.settings_outlined, color: _blue, size: 21),
+              ),
+              SizedBox(width: 13),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      'Paramètres de l’application',
+                      style: TextStyle(
+                        fontFamily: 'Manrope',
+                        color: _navy,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    SizedBox(height: 3),
+                    Text(
+                      'Notifications, audio, téléchargement, confidentialité et plus',
+                      style: TextStyle(
+                        fontFamily: 'Manrope',
+                        color: Color(0xFF71809A),
+                        fontSize: 9.8,
+                        height: 1.3,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.chevron_right_rounded, color: Color(0xFF8A98AB)),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -466,93 +454,6 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
     );
   }
-
-  Widget _generalSettings() {
-    return _SettingsGroup(
-      children: [
-        _SwitchRow(
-          icon: Icons.notifications_outlined,
-          title: 'Notifications',
-          subtitle: 'Recevoir les alertes MARANATHA',
-          value: _notifications,
-          onChanged: _setNotifications,
-        ),
-        const Divider(height: 1, color: _border),
-        _SwitchRow(
-          icon: Icons.motion_photos_off_outlined,
-          title: 'Reduire les animations',
-          subtitle: 'Limiter les mouvements de l interface',
-          value: _reducedMotion,
-          onChanged: _setReducedMotion,
-        ),
-      ],
-    );
-  }
-
-  Widget _audioSettings() {
-    return const _SettingsGroup(
-      children: [
-        _InfoRow(
-          icon: Icons.alarm_outlined,
-          title: 'Reveil Maranatha',
-          value: 'Automatique',
-        ),
-        Divider(height: 1, color: _border),
-        _InfoRow(
-          icon: Icons.volume_up_outlined,
-          title: 'Audio en arriere-plan',
-          value: 'Actif',
-        ),
-      ],
-    );
-  }
-
-  Widget _applicationSettings() {
-    return _SettingsGroup(
-      children: [
-        _ActionRow(
-          icon: Icons.download_outlined,
-          title: 'Telecharger l application',
-          onTap: _downloadApp,
-        ),
-        const Divider(height: 1, color: _border),
-        _ActionRow(
-          icon: Icons.shield_outlined,
-          title: 'Confidentialite et donnees',
-          onTap: () {
-            _openDocument('Confidentialite et donnees', _config.privacy);
-          },
-        ),
-        const Divider(height: 1, color: _border),
-        _ActionRow(
-          icon: Icons.description_outlined,
-          title: 'Conditions d utilisation',
-          onTap: () {
-            _openDocument('Conditions d utilisation', _config.terms);
-          },
-        ),
-        const Divider(height: 1, color: _border),
-        _ActionRow(
-          icon: Icons.support_agent_outlined,
-          title: 'Aide et support',
-          onTap: () {
-            _openDocument('Aide et support', _config.help, support: true);
-          },
-        ),
-        const Divider(height: 1, color: _border),
-        _ActionRow(
-          icon: Icons.info_outline_rounded,
-          title: 'A propos de Maranatha',
-          onTap: () {
-            final content = _config.about.isNotEmpty
-                ? _config.about
-                : _config.description;
-            _openDocument('A propos de Maranatha', content);
-          },
-        ),
-      ],
-    );
-  }
 }
 
 class _ProfileField extends StatelessWidget {
@@ -636,287 +537,5 @@ class _Avatar extends StatelessWidget {
     } catch (_) {
       return null;
     }
-  }
-}
-
-class _SectionTitle extends StatelessWidget {
-  const _SectionTitle({required this.value});
-  final String value;
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      value,
-      style: const TextStyle(
-        color: Color(0xFF10284A),
-        fontSize: 17,
-        fontWeight: FontWeight.w800,
-      ),
-    );
-  }
-}
-
-class _SettingsGroup extends StatelessWidget {
-  const _SettingsGroup({required this.children});
-  final List<Widget> children;
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: Colors.white,
-      child: Column(children: children),
-    );
-  }
-}
-
-class _ActionRow extends StatelessWidget {
-  const _ActionRow({
-    required this.icon,
-    required this.title,
-    required this.onTap,
-  });
-  final IconData icon;
-  final String title;
-  final VoidCallback onTap;
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 14),
-        child: Row(
-          children: [
-            Icon(icon, size: 20, color: const Color(0xFF44536A)),
-            const SizedBox(width: 13),
-            Expanded(
-              child: Text(
-                title,
-                style: const TextStyle(
-                  color: Color(0xFF10284A),
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-            const Icon(
-              Icons.chevron_right_rounded,
-              color: Color(0xFFB3BCC9),
-              size: 20,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _InfoRow extends StatelessWidget {
-  const _InfoRow({
-    required this.icon,
-    required this.title,
-    required this.value,
-  });
-  final IconData icon;
-  final String title;
-  final String value;
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 14),
-      child: Row(
-        children: [
-          Icon(icon, size: 20, color: const Color(0xFF44536A)),
-          const SizedBox(width: 13),
-          Expanded(
-            child: Text(
-              title,
-              style: const TextStyle(
-                color: Color(0xFF10284A),
-                fontSize: 11.5,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-          Text(
-            value,
-            style: const TextStyle(
-              color: Color(0xFF239B56),
-              fontSize: 10,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SwitchRow extends StatelessWidget {
-  const _SwitchRow({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.value,
-    required this.onChanged,
-  });
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final bool value;
-  final ValueChanged<bool> onChanged;
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-      child: Row(
-        children: [
-          Icon(icon, size: 20, color: const Color(0xFF44536A)),
-          const SizedBox(width: 13),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: Color(0xFF10284A),
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  subtitle,
-                  style: const TextStyle(color: Color(0xFF8995A7), fontSize: 9),
-                ),
-              ],
-            ),
-          ),
-          Switch(value: value, onChanged: onChanged),
-        ],
-      ),
-    );
-  }
-}
-
-class _ProfileDocumentPage extends StatelessWidget {
-  const _ProfileDocumentPage({
-    required this.title,
-    required this.content,
-    required this.config,
-    required this.support,
-  });
-  final String title;
-  final String content;
-  final MaranathaPublicConfig config;
-  final bool support;
-  Future<void> _openWhatsapp() async {
-    final raw = config.supportWhatsapp.isNotEmpty
-        ? config.supportWhatsapp
-        : config.phone;
-    var digits = raw.replaceAll(RegExp(r'\D'), '');
-    if (digits.startsWith('0')) {
-      digits = '243${digits.substring(1)}';
-    }
-    if (digits.length == 9) {
-      digits = '243$digits';
-    }
-    if (digits.isEmpty) {
-      return;
-    }
-    await launchUrl(
-      Uri.parse('https://wa.me/$digits'),
-      mode: LaunchMode.externalApplication,
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final displayContent = content.trim().isEmpty
-        ? 'Ce contenu n a pas encore ete publie par MARANATHA.'
-        : content.trim();
-    final supportEmail = config.supportEmail.isNotEmpty
-        ? config.supportEmail
-        : config.email;
-    final supportPhone = config.supportWhatsapp.isNotEmpty
-        ? config.supportWhatsapp
-        : config.phone;
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FB),
-      appBar: AppBar(
-        title: Text(
-          title,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-        ),
-        backgroundColor: Colors.white,
-        foregroundColor: const Color(0xFF10284A),
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-      ),
-      body: Align(
-        alignment: Alignment.topCenter,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 800),
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(18),
-            child: Container(
-              width: double.infinity,
-              color: Colors.white,
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    displayContent,
-                    style: const TextStyle(
-                      color: Color(0xFF34445C),
-                      fontSize: 13,
-                      height: 1.6,
-                    ),
-                  ),
-                  if (support &&
-                      (supportPhone.isNotEmpty || supportEmail.isNotEmpty)) ...[
-                    const SizedBox(height: 24),
-                    const Divider(),
-                    const SizedBox(height: 12),
-                    const Text(
-                      'Contacter MARANATHA',
-                      style: TextStyle(
-                        color: Color(0xFF10284A),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    if (supportPhone.isNotEmpty) ...[
-                      const SizedBox(height: 12),
-                      Text(
-                        'WhatsApp : $supportPhone',
-                        style: const TextStyle(
-                          color: Color(0xFF66758A),
-                          fontSize: 11,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      FilledButton(
-                        onPressed: _openWhatsapp,
-                        child: const Text('Ouvrir WhatsApp'),
-                      ),
-                    ],
-                    if (supportEmail.isNotEmpty) ...[
-                      const SizedBox(height: 12),
-                      Text(
-                        'E-mail : $supportEmail',
-                        style: const TextStyle(
-                          color: Color(0xFF66758A),
-                          fontSize: 11,
-                        ),
-                      ),
-                    ],
-                  ],
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
   }
 }

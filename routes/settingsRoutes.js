@@ -91,6 +91,34 @@ router.put('/home', adminOnly, async (req, res) => {
     if (req.body.youtubeChannelUrl !== undefined) update.youtubeChannelUrl = req.body.youtubeChannelUrl;
     if (req.body.tiktokUrl         !== undefined) update.tiktokUrl         = req.body.tiktokUrl;
     if (req.body.instagramUrl       !== undefined) update.instagramUrl       = req.body.instagramUrl;
+    if (
+      req.body.dailyVerse &&
+      typeof req.body.dailyVerse === "object"
+    ) {
+      const incoming = req.body.dailyVerse;
+
+      const cleanHex = (value, fallback) => {
+        const text = String(value || "").trim();
+
+        return /^#[0-9A-Fa-f]{6}$/.test(text)
+          ? text.toUpperCase()
+          : fallback;
+      };
+
+      update.dailyVerse = {
+        active: incoming.active === true,
+        text: String(incoming.text || "").trim(),
+        reference: String(incoming.reference || "").trim(),
+        backgroundColor: cleanHex(
+          incoming.backgroundColor,
+          "#F5F9FF"
+        ),
+        textColor: cleanHex(
+          incoming.textColor,
+          "#102A56"
+        )
+      };
+    }
     if (Array.isArray(req.body.heroBanners)) {
       update.heroBanners =
         req.body.heroBanners

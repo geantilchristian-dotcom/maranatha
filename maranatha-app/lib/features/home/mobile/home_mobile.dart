@@ -1,8 +1,6 @@
 import '../../profile/pages/profile_page.dart';
 import '../../search/pages/global_search_page.dart';
 
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 
 import '../../user/pages/user_modules.dart';
@@ -12,6 +10,9 @@ import '../../../core/constants/app_icons.dart';
 import '../../../core/theme/app_colors.dart';
 import '../widgets/bottom_navigation.dart';
 import '../widgets/maranatha_drawer.dart';
+import '../widgets/verse_of_day_card.dart';
+import '../widgets/recent_activities.dart';
+import '../widgets/church_banner.dart';
 
 class HomeMobile extends StatefulWidget {
   const HomeMobile({super.key});
@@ -43,15 +44,13 @@ class _HomeMobileState extends State<HomeMobile> {
                     },
                   ),
                   const SizedBox(height: 12),
-                  const _MobileHero(),
+                  const ChurchBanner(height: 220),
                   const SizedBox(height: 12),
                   const _SearchAndMember(),
                   const SizedBox(height: 12),
                   const _MobileVerse(),
                   const SizedBox(height: 20),
-                  const _ActivitiesHeader(),
-                  const SizedBox(height: 10),
-                  const _MobileActivities(),
+                  const RecentActivities(),
                   const SizedBox(height: 16),
 
                   const SizedBox(height: 12),
@@ -228,8 +227,8 @@ class _MobileHero extends StatelessWidget {
                   ),
                   SizedBox(height: 8),
                   Text(
-                    'Une foi vivante pour aujourdâ€™hui,\n'
-                    'un peuple prÃªt pour demain.',
+                    'Une foi vivante pour aujourd’hui,\n'
+                    'un peuple prêt pour demain.',
                     style: TextStyle(
                       fontFamily: 'Manrope',
                       color: Color(0xFFF5F7FA),
@@ -270,7 +269,7 @@ class _VisionButton extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            'DÃ©couvrir notre vision',
+            'Découvrir notre vision',
             style: TextStyle(
               fontFamily: 'Manrope',
               color: Colors.white,
@@ -330,7 +329,7 @@ class _SearchAndMember extends StatelessWidget {
                 fontSize: 11,
               ),
               decoration: InputDecoration(
-                hintText: 'Que cherches-tu aujourdâ€™hui ?',
+                hintText: 'Que cherches-tu aujourd’hui ?',
                 hintStyle: TextStyle(
                   fontFamily: 'Manrope',
                   color: AppColors.textMuted,
@@ -380,210 +379,10 @@ class _SearchAndMember extends StatelessWidget {
 
 class _MobileVerse extends StatelessWidget {
   const _MobileVerse();
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 158,
-      width: double.infinity,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: Row(
-          children: [
-            // ==================================================
-            // BANDE BLEUE GAUCHE
-            // ==================================================
-            Container(
-              width: 82,
-              padding: const EdgeInsets.fromLTRB(12, 15, 8, 12),
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xFF2C7DFF), Color(0xFF003DF0)],
-                ),
-              ),
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'VERSET\nDU JOUR',
-                    style: TextStyle(
-                      fontFamily: 'Manrope',
-                      color: Colors.white,
-                      fontSize: 7.2,
-                      height: 1.3,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 1.5,
-                    ),
-                  ),
-                  SizedBox(height: 9),
-                  SizedBox(
-                    width: 20,
-                    child: Divider(
-                      color: Colors.white,
-                      height: 2,
-                      thickness: 1.5,
-                    ),
-                  ),
-                  SizedBox(height: 14),
-                  Icon(AppIcons.bible, color: Colors.white, size: 23),
-                  Spacer(),
-                  // DATE AUTOMATIQUE EN BAS
-                  _AutoTodayDate(),
-                ],
-              ),
-            ),
-            // ==================================================
-            // PARTIE DROITE
-            // ==================================================
-            Expanded(
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Image.asset(
-                    AppAssets.verseBackground,
-                    fit: BoxFit.cover,
-                    alignment: Alignment.bottomRight,
-                    filterQuality: FilterQuality.high,
-                  ),
-                  const DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.centerLeft,
-                        end: Alignment.centerRight,
-                        colors: [
-                          Color(0xFFF9FCFF),
-                          Color(0xF4F9FCFF),
-                          Color(0xC4F9FCFF),
-                          Color(0x55FFFFFF),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.fromLTRB(17, 16, 14, 12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '\u00AB Car je connais les projets que j\u2019ai form\u00E9s '
-                          'sur vous, projets de paix et non de mal, afin '
-                          'de vous donner un avenir et une esp\u00E9rance. \u00BB',
-                          style: TextStyle(
-                            fontFamily: 'Manrope',
-                            color: AppColors.navy,
-                            fontSize: 10.7,
-                            height: 1.37,
-                            fontWeight: FontWeight.w600,
-                            fontStyle: FontStyle.italic,
-                          ),
-                        ),
-                        SizedBox(height: 7),
-                        Text(
-                          'J\u00E9r\u00E9mie 29:11',
-                          style: TextStyle(
-                            fontFamily: 'Manrope',
-                            color: AppColors.textSecondary,
-                            fontSize: 7.8,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        Spacer(),
-                        // THEME DEPLACE EN BAS DU VERSET
-                        Text(
-                          'UNE FOI  \u2022  UN PEUPLE  \u2022  UNE MISSION',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontFamily: 'Manrope',
-                            color: AppColors.primary,
-                            fontSize: 6.2,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.7,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ============================================================
-// DATE AUTOMATIQUE
-// ============================================================
-class _AutoTodayDate extends StatefulWidget {
-  const _AutoTodayDate();
-  @override
-  State<_AutoTodayDate> createState() => _AutoTodayDateState();
-}
-
-class _AutoTodayDateState extends State<_AutoTodayDate> {
-  Timer? _timer;
-  late DateTime _today;
-  static const List<String> _months = <String>[
-    'JANV.',
-    'F\u00C9VR.',
-    'MARS',
-    'AVR.',
-    'MAI',
-    'JUIN',
-    'JUIL.',
-    'AO\u00DBT',
-    'SEPT.',
-    'OCT.',
-    'NOV.',
-    'D\u00C9C.',
-  ];
-  @override
-  void initState() {
-    super.initState();
-    _today = DateTime.now();
-    _scheduleNextUpdate();
-  }
-
-  void _scheduleNextUpdate() {
-    _timer?.cancel();
-    final now = DateTime.now();
-    final nextDay = DateTime(now.year, now.month, now.day + 1, 0, 0, 1);
-    _timer = Timer(nextDay.difference(now), () {
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _today = DateTime.now();
-      });
-      _scheduleNextUpdate();
-    });
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
-    final day = _today.day.toString().padLeft(2, '0');
-    final month = _months[_today.month - 1];
-    return Text(
-      '$day $month\n${_today.year}',
-      style: const TextStyle(
-        fontFamily: 'Manrope',
-        color: Colors.white,
-        fontSize: 6.2,
-        height: 1.35,
-        fontWeight: FontWeight.w800,
-        letterSpacing: 0.7,
-      ),
-    );
+    return const VerseOfDayCard(height: 158);
   }
 }
 
@@ -625,29 +424,29 @@ class _MobileActivities extends StatelessWidget {
   const _MobileActivities();
   static const _items = <_ActivityData>[
     _ActivityData(
-      title: 'Moment de priÃ¨re',
-      subtitle: 'Un cÅ“ur tournÃ© vers Dieu',
+      title: 'Moment de prière',
+      subtitle: 'Un cœur tourné vers Dieu',
       date: 'Hier',
       image: AppAssets.prayer,
       icon: AppIcons.prayer,
     ),
     _ActivityData(
       title: 'Enseignement',
-      subtitle: 'Grandir dans la vÃ©ritÃ©',
+      subtitle: 'Grandir dans la vérité',
       date: 'Il y a 2 jours',
       image: AppAssets.teaching,
       icon: AppIcons.teaching,
     ),
     _ActivityData(
       title: 'Louange',
-      subtitle: 'Ã‰lever nos cÅ“urs',
+      subtitle: 'Élever nos cœurs',
       date: 'Il y a 3 jours',
       image: AppAssets.worship,
       icon: AppIcons.worship,
     ),
     _ActivityData(
-      title: 'ActualitÃ©s',
-      subtitle: 'Rester informÃ©',
+      title: 'Actualités',
+      subtitle: 'Rester informé',
       date: 'Il y a 5 jours',
       image: AppAssets.homeBanner,
       icon: AppIcons.library,

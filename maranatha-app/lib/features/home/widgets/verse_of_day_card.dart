@@ -1,167 +1,318 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
-import '../../../core/constants/app_assets.dart';
 import '../../../core/constants/app_icons.dart';
-import '../../../core/theme/app_colors.dart';
 
-class VerseOfDayCard extends StatelessWidget {
+class VerseOfDayCard extends StatefulWidget {
   const VerseOfDayCard({super.key, this.height = 185});
+
   final double height;
+
+  @override
+  State<VerseOfDayCard> createState() => _VerseOfDayCardState();
+}
+
+class _VerseOfDayCardState extends State<VerseOfDayCard> {
+  static const String _endpoint =
+      'https://maranatha-1-k6ro.onrender.com/api/settings/home';
+
+  Map<String, dynamic>? _verse;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    try {
+      final response = await http
+          .get(
+            Uri.parse(_endpoint),
+            headers: const <String, String>{'Accept': 'application/json'},
+          )
+          .timeout(const Duration(seconds: 18));
+
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw Exception('HTTP ${response.statusCode}');
+      }
+
+      final decoded = jsonDecode(utf8.decode(response.bodyBytes));
+
+      Map<String, dynamic>? value;
+
+      if (decoded is Map && decoded['dailyVerse'] is Map) {
+        value = Map<String, dynamic>.from(decoded['dailyVerse'] as Map);
+      }
+
+      if (!mounted) return;
+
+      setState(() {
+        _verse = value;
+        _loading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+
+      setState(() {
+        _verse = null;
+        _loading = false;
+      });
+    }
+  }
+
+  String _text(String key) {
+    final value = _verse?[key];
+
+    if (value == null) return '';
+
+    return value.toString().trim();
+  }
+
+  Color _parseColor(String raw, Color fallback) {
+    var value = raw.trim();
+
+    if (value.isEmpty) return fallback;
+
+    if (value.startsWith('#')) {
+      value = value.substring(1);
+    }
+
+    if (value.length == 6) {
+      value = 'FF$value';
+    }
+
+    if (value.length != 8) {
+      return fallback;
+    }
+
+    final parsed = int.tryParse(value, radix: 16);
+
+    if (parsed == null) {
+      return fallback;
+    }
+
+    return Color(parsed);
+  }
+
+  String _todayText() {
+    const months = <String>[
+      'JANV.',
+      'FÉVR.',
+      'MARS',
+      'AVR.',
+      'MAI',
+      'JUIN',
+      'JUIL.',
+      'AOÛT',
+      'SEPT.',
+      'OCT.',
+      'NOV.',
+      'DÉC.',
+    ];
+
+    final now = DateTime.now();
+
+    return '${now.day.toString().padLeft(2, '0')} '
+        '${months[now.month - 1]}\n'
+        '${now.year}';
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (_loading) {
+      return SizedBox(
+        height: widget.height,
+        child: const Center(
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            color: Color(0xFF0B5CFF),
+          ),
+        ),
+      );
+    }
+
+    final active = _verse?['active'] == true;
+    final verseText = _text('text');
+    final reference = _text('reference');
+
+    // Aucun verset de test : si l'admin ne publie rien, la carte disparaît.
+    if (!active || verseText.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final backgroundColor = _parseColor(
+      _text('backgroundColor'),
+      const Color(0xFFF5F9FF),
+    );
+
+    final textColor = _parseColor(_text('textColor'), const Color(0xFF102A56));
+
+    final sideColor =
+        Color.lerp(backgroundColor, Colors.black, 0.16) ?? backgroundColor;
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final width = constraints.maxWidth;
+
         final desktop = width >= 900;
         final tablet = width >= 600 && width < 900;
+
         final sideWidth = desktop
             ? 155.0
             : tablet
             ? 125.0
-            : 92.0;
+            : 82.0;
+
         final quoteSize = desktop
-            ? 17.0
+            ? 15.5
             : tablet
-            ? 15.0
-            : 12.3;
+            ? 13.5
+            : 10.7;
+
         final titleSize = desktop
-            ? 12.0
+            ? 8.5
             : tablet
-            ? 10.5
-            : 9.0;
+            ? 8.0
+            : 7.2;
+
         final refSize = desktop
-            ? 12.0
+            ? 9.5
             : tablet
-            ? 10.0
-            : 9.0;
+            ? 8.7
+            : 7.8;
+
+        final dateSize = desktop
+            ? 7.0
+            : tablet
+            ? 6.7
+            : 6.2;
+
         return Container(
-          height: height,
           width: double.infinity,
+          height: widget.height,
           decoration: BoxDecoration(
-            color: Colors.white,
-            border: Border.all(color: AppColors.border, width: 1),
+            color: backgroundColor,
+            border: Border.all(color: textColor.withValues(alpha: 0.10)),
           ),
           child: Row(
-            children: [
-              SizedBox(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              Container(
                 width: sideWidth,
-                height: double.infinity,
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: desktop ? 22 : 14,
-                    vertical: desktop ? 22 : 16,
-                  ),
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [Color(0xFF2F79FF), Color(0xFF003DF0)],
+                padding: EdgeInsets.fromLTRB(
+                  desktop ? 22 : 12,
+                  desktop ? 18 : 15,
+                  desktop ? 18 : 8,
+                  desktop ? 15 : 12,
+                ),
+                decoration: BoxDecoration(color: sideColor),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      'VERSET\nDU JOUR',
+                      style: TextStyle(
+                        fontFamily: 'Manrope',
+                        color: textColor,
+                        fontSize: titleSize,
+                        height: 1.3,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1.5,
+                      ),
                     ),
+
+                    SizedBox(height: desktop ? 8 : 9),
+
+                    Container(
+                      width: desktop ? 24 : 20,
+                      height: 2,
+                      color: textColor,
+                    ),
+
+                    const Spacer(),
+
+                    Icon(
+                      AppIcons.bible,
+                      color: textColor,
+                      size: desktop ? 25 : 23,
+                    ),
+
+                    const Spacer(),
+
+                    Text(
+                      _todayText(),
+                      style: TextStyle(
+                        fontFamily: 'Manrope',
+                        color: textColor,
+                        fontSize: dateSize,
+                        height: 1.35,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.7,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    desktop ? 30 : 17,
+                    desktop ? 20 : 16,
+                    desktop ? 28 : 14,
+                    desktop ? 18 : 12,
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+                    children: <Widget>[
                       Text(
-                        'VERSET\nDU JOUR',
+                        '« $verseText »',
+                        maxLines: desktop ? 4 : 5,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontFamily: 'Manrope',
-                          color: Colors.white,
-                          fontSize: titleSize,
-                          height: 1.35,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 1.7,
+                          color: textColor,
+                          fontSize: quoteSize,
+                          height: 1.40,
+                          fontWeight: FontWeight.w600,
+                          fontStyle: FontStyle.italic,
                         ),
                       ),
-                      SizedBox(height: desktop ? 14 : 10),
-                      Container(
-                        width: desktop ? 34 : 26,
-                        height: 2,
-                        color: Colors.white,
-                      ),
+
+                      if (reference.isNotEmpty) ...<Widget>[
+                        SizedBox(height: desktop ? 8 : 7),
+
+                        Text(
+                          reference,
+                          style: TextStyle(
+                            fontFamily: 'Manrope',
+                            color: textColor.withValues(alpha: 0.72),
+                            fontSize: refSize,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+
                       const Spacer(),
-                      Icon(
-                        AppIcons.leaf,
-                        color: Colors.white,
-                        size: desktop ? 31 : 24,
-                      ),
-                      const Spacer(),
+
                       Text(
-                        'UNE FOI\nUN PEUPLE\nUNE MISSION',
+                        'UNE FOI  •  UN PEUPLE  •  UNE MISSION',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontFamily: 'Manrope',
-                          color: Colors.white,
-                          fontSize: desktop ? 8.5 : 6.5,
-                          height: 1.55,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 1.8,
+                          color: textColor,
+                          fontSize: desktop ? 8 : 6.2,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.7,
                         ),
                       ),
                     ],
                   ),
-                ),
-              ),
-              Expanded(
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    Image.asset(
-                      AppAssets.verseBackground,
-                      fit: BoxFit.cover,
-                      alignment: Alignment.bottomRight,
-                      filterQuality: FilterQuality.high,
-                    ),
-                    const DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.centerLeft,
-                          end: Alignment.centerRight,
-                          colors: [
-                            Color(0xFFFFFFFF),
-                            Color(0xFFF8FBFF),
-                            Color(0xDDF8FBFF),
-                            Color(0x55FFFFFF),
-                          ],
-                          stops: [0.0, 0.42, 0.72, 1.0],
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.fromLTRB(
-                        desktop ? 28 : 18,
-                        desktop ? 28 : 20,
-                        desktop ? 30 : 17,
-                        desktop ? 24 : 18,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Â« Car je connais les projets que jâ€™ai formÃ©s '
-                            'sur vous, projets de paix et non de mal, afin '
-                            'de vous donner un avenir et une espÃ©rance. Â»',
-                            style: TextStyle(
-                              fontFamily: 'Manrope',
-                              color: AppColors.navy,
-                              fontSize: quoteSize,
-                              height: 1.45,
-                              fontWeight: FontWeight.w500,
-                              fontStyle: FontStyle.italic,
-                            ),
-                          ),
-                          SizedBox(height: desktop ? 13 : 9),
-                          Text(
-                            'JÃ©rÃ©mie 29:11',
-                            style: TextStyle(
-                              fontFamily: 'Manrope',
-                              color: AppColors.textSecondary,
-                              fontSize: refSize,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
                 ),
               ),
             ],

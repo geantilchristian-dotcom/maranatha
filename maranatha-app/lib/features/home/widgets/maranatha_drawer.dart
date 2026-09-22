@@ -5,6 +5,7 @@ import '../../bible/pages/bible_loading_page.dart';
 import '../../direct/pages/direct_page.dart';
 import '../../library/pages/library_page.dart';
 import '../../program/pages/program_page.dart';
+import '../../settings/pages/settings_page.dart' as modern_settings;
 import '../../user/pages/user_modules.dart';
 
 class MaranathaDrawer extends StatelessWidget {
@@ -101,7 +102,8 @@ class MaranathaDrawer extends StatelessWidget {
                   _Item(
                     icon: Icons.settings_rounded,
                     title: 'Paramètres',
-                    onTap: () => _open(context, const SettingsPage()),
+                    onTap: () =>
+                        _open(context, const modern_settings.SettingsPage()),
                   ),
                 ],
               ),
