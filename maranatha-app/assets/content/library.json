@@ -1,0 +1,68 @@
+﻿{
+    "recent":  [
+
+               ],
+    "live":  [
+                 {
+                     "id":  "mu5do6z3n67iw3",
+                     "title":  "PUBLICATION DU LIVRE",
+                     "active":  true,
+                     "platform":  "audio",
+                     "url":  "https://youtu.be/sapP2ShgaVg?si=HYZXCPXik0C3Enpk",
+                     "sourceMode":  "link"
+                 }
+             ],
+    "audio":  [
+                  {
+                      "id":  "mu5dr1kl53tv0y",
+                      "title":  "JEUSUS REVIENS BIENTOT",
+                      "active":  true,
+                      "speaker":  "Moses Hardi",
+                      "sourceMode":  "file",
+                      "url":  "https://res.cloudinary.com/df7rqspqp/video/upload/v1789640514/maranatha/library/file_m9i2wv.mp3",
+                      "fileName":  "Extrait NYAKATI SABA ZA MUNGU JUU YA DUNIA.mp3",
+                      "mimeType":  "audio/mpeg"
+                  }
+              ],
+    "video":  [
+                  {
+                      "id":  "mu5ds1zq8rwkue",
+                      "title":  "PUBLICATION DU LIVRE",
+                      "active":  true,
+                      "sourceMode":  "link",
+                      "url":  "https://youtu.be/sapP2ShgaVg?si=HYZXCPXik0C3Enpk",
+                      "fileName":  "",
+                      "coverMode":  "link",
+                      "image":  "https://youtu.be/sapP2ShgaVg?si=HYZXCPXik0C3Enpk",
+                      "coverFileName":  ""
+                  }
+              ],
+    "book":  [
+                 {
+                     "id":  "mu5c5yywiae9ay",
+                     "title":  "SIKU ILE",
+                     "active":  true,
+                     "author":  "Moses hardi",
+                     "sourceMode":  "file",
+                     "url":  "https://res.cloudinary.com/df7rqspqp/raw/upload/v1789637849/maranatha/library/file_oovpqj",
+                     "fileName":  "1789563592500-TRANSMI_Presentation_EN (2).pdf",
+                     "mimeType":  "application/pdf",
+                     "coverMode":  "file",
+                     "image":  "https://res.cloudinary.com/df7rqspqp/image/upload/v1789637850/maranatha/library/file_mg2uge.jpg",
+                     "coverFileName":  "9f5ae7bc120a51c052f71332578f6e6a.jpg"
+                 },
+                 {
+                     "id":  "mu5bdbc00y6r9j",
+                     "title":  "DUNIA",
+                     "active":  true,
+                     "author":  "Moses hardi",
+                     "sourceMode":  "file",
+                     "url":  "https://res.cloudinary.com/df7rqspqp/raw/upload/v1789636513/maranatha/library/file_itghgh",
+                     "fileName":  "1789563592500-TRANSMI_Presentation_EN (5).pdf",
+                     "mimeType":  "application/pdf",
+                     "coverMode":  "file",
+                     "image":  "https://res.cloudinary.com/df7rqspqp/image/upload/v1789636514/maranatha/library/file_bdsojd.jpg",
+                     "coverFileName":  "adbba7072798c220132fc88720495551.jpg"
+                 }
+             ]
+}

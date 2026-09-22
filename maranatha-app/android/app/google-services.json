@@ -8,6 +8,25 @@
   "client": [
     {
       "client_info": {
+        "mobilesdk_app_id": "1:188021898620:android:0a3861c9883f2e78fa78f9",
+        "android_client_info": {
+          "package_name": "com.cemmmaranatha.maranatha"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAQwMk1AAlvJaxvESjSfyW69GY1YJeHhPk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
         "mobilesdk_app_id": "1:188021898620:android:da81b534ccd0fdb9fa78f9",
         "android_client_info": {
           "package_name": "com.maranatha.app"

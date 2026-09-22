@@ -1,0 +1,203 @@
+import 'package:flutter/material.dart';
+
+import '../../../core/constants/app_assets.dart';
+import '../../../core/constants/app_icons.dart';
+import '../../../core/theme/app_colors.dart';
+import '../widgets/bible_shortcut.dart';
+import '../widgets/bible_study_shortcut.dart';
+import '../widgets/church_banner.dart';
+import '../widgets/home_search_bar.dart';
+import '../widgets/recent_activities.dart';
+import '../widgets/verse_of_day_card.dart';
+
+class HomeWeb extends StatelessWidget {
+  const HomeWeb({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: CustomScrollView(
+        slivers: [
+          const SliverToBoxAdapter(child: _WebHeader()),
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(28, 24, 28, 50),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                const ChurchBanner(height: 360),
+                const SizedBox(height: 22),
+                const HomeSearchBar(),
+                const SizedBox(height: 22),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      flex: 4,
+                      child: Column(
+                        children: [
+                          const Row(
+                            children: [
+                              Expanded(child: BibleShortcut()),
+                              SizedBox(width: 14),
+                              Expanded(child: BibleStudyShortcut()),
+                            ],
+                          ),
+                          const SizedBox(height: 18),
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(24),
+                            decoration: BoxDecoration(
+                              color: AppColors.surfaceSoft,
+                              borderRadius: BorderRadius.circular(22),
+                            ),
+                            child: const Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'MARANATHA',
+                                  style: TextStyle(
+                                    fontFamily: 'Manrope',
+                                    color: AppColors.primary,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: 2,
+                                  ),
+                                ),
+                                SizedBox(height: 8),
+                                Text(
+                                  'Une église connectée, '
+                                  'une foi vivante.',
+                                  style: TextStyle(
+                                    fontFamily: 'Manrope',
+                                    color: AppColors.navy,
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 22),
+                    const Expanded(flex: 5, child: VerseOfDayCard(height: 270)),
+                  ],
+                ),
+                const SizedBox(height: 34),
+                const RecentActivities(web: true),
+              ]),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _WebHeader extends StatelessWidget {
+  const _WebHeader();
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 78,
+      width: double.infinity,
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(bottom: BorderSide(color: AppColors.divider)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 28),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 49,
+              height: 49,
+              child: Image.asset(AppAssets.logo, fit: BoxFit.contain),
+            ),
+            const SizedBox(width: 12),
+            const Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'CEMM Maranatha',
+                  style: TextStyle(
+                    fontFamily: 'Manrope',
+                    color: AppColors.navy,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                Text(
+                  'IL VIENT BIENTÔT',
+                  style: TextStyle(
+                    fontFamily: 'Manrope',
+                    color: AppColors.primary,
+                    fontSize: 8,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.8,
+                  ),
+                ),
+              ],
+            ),
+            const Spacer(),
+            const _WebNavLabel(text: 'Accueil', active: true),
+            const _WebNavLabel(text: 'Bible'),
+            const _WebNavLabel(text: 'Étude biblique'),
+            const _WebNavLabel(text: 'Bibliothèque'),
+            const _WebNavLabel(text: 'Découvrir'),
+            const SizedBox(width: 18),
+            Container(
+              width: 39,
+              height: 39,
+              decoration: const BoxDecoration(
+                color: AppColors.primarySoft,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                AppIcons.notification,
+                color: AppColors.primary,
+                size: 19,
+              ),
+            ),
+            const SizedBox(width: 9),
+            Container(
+              width: 39,
+              height: 39,
+              decoration: const BoxDecoration(
+                color: AppColors.primary,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                AppIcons.profile,
+                color: Colors.white,
+                size: 19,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _WebNavLabel extends StatelessWidget {
+  const _WebNavLabel({required this.text, this.active = false});
+  final String text;
+  final bool active;
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 13),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontFamily: 'Manrope',
+          color: active ? AppColors.primary : AppColors.textSecondary,
+          fontSize: 13,
+          fontWeight: active ? FontWeight.w800 : FontWeight.w600,
+        ),
+      ),
+    );
+  }
+}
