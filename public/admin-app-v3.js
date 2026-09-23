@@ -1855,6 +1855,192 @@
   // ========================================================
   // DIRECT
   // ========================================================
+  // ========================================================
+  // MARANATHA_DIRECT_REALTIME_V1
+  // Heure locale réelle de l'appareil administrateur
+  // ========================================================
+  let av3DirectClockTimer =
+    null;
+  function av3Pad2(
+    value
+  ) {
+    return String(
+      value
+    ).padStart(
+      2,
+      "0"
+    );
+  }
+  function av3LocalDateTimeValue(
+    date
+  ) {
+    const value =
+      date instanceof Date
+        ? date
+        : new Date();
+    return (
+      value.getFullYear() +
+      "-" +
+      av3Pad2(
+        value.getMonth() + 1
+      ) +
+      "-" +
+      av3Pad2(
+        value.getDate()
+      ) +
+      "T" +
+      av3Pad2(
+        value.getHours()
+      ) +
+      ":" +
+      av3Pad2(
+        value.getMinutes()
+      ) +
+      ":" +
+      av3Pad2(
+        value.getSeconds()
+      )
+    );
+  }
+  function av3RealTimeText(
+    date
+  ) {
+    const value =
+      date instanceof Date
+        ? date
+        : new Date();
+    const dateText =
+      new Intl.DateTimeFormat(
+        "fr-FR",
+        {
+          weekday:
+            "long",
+          day:
+            "2-digit",
+          month:
+            "long",
+          year:
+            "numeric"
+        }
+      ).format(
+        value
+      );
+    const timeText =
+      new Intl.DateTimeFormat(
+        "fr-FR",
+        {
+          hour:
+            "2-digit",
+          minute:
+            "2-digit",
+          second:
+            "2-digit",
+          hour12:
+            false
+        }
+      ).format(
+        value
+      );
+    return (
+      dateText
+        .charAt(0)
+        .toUpperCase() +
+      dateText.slice(1) +
+      " • " +
+      timeText
+    );
+  }
+  function wireDirectRealtimeDateTime() {
+    if (
+      av3DirectClockTimer
+    ) {
+      window.clearInterval(
+        av3DirectClockTimer
+      );
+      av3DirectClockTimer =
+        null;
+    }
+    const startInput =
+      document.getElementById(
+        "av3-direct-start"
+      );
+    const clock =
+      document.getElementById(
+        "av3-direct-real-clock"
+      );
+    const nowButton =
+      document.getElementById(
+        "av3-direct-use-now"
+      );
+    if (
+      !startInput ||
+      !clock
+    ) {
+      return;
+    }
+    let automatic =
+      true;
+    startInput.step =
+      "1";
+    startInput.dataset.autoRealtime =
+      "1";
+    startInput.addEventListener(
+      "input",
+      function () {
+        automatic =
+          false;
+        startInput.dataset.autoRealtime =
+          "0";
+      }
+    );
+    if (nowButton) {
+      nowButton.addEventListener(
+        "click",
+        function () {
+          automatic =
+            true;
+          startInput.dataset.autoRealtime =
+            "1";
+          const now =
+            new Date();
+          startInput.value =
+            av3LocalDateTimeValue(
+              now
+            );
+          clock.textContent =
+            "Maintenant : " +
+            av3RealTimeText(
+              now
+            );
+        }
+      );
+    }
+    function tick() {
+      const now =
+        new Date();
+      clock.textContent =
+        "Maintenant : " +
+        av3RealTimeText(
+          now
+        );
+      if (
+        automatic &&
+        document.activeElement !==
+          startInput
+      ) {
+        startInput.value =
+          av3LocalDateTimeValue(
+            now
+          );
+      }
+    }
+    tick();
+    av3DirectClockTimer =
+      window.setInterval(
+        tick,
+        1000
+      );
+  }
   function renderDirect() {
     const target =
       page();
@@ -1920,6 +2106,33 @@
                   id="av3-direct-theme"
                   type="text">
               </div>
+              <div class="av3-field full">
+                <div style="
+                  display:flex;
+                  align-items:center;
+                  justify-content:space-between;
+                  gap:10px;
+                  padding:9px 11px;
+                  margin-bottom:2px;
+                  border-radius:9px;
+                  background:rgba(194,14,40,.10);
+                  border:1px solid rgba(194,14,40,.25);">
+                  <div
+                    id="av3-direct-real-clock"
+                    style="
+                      color:#f0dce0;
+                      font-size:11px;
+                      font-weight:700;">
+                    Maintenant…
+                  </div>
+                  <button
+                    id="av3-direct-use-now"
+                    type="button"
+                    class="av3-mini green">
+                    Maintenant
+                  </button>
+                </div>
+              </div>
               <div class="av3-field">
                 <label>
                   Date et heure de début *
@@ -1927,7 +2140,11 @@
                 <input
                   id="av3-direct-start"
                   required
+                  step="1"
                   type="datetime-local">
+                <small>
+                  Se met à jour automatiquement tant que vous ne la modifiez pas.
+                </small>
               </div>
               <div class="av3-field">
                 <label>
@@ -1935,6 +2152,7 @@
                 </label>
                 <input
                   id="av3-direct-end"
+                  step="1"
                   type="datetime-local">
               </div>
               <div class="av3-field full">
@@ -2036,6 +2254,7 @@
     wireRefresh();
     wireDirectForm();
     wireDirectRows();
+    wireDirectRealtimeDateTime();
   }
   function directRow(
     item
