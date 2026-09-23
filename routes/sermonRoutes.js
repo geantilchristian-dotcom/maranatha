@@ -71,7 +71,21 @@ router.get('/upcoming', async (req, res) => {
       ],
     })
       .sort({ dateDiffusion: 1 })
-      .select({ titre: 1, description: 1, audioUrl: 1, dateDiffusion: 1 })
+      .select({
+        titre: 1,
+        description: 1,
+        pasteur: 1,
+        imageUrl: 1,
+        lieu: 1,
+        theme: 1,
+        audioUrl: 1,
+        dateDiffusion: 1,
+        dateFin: 1,
+        heure: 1,
+        heureFin: 1,
+        statut: 1,
+        visible: 1,
+      })
       .lean();
 
     return res.json(sermons);
@@ -108,11 +122,18 @@ router.get('/recent', async (_req, res) => {
       .select({
         titre: 1,
         description: 1,
+        pasteur: 1,
+        imageUrl: 1,
+        lieu: 1,
+        theme: 1,
         audioUrl: 1,
         dateDiffusion: 1,
         dateFin: 1,
+        heure: 1,
+        heureFin: 1,
         dureeSecondes: 1,
         statut: 1,
+        visible: 1,
       })
       .lean();
 
@@ -130,9 +151,85 @@ router.get('/recent', async (_req, res) => {
 
 router.post('/schedule', adminOnly, upload.single('audio'), async (req, res) => {
   try {
-    const titre = String(req.body.titre || '').trim().slice(0, 180);
-    const description = String(req.body.description || '').trim().slice(0, 3000);
-    const dateDiffusion = new Date(req.body.dateDiffusion);
+    /* MARANATHA_DIRECT_METADATA_V3 */
+    const titre =
+      String(
+        req.body.titre ||
+        ''
+      )
+      .trim()
+      .slice(0, 180);
+    const description =
+      String(
+        req.body.description ||
+        ''
+      )
+      .trim()
+      .slice(0, 3000);
+    const pasteur =
+      String(
+        req.body.pasteur ||
+        ''
+      )
+      .trim()
+      .slice(0, 180);
+    const imageUrl =
+      String(
+        req.body.imageUrl ||
+        ''
+      )
+      .trim()
+      .slice(0, 2000);
+    const lieu =
+      String(
+        req.body.lieu ||
+        ''
+      )
+      .trim()
+      .slice(0, 300);
+    const theme =
+      String(
+        req.body.theme ||
+        ''
+      )
+      .trim()
+      .slice(0, 300);
+    const heure =
+      String(
+        req.body.heure ||
+        ''
+      )
+      .trim()
+      .slice(0, 20);
+    const heureFin =
+      String(
+        req.body.heureFin ||
+        ''
+      )
+      .trim()
+      .slice(0, 20);
+    const dateDiffusion =
+      new Date(
+        req.body.dateDiffusion
+      );
+    let requestedDateFin =
+      null;
+    if (
+      req.body.dateFin
+    ) {
+      const parsedDateFin =
+        new Date(
+          req.body.dateFin
+        );
+      if (
+        !Number.isNaN(
+          parsedDateFin.getTime()
+        )
+      ) {
+        requestedDateFin =
+          parsedDateFin;
+      }
+    }
 
     if (!titre || Number.isNaN(dateDiffusion.getTime())) {
       return res.status(400).json({
@@ -205,18 +302,40 @@ router.post('/schedule', adminOnly, upload.single('audio'), async (req, res) => 
       return res.status(400).json({ error: 'Aucun fichier audio fourni' });
     }
 
-    const sermon = await Sermon.create({
-      titre,
-      description,
-      audioUrl,
-      dateDiffusion,
-      dureeSecondes,
-      dateFin:
-        dureeSecondes > 0
-          ? new Date(dateDiffusion.getTime() + dureeSecondes * 1000)
-          : null,
-      statut: 'planifie',
-    });
+    const sermon =
+      await Sermon.create({
+        titre,
+        description,
+        pasteur,
+        imageUrl,
+        lieu,
+        theme,
+        audioUrl,
+        dateDiffusion,
+        heure,
+        heureFin,
+        dureeSecondes,
+        dateFin:
+          requestedDateFin &&
+          requestedDateFin >
+            dateDiffusion
+            ? requestedDateFin
+            : dureeSecondes > 0
+                ? new Date(
+                    dateDiffusion.getTime() +
+                    dureeSecondes *
+                      1000
+                  )
+                : null,
+        statut:
+          'planifie',
+        visible:
+          req.body.visible !==
+          'false',
+        publierBibliotheque:
+          req.body.publierBibliotheque ===
+          'true',
+      });
 
     broadcast('sermon_update', { action: 'new', sermon });
 
@@ -235,7 +354,168 @@ router.post('/schedule', adminOnly, upload.single('audio'), async (req, res) => 
   }
 });
 
-router.delete('/:id', adminOnly, async (req, res) => {
+/* ==========================================================
+   MARANATHA_DIRECT_UPDATE_V3
+   ========================================================== */
+router.put(
+  '/:id',
+  adminOnly,
+  async (req, res) => {
+    try {
+      if (
+        !mongoose.isValidObjectId(
+          req.params.id
+        )
+      ) {
+        return res
+          .status(400)
+          .json({
+            error:
+              'Identifiant invalide'
+          });
+      }
+      const update =
+        {};
+      const stringFields = [
+        'titre',
+        'description',
+        'pasteur',
+        'imageUrl',
+        'lieu',
+        'theme',
+        'audioUrl',
+        'heure',
+        'heureFin'
+      ];
+      for (
+        const field
+        of stringFields
+      ) {
+        if (
+          req.body[field] !==
+          undefined
+        ) {
+          update[field] =
+            String(
+              req.body[field] ||
+              ''
+            )
+            .trim();
+        }
+      }
+      if (
+        req.body.dateDiffusion !==
+        undefined
+      ) {
+        const parsed =
+          new Date(
+            req.body.dateDiffusion
+          );
+        if (
+          Number.isNaN(
+            parsed.getTime()
+          )
+        ) {
+          return res
+            .status(400)
+            .json({
+              error:
+                'Date de diffusion invalide'
+            });
+        }
+        update.dateDiffusion =
+          parsed;
+      }
+      if (
+        req.body.dateFin !==
+        undefined
+      ) {
+        if (
+          !req.body.dateFin
+        ) {
+          update.dateFin =
+            null;
+        } else {
+          const parsed =
+            new Date(
+              req.body.dateFin
+            );
+          if (
+            Number.isNaN(
+              parsed.getTime()
+            )
+          ) {
+            return res
+              .status(400)
+              .json({
+                error:
+                  'Date de fin invalide'
+              });
+          }
+          update.dateFin =
+            parsed;
+        }
+      }
+      if (
+        typeof req.body.visible ===
+        'boolean'
+      ) {
+        update.visible =
+          req.body.visible;
+      }
+      if (
+        typeof req.body.publierBibliotheque ===
+        'boolean'
+      ) {
+        update.publierBibliotheque =
+          req.body.publierBibliotheque;
+      }
+      const sermon =
+        await Sermon.findByIdAndUpdate(
+          req.params.id,
+          {
+            $set:
+              update
+          },
+          {
+            new: true,
+            runValidators: true
+          }
+        );
+      if (!sermon) {
+        return res
+          .status(404)
+          .json({
+            error:
+              'Prédication introuvable'
+          });
+      }
+      broadcast(
+        'sermon_update',
+        {
+          action:
+            'updated',
+          sermon
+        }
+      );
+      return res.json(
+        sermon
+      );
+    } catch (error) {
+      console.error(
+        '[sermons/update]',
+        error.message
+      );
+      return res
+        .status(400)
+        .json({
+          error:
+            'Modification impossible'
+        });
+    }
+  }
+);
+/* MARANATHA_DIRECT_UPDATE_V3_END */router.delete('/:id', adminOnly, async (req, res) => {
   try {
     if (!mongoose.isValidObjectId(req.params.id)) {
       return res.status(400).json({ error: 'Identifiant invalide' });

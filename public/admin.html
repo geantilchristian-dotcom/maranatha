@@ -772,6 +772,7 @@ body,
 <link rel="stylesheet" href="/admin-members-v4.css?v=1">
 <link rel="stylesheet" href="/admin-dons-v2.css?v=1">
 <link rel="stylesheet" href="/admin-params-v2.css?v=2">
+  <link rel="stylesheet" href="/admin-app-v3.css?v=20260923-admin-v3">
 </head>
 <body>
 
@@ -812,6 +813,14 @@ body,
     <button class="tab-btn active" onclick="switchTab('stats')" data-tab="stats">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
       Vue d'ensemble
+    </button>
+    <button class="tab-btn" onclick="switchTab('pilotage')" data-tab="pilotage">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="18" height="18" rx="3"/>
+        <path d="M8 12h8"/>
+        <path d="M12 8v8"/>
+      </svg>
+      Pilotage App
     </button>
     <button class="tab-btn" onclick="switchTab('programme')" data-tab="programme">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
@@ -894,6 +903,10 @@ body,
       </div>
     </div>
 
+    <!-- ══════════════ ONGLET : PILOTAGE APP V3 ══════════════ -->
+    <div class="tab-pane" id="pane-pilotage">
+      <div id="admin-app-v3-root"></div>
+    </div>
     <!-- ══════════════ ONGLET : PROGRAMME ══════════════ -->
     <div class="tab-pane" id="pane-programme">
       <div class="section-title">
@@ -1599,6 +1612,16 @@ body,
           document.getElementById('dashboard').style.display = 'block';
           chargerTout();
           initDateAuto();
+          setTimeout(() => {
+            try {
+              if (
+                window.AdminAppV3 &&
+                typeof window.AdminAppV3.load === 'function'
+              ) {
+                window.AdminAppV3.load();
+              }
+            } catch (_error) {}
+          }, 100);
         } else {
           document.getElementById('login-error').style.display = 'block';
           adminPassword = '';
@@ -5513,5 +5536,7 @@ setTimeout(
 <!-- MARANATHA_SERMON_AUTO_DATETIME_V1_END -->
 
 <script src="/admin-daily-verse.js?v=20260922-1"></script>
+<script src="/admin-daily-word.js?v=20260922-final"></script>
+<script src="/admin-app-v3.js?v=20260923-admin-v3"></script>
 </body>
 </html>

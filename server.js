@@ -99,7 +99,7 @@ app.use(
 );
 const PORT = Number(process.env.PORT || 5000);
 const MONGO_URI = process.env.MONGO_URI;
-const VERSION = '20260922-cors-v2';
+const VERSION = '20260923-admin-v3';
 
 app.disable('x-powered-by');
 app.set('trust proxy', 1);

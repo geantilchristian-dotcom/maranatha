@@ -5,6 +5,7 @@ const Settings = require('../models/Settings');
 const adminOnly = require('../utils/adminAuth');
 const multer = require('multer');
 const { uploadImage } = require('../utils/cloudinary');
+const { notifierPublicationNouvelle } = require('../utils/publicationNotifications');
 
 
 // GET /api/settings — public summary (compatibility for older interfaces)
@@ -119,7 +120,51 @@ router.put('/home', adminOnly, async (req, res) => {
         )
       };
     }
-    if (Array.isArray(req.body.heroBanners)) {
+    if (
+      req.body.dailyWord &&
+      typeof req.body.dailyWord === 'object'
+    ) {
+      const incoming =
+        req.body.dailyWord;
+      const cleanHex =
+        (value, fallback) => {
+          const text =
+            String(value || '').trim();
+          return /^#[0-9A-Fa-f]{6}$/
+            .test(text)
+              ? text.toUpperCase()
+              : fallback;
+        };
+      update.dailyWord = {
+        active:
+          incoming.active === true,
+        title:
+          String(
+            incoming.title ||
+            'Parole du jour'
+          ).trim(),
+        text:
+          String(
+            incoming.text || ''
+          ).trim(),
+        reference:
+          String(
+            incoming.reference || ''
+          ).trim(),
+        backgroundColor:
+          cleanHex(
+            incoming.backgroundColor,
+            '#003DF0'
+          ),
+        textColor:
+          cleanHex(
+            incoming.textColor,
+            '#FFFFFF'
+          ),
+        publishedAt:
+          new Date()
+      };
+    }    if (Array.isArray(req.body.heroBanners)) {
       update.heroBanners =
         req.body.heroBanners
         .filter(item =>
@@ -142,8 +187,16 @@ router.put('/home', adminOnly, async (req, res) => {
           reference:
             String(item.reference || "").trim(),
           buttonLabel:
-            String(item.buttonLabel || "").trim()
-        }));
+            String(item.buttonLabel || "").trim(),
+          ordre:
+            Number.isFinite(Number(item.ordre))
+              ? Number(item.ordre)
+              : 0
+        }))
+        .sort((a, b) =>
+          Number(a.ordre || 0) -
+          Number(b.ordre || 0)
+        );
     }
     const s = await Settings.findOneAndUpdate(
       { key: 'home' },
@@ -592,4 +645,292 @@ router.put(
 
 /* MARANATHA_APP_CONFIG_PRODUCTION_V1_END */
 
-module.exports = router;
+/* ==========================================================
+   MARANATHA_DAILY_WORD_V3
+   Parole du jour MATIN / SOIR
+   ========================================================== */
+function dailyWordDefault() {
+  return {
+    matin: null,
+    soir: null,
+    history: []
+  };
+}
+function cleanDailyWordEntry(
+  input,
+  period
+) {
+  const source =
+    input &&
+    typeof input === 'object'
+      ? input
+      : {};
+  const date =
+    String(
+      source.date ||
+      new Date()
+        .toISOString()
+        .slice(0, 10)
+    )
+    .trim()
+    .slice(0, 20);
+  const sujet =
+    String(
+      source.sujet ||
+      source.subject ||
+      ''
+    )
+    .trim()
+    .slice(0, 220);
+  const parole =
+    String(
+      source.parole ||
+      source.text ||
+      ''
+    )
+    .trim()
+    .slice(0, 10000);
+  const reference =
+    String(
+      source.reference ||
+      ''
+    )
+    .trim()
+    .slice(0, 220);
+  const explication =
+    String(
+      source.explication ||
+      source.explanation ||
+      ''
+    )
+    .trim()
+    .slice(0, 20000);
+  const id =
+    String(
+      source.id ||
+      `${period}-${date}-${Date.now()}`
+    )
+    .trim()
+    .slice(0, 220);
+  return {
+    id,
+    period,
+    date,
+    sujet,
+    parole,
+    text: parole,
+    reference,
+    explication,
+    active:
+      source.active !== false,
+    publishedAt:
+      source.publishedAt ||
+      new Date().toISOString()
+  };
+}
+router.get(
+  '/daily-word',
+  async (_req, res) => {
+    try {
+      const document =
+        await Settings.findOne({
+          key: 'daily-word'
+        })
+        .lean();
+      const value =
+        document &&
+        document.dailyWord &&
+        typeof document.dailyWord === 'object'
+          ? document.dailyWord
+          : dailyWordDefault();
+      return res.json({
+        matin:
+          value.matin ||
+          null,
+        soir:
+          value.soir ||
+          null,
+        history:
+          Array.isArray(
+            value.history
+          )
+            ? value.history
+            : [],
+        updatedAt:
+          document?.updatedAt ||
+          null
+      });
+    } catch (error) {
+      console.error(
+        '[daily-word/get]',
+        error
+      );
+      return res
+        .status(500)
+        .json({
+          error:
+            'Impossible de charger la Parole du jour.'
+        });
+    }
+  }
+);
+router.put(
+  '/daily-word',
+  adminOnly,
+  async (req, res) => {
+    try {
+      const period =
+        req.body?.period === 'soir'
+          ? 'soir'
+          : 'matin';
+      const publication =
+        cleanDailyWordEntry(
+          req.body?.publication,
+          period
+        );
+      if (
+        !publication.sujet ||
+        !publication.parole
+      ) {
+        return res
+          .status(400)
+          .json({
+            error:
+              'Sujet et Parole obligatoires.'
+          });
+      }
+      const existing =
+        await Settings.findOne({
+          key: 'daily-word'
+        })
+        .lean();
+      const current =
+        existing &&
+        existing.dailyWord &&
+        typeof existing.dailyWord === 'object'
+          ? existing.dailyWord
+          : dailyWordDefault();
+      const history =
+        Array.isArray(
+          current.history
+        )
+          ? [...current.history]
+          : [];
+      const previous =
+        current[period];
+      if (
+        previous &&
+        previous.id &&
+        previous.id !== publication.id
+      ) {
+        history.unshift({
+          ...previous,
+          archivedAt:
+            new Date().toISOString()
+        });
+      }
+      const uniqueHistory =
+        [];
+      const ids =
+        new Set();
+      for (
+        const item
+        of history
+      ) {
+        if (
+          !item ||
+          typeof item !== 'object'
+        ) {
+          continue;
+        }
+        const key =
+          String(
+            item.id ||
+            `${item.period || ''}-${item.date || ''}-${item.reference || ''}`
+          );
+        if (
+          ids.has(key)
+        ) {
+          continue;
+        }
+        ids.add(key);
+        uniqueHistory.push(
+          item
+        );
+        if (
+          uniqueHistory.length >=
+          500
+        ) {
+          break;
+        }
+      }
+      const next = {
+        matin:
+          period === 'matin'
+            ? publication
+            : current.matin || null,
+        soir:
+          period === 'soir'
+            ? publication
+            : current.soir || null,
+        history:
+          uniqueHistory
+      };
+      const document =
+        await Settings.findOneAndUpdate(
+          {
+            key:
+              'daily-word'
+          },
+          {
+            $set: {
+              dailyWord:
+                next
+            }
+          },
+          {
+            new: true,
+            upsert: true,
+            setDefaultsOnInsert: true
+          }
+        );
+      let notification =
+        null;
+      if (
+        req.body?.notify === true &&
+        publication.active
+      ) {
+        notification =
+          await notifierPublicationNouvelle(
+            period === 'matin'
+              ? 'parole_matin'
+              : 'parole_soir',
+            {
+              _id:
+                publication.id,
+              titre:
+                publication.sujet
+            }
+          );
+      }
+      return res.json({
+        ok: true,
+        dailyWord:
+          document.dailyWord,
+        notification
+      });
+    } catch (error) {
+      console.error(
+        '[daily-word/put]',
+        error
+      );
+      return res
+        .status(500)
+        .json({
+          error:
+            'Publication de la Parole du jour impossible.'
+        });
+    }
+  }
+);
+/* MARANATHA_DAILY_WORD_V3_END */module.exports = router;

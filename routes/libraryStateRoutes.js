@@ -1,4 +1,4 @@
-﻿const express = require("express");
+const express = require("express");
 const multer = require("multer");
 const LibraryState =
   require("../models/LibraryState");
@@ -7,6 +7,10 @@ const adminOnly =
 const {
   uploadFile,
 } = require("../utils/cloudinary");
+const {
+  notifierPublicationNouvelle,
+} = require("../utils/publicationNotifications");
+/* MARANATHA_LIBRARY_NOTIFY_V3 */
 const router =
   express.Router();
 /* ==========================================================
@@ -98,12 +102,51 @@ router.put(
             setDefaultsOnInsert: true,
           }
         ).lean();
+      let notification =
+        null;
+      if(
+        req.body &&
+        req.body.notifyItem &&
+        typeof req.body.notifyItem ===
+        "object"
+      ){
+        const item =
+          req.body.notifyItem;
+        const id =
+          String(
+            item.id ||
+            item._id ||
+            ""
+          )
+          .trim();
+        const titre =
+          String(
+            item.titre ||
+            item.title ||
+            ""
+          )
+          .trim();
+        if(
+          id &&
+          titre
+        ){
+          notification =
+            await notifierPublicationNouvelle(
+              "bibliotheque",
+              {
+                _id: id,
+                titre
+              }
+            );
+        }
+      }
       return res.json({
         ok: true,
         value:
           state.value,
         updatedAt:
           state.updatedAt,
+        notification,
       });
     } catch (error) {
       console.error(
