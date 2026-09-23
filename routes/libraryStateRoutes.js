@@ -43,7 +43,7 @@ router.get(
         .status(500)
         .json({
           error:
-            "Impossible de charger la bibliothÃ¨que.",
+            "Impossible de charger la bibliothÃƒÂ¨que.",
         });
     }
   }
@@ -66,7 +66,7 @@ router.put(
           .status(400)
           .json({
             error:
-              "DonnÃ©es de bibliothÃ¨que absentes.",
+              "DonnÃƒÂ©es de bibliothÃƒÂ¨que absentes.",
           });
       }
       const value =
@@ -81,7 +81,7 @@ router.put(
           .status(413)
           .json({
             error:
-              "La bibliothÃ¨que est trop volumineuse.",
+              "La bibliothÃƒÂ¨que est trop volumineuse.",
           });
       }
       const state =
@@ -157,7 +157,7 @@ router.put(
         .status(500)
         .json({
           error:
-            "Impossible d'enregistrer la bibliothÃ¨que.",
+            "Impossible d'enregistrer la bibliothÃƒÂ¨que.",
         });
     }
   }
@@ -190,7 +190,7 @@ const upload =
           allowed
             ? null
             : new Error(
-                "Type de fichier non autorisÃ©."
+                "Type de fichier non autorisÃƒÂ©."
               ),
           allowed
         );
@@ -235,7 +235,7 @@ function uploadParser(
     );
   }
   /*
-   * CompatibilitÃ© avec l'ancienne interface
+   * CompatibilitÃƒÂ© avec l'ancienne interface
    * qui envoyait directement le fichier brut.
    */
   return express.raw({
@@ -302,7 +302,7 @@ router.post(
           .json({
             ok: false,
             error:
-              "Aucun fichier reÃ§u.",
+              "Aucun fichier reÃƒÂ§u.",
           });
       }
       const url =
@@ -328,7 +328,7 @@ router.post(
           ok: false,
           error:
             error.message ||
-            "TÃ©lÃ©versement impossible.",
+            "TÃƒÂ©lÃƒÂ©versement impossible.",
         });
     }
   }
@@ -426,6 +426,153 @@ router.get("/read-pdf", async (req, res) => {
 });
 
 /* MARANATHA_LIBRARY_PDF_READER_ROUTE_V1_END */
+
+
+/* ==========================================================
+   MARANATHA_LIBRARY_AUDIO_COVER_V1
+   Pochette embarquee dans les MP3 (ID3)
+   ========================================================== */
+
+const libraryAudioCoverCache = new Map();
+
+router.get("/audio-cover", async (req, res) => {
+  try {
+    const rawUrl = String(req.query.url || "").trim();
+
+    if (!rawUrl) {
+      return res.status(400).json({
+        ok: false,
+        error: "URL audio manquante."
+      });
+    }
+
+    let parsedUrl;
+
+    try {
+      parsedUrl = new URL(rawUrl);
+    } catch (_error) {
+      return res.status(400).json({
+        ok: false,
+        error: "URL audio invalide."
+      });
+    }
+
+    if (
+      parsedUrl.protocol !== "https:" ||
+      parsedUrl.hostname !== "res.cloudinary.com"
+    ) {
+      return res.status(403).json({
+        ok: false,
+        error: "Source audio non autorisee."
+      });
+    }
+
+    const cached = libraryAudioCoverCache.get(rawUrl);
+
+    if (cached) {
+      res.setHeader("Content-Type", cached.mime);
+      res.setHeader("Cache-Control", "public, max-age=86400");
+      return res.send(cached.data);
+    }
+
+    const response = await fetch(rawUrl, {
+      method: "GET",
+      redirect: "follow"
+    });
+
+    if (!response.ok) {
+      return res.status(502).json({
+        ok: false,
+        error: "Impossible de recuperer l audio."
+      });
+    }
+
+    const length = Number(
+      response.headers.get("content-length") || 0
+    );
+
+    if (length > 50 * 1024 * 1024) {
+      return res.status(413).json({
+        ok: false,
+        error: "Audio trop volumineux pour extraire la pochette."
+      });
+    }
+
+    const contentType = String(
+      response.headers.get("content-type") || "audio/mpeg"
+    );
+
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    if (buffer.length > 50 * 1024 * 1024) {
+      return res.status(413).json({
+        ok: false,
+        error: "Audio trop volumineux pour extraire la pochette."
+      });
+    }
+
+    const {
+      parseBuffer,
+      selectCover
+    } = await import("music-metadata");
+
+    const metadata = await parseBuffer(
+      buffer,
+      {
+        mimeType: contentType,
+        size: buffer.length
+      },
+      {
+        duration: false,
+        skipCovers: false
+      }
+    );
+
+    const picture = selectCover(
+      metadata.common &&
+      metadata.common.picture
+    );
+
+    if (!picture || !picture.data || !picture.data.length) {
+      return res.status(404).json({
+        ok: false,
+        error: "Aucune pochette embarquee dans cet audio."
+      });
+    }
+
+    const imageBuffer = Buffer.from(picture.data);
+    const mime = String(picture.format || "image/jpeg");
+
+    if (libraryAudioCoverCache.size >= 50) {
+      const firstKey = libraryAudioCoverCache.keys().next().value;
+      if (firstKey) {
+        libraryAudioCoverCache.delete(firstKey);
+      }
+    }
+
+    libraryAudioCoverCache.set(rawUrl, {
+      mime,
+      data: imageBuffer
+    });
+
+    res.setHeader("Content-Type", mime);
+    res.setHeader("Content-Length", String(imageBuffer.length));
+    res.setHeader("Cache-Control", "public, max-age=86400");
+
+    return res.send(imageBuffer);
+
+  } catch (error) {
+    console.error("[LIBRARY AUDIO COVER]", error);
+
+    return res.status(500).json({
+      ok: false,
+      error: "Extraction de la pochette audio impossible."
+    });
+  }
+});
+
+/* MARANATHA_LIBRARY_AUDIO_COVER_V1_END */
 
 module.exports =
   router;

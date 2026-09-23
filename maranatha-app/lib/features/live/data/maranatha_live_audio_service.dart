@@ -148,7 +148,7 @@ class MaranathaLiveAudioService {
     try {
       final response = await http
           .get(
-            Uri.parse('$_api/directs'),
+            Uri.parse('$_api/sermons'),
             headers: const <String, String>{'Accept': 'application/json'},
           )
           .timeout(const Duration(seconds: 25));
@@ -172,7 +172,11 @@ class MaranathaLiveAudioService {
 
         final item = Map<String, dynamic>.from(raw);
 
-        if (item['status']?.toString() == 'en_cours') {
+        final status =
+            item['statut']?.toString().trim() ??
+            item['status']?.toString().trim() ??
+            '';
+        if (status == 'en_cours') {
           active = item;
           break;
         }
@@ -186,9 +190,11 @@ class MaranathaLiveAudioService {
         return;
       }
 
-      final id = active['id']?.toString().trim() ?? '';
+      final id =
+          (active['_id'] ?? active['id'])?.toString().trim() ?? '';
 
-      final title = active['title']?.toString().trim() ?? '';
+      final title =
+          (active['titre'] ?? active['title'])?.toString().trim() ?? '';
 
       final url = _absoluteUrl(active['audioUrl']?.toString().trim() ?? '');
 

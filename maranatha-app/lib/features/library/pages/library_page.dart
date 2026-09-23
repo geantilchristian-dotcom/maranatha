@@ -1,9 +1,14 @@
+import '../../../core/widgets/maranatha_cached_network_image.dart';
+import '../../home/widgets/loading_skeleton.dart';
+
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+import 'library_reader_pages.dart';
 
 class LibraryPage extends StatefulWidget {
   const LibraryPage({super.key, this.initialSection, this.focusId});
@@ -25,13 +30,19 @@ class _LibraryPageState extends State<LibraryPage> {
   static const Color _muted = Color(0xFF71809A);
   static const Color _line = Color(0xFFE2E9F3);
   static const Color _soft = Color(0xFFF5F8FD);
+  static const Color _red = Color(0xFFC9142D);
+  static const Color _redSoft = Color(0xFFFFEEF1);
+  static const Color _premiumNavy = Color(0xFF081D43);
+  static const Color _premiumMuted = Color(0xFF6F7D93);
+  static const Color _premiumLine = Color(0xFFE5EAF1);
+  static const Color _premiumPage = Color(0xFFFAFBFD);
 
   static const List<_LibraryTab> _tabs = <_LibraryTab>[
-    _LibraryTab('recent', 'Récents', Icons.history_rounded),
+    _LibraryTab('all', 'Tous', Icons.menu_book_outlined),
+    _LibraryTab('book', 'Livres', Icons.menu_book_outlined),
     _LibraryTab('live', 'Prédications', Icons.podcasts_rounded),
     _LibraryTab('audio', 'Audios', Icons.headphones_rounded),
     _LibraryTab('video', 'Vidéos', Icons.play_circle_outline_rounded),
-    _LibraryTab('book', 'Livres', Icons.menu_book_rounded),
   ];
 
   final TextEditingController _search = TextEditingController();
@@ -41,13 +52,15 @@ class _LibraryPageState extends State<LibraryPage> {
   bool _loading = true;
   bool _refreshing = false;
   String _query = '';
+  final Set<String> _bookmarks = <String>{};
+  String _lastOpenedId = '';
 
   @override
   void initState() {
     super.initState();
 
     final wanted = widget.initialSection;
-    _selected = _tabs.any((tab) => tab.keyName == wanted) ? wanted! : 'recent';
+    _selected = _tabs.any((tab) => tab.keyName == wanted) ? wanted! : 'all';
 
     _load();
   }
@@ -71,6 +84,13 @@ class _LibraryPageState extends State<LibraryPage> {
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
     final cached = prefs.getString(_cacheKey);
+    _bookmarks
+      ..clear()
+      ..addAll(
+        prefs.getStringList('maranatha_library_bookmarks_v1') ??
+            const <String>[],
+      );
+    _lastOpenedId = prefs.getString('maranatha_library_last_opened_v1') ?? '';
 
     if (cached != null && cached.trim().isNotEmpty) {
       try {
@@ -213,7 +233,7 @@ class _LibraryPageState extends State<LibraryPage> {
   }
 
   String _image(Map<String, dynamic> item) {
-    return _absoluteUrl(
+    final explicit = _absoluteUrl(
       _text(item, const <String>[
         'couvertureUrl',
         'imageUrl',
@@ -222,6 +242,55 @@ class _LibraryPageState extends State<LibraryPage> {
         'thumbnail',
       ]),
     );
+
+    /*
+     * Un ancien contenu Video peut avoir son URL YouTube
+     * enregistree dans le champ couverture.
+     * On la transforme en vraie miniature.
+     */
+    final fromExplicitYoutube =
+        youtubeThumbnailFromUrl(explicit);
+
+    if (fromExplicitYoutube.isNotEmpty) {
+      return fromExplicitYoutube;
+    }
+
+    if (explicit.isNotEmpty) {
+      return explicit;
+    }
+
+    final media = _media(item);
+
+    /*
+     * YouTube : miniature officielle de la video.
+     */
+    final youtube =
+        youtubeThumbnailFromUrl(media);
+
+    if (youtube.isNotEmpty) {
+      return youtube;
+    }
+
+    /*
+     * Audio / predication :
+     * essayer la vraie pochette ID3 du MP3.
+     * Si le MP3 n'en contient pas, Image.network
+     * utilisera ensuite son errorBuilder / icone de secours.
+     */
+    final lower = media.toLowerCase();
+
+    if (
+      lower.endsWith('.mp3') ||
+      lower.endsWith('.m4a') ||
+      lower.endsWith('.aac') ||
+      lower.endsWith('.wav') ||
+      lower.endsWith('.ogg') ||
+      lower.contains('/video/upload/')
+    ) {
+      return libraryAudioCoverUrl(media);
+    }
+
+    return '';
   }
 
   String _media(Map<String, dynamic> item) {
@@ -238,23 +307,29 @@ class _LibraryPageState extends State<LibraryPage> {
   }
 
   List<Map<String, dynamic>> get _sourceItems {
-    if (_selected != 'recent') {
+    if (_selected != 'all') {
       return List<Map<String, dynamic>>.from(
         _library[_selected] ?? const <Map<String, dynamic>>[],
       );
     }
-
-    final recent = _library['recent'] ?? const <Map<String, dynamic>>[];
-    if (recent.isNotEmpty) {
-      return List<Map<String, dynamic>>.from(recent);
+    final output = <Map<String, dynamic>>[];
+    final known = <String>{};
+    for (final section in const <String>[
+      'recent',
+      'book',
+      'live',
+      'audio',
+      'video',
+    ]) {
+      for (final item in _library[section] ?? const <Map<String, dynamic>>[]) {
+        final id = _id(item);
+        final key = id.isNotEmpty ? id : '${_title(item)}|${_media(item)}';
+        if (key.isNotEmpty && known.add(key)) {
+          output.add(item);
+        }
+      }
     }
-
-    return <Map<String, dynamic>>[
-      ...?_library['book'],
-      ...?_library['live'],
-      ...?_library['audio'],
-      ...?_library['video'],
-    ];
+    return output;
   }
 
   List<Map<String, dynamic>> get _items {
@@ -295,7 +370,54 @@ class _LibraryPageState extends State<LibraryPage> {
       return;
     }
 
+    final kind = _kind(item);
+    final title = _title(item);
+    final author = _author(item);
+    final image = _image(item);
+
+    /*
+     * LIVRE / PDF
+     * Ne plus envoyer directement le navigateur vers Cloudinary.
+     * Le PDF est lu dans MARANATHA.
+     */
+    if (kind == 'LIVRE') {
+      await Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => LibraryPdfPage(
+            title: title,
+            url: url,
+          ),
+        ),
+      );
+      return;
+    }
+
+    /*
+     * AUDIO / PREDICATION
+     * Lecture dans le lecteur MP3 MARANATHA.
+     */
+    if (kind == 'AUDIO' || kind == 'PRÃ‰DICATION') {
+      await Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => LibraryAudioPage(
+            title: title,
+            author: author,
+            url: url,
+            imageUrl: image,
+            kind: kind,
+          ),
+        ),
+      );
+      return;
+    }
+
+    /*
+     * VIDEO :
+     * on garde pour l'instant l'ouverture de la vraie URL.
+     * La pochette YouTube est cependant extraite automatiquement.
+     */
     final uri = Uri.tryParse(url);
+
     if (uri == null) {
       _message('Lien invalide.');
       return;
@@ -308,7 +430,7 @@ class _LibraryPageState extends State<LibraryPage> {
     );
 
     if (!opened && mounted) {
-      _message('Impossible d’ouvrir ce contenu.');
+      _message('Impossible dâ€™ouvrir ce contenu.');
     }
   }
 
@@ -324,23 +446,69 @@ class _LibraryPageState extends State<LibraryPage> {
       'kind',
     ]).toLowerCase();
 
-    if (raw.contains('livre') || raw.contains('book')) return 'LIVRE';
-    if (raw.contains('video') || raw.contains('vidéo')) return 'VIDÉO';
-    if (raw.contains('audio')) return 'AUDIO';
-    if (raw.contains('pred') || raw.contains('préd')) return 'PRÉDICATION';
+    if (raw.contains('livre') || raw.contains('book')) {
+      return 'LIVRE';
+    }
 
+    if (raw.contains('video') || raw.contains('vidÃ©o')) {
+      return 'VIDÃ‰O';
+    }
+
+    if (raw.contains('audio')) {
+      return 'AUDIO';
+    }
+
+    if (raw.contains('pred') || raw.contains('prÃ©d')) {
+      return 'PRÃ‰DICATION';
+    }
+
+    /*
+     * Quand nous sommes dans une section prÃ©cise,
+     * elle reste prioritaire.
+     */
     switch (_selected) {
       case 'book':
         return 'LIVRE';
+
       case 'video':
-        return 'VIDÉO';
+        return 'VIDÃ‰O';
+
       case 'audio':
         return 'AUDIO';
+
       case 'live':
-        return 'PRÉDICATION';
-      default:
-        return 'PUBLICATION';
+        return 'PRÃ‰DICATION';
     }
+
+    /*
+     * Anciennes publications :
+     * dÃ©terminer le type depuis le lien rÃ©el.
+     */
+    final media = _media(item).toLowerCase();
+
+    if (youtubeThumbnailFromUrl(media).isNotEmpty) {
+      return 'VIDÃ‰O';
+    }
+
+    if (
+      media.endsWith('.mp3') ||
+      media.endsWith('.m4a') ||
+      media.endsWith('.aac') ||
+      media.endsWith('.wav') ||
+      media.endsWith('.ogg') ||
+      media.contains('/video/upload/')
+    ) {
+      return 'AUDIO';
+    }
+
+    if (
+      media.endsWith('.pdf') ||
+      media.contains('/raw/upload/')
+    ) {
+      return 'LIVRE';
+    }
+
+    return 'PUBLICATION';
   }
 
   IconData _kindIcon(String kind) {
@@ -372,23 +540,216 @@ class _LibraryPageState extends State<LibraryPage> {
     }
   }
 
+  List<Map<String, dynamic>> get _allLibraryItems {
+    final result = <Map<String, dynamic>>[];
+    final keys = <String>{};
+    for (final section in const <String>[
+      'recent',
+      'book',
+      'live',
+      'audio',
+      'video',
+    ]) {
+      final source = _library[section] ?? const <Map<String, dynamic>>[];
+      for (final item in source) {
+        final id = _id(item);
+        final key = id.isNotEmpty ? id : '${_title(item)}|${_media(item)}';
+        if (key.isNotEmpty && keys.add(key)) {
+          result.add(item);
+        }
+      }
+    }
+    return result;
+  }
+
+  List<Map<String, dynamic>> _sectionItems(String section) {
+    return List<Map<String, dynamic>>.from(
+      _library[section] ?? const <Map<String, dynamic>>[],
+    );
+  }
+
+  List<Map<String, dynamic>> get _newItems {
+    final recent = _sectionItems('recent');
+    if (recent.isNotEmpty) {
+      return recent;
+    }
+    return _allLibraryItems;
+  }
+
+  Map<String, dynamic>? get _lastOpenedItem {
+    if (_lastOpenedId.isEmpty) {
+      return null;
+    }
+    for (final item in _allLibraryItems) {
+      if (_id(item) == _lastOpenedId) {
+        return item;
+      }
+    }
+    return null;
+  }
+
+  bool _isBookmarked(Map<String, dynamic> item) {
+    return _bookmarks.contains(_id(item));
+  }
+
+  Future<void> _toggleBookmark(Map<String, dynamic> item) async {
+    final id = _id(item);
+    if (id.isEmpty) {
+      return;
+    }
+    setState(() {
+      if (_bookmarks.contains(id)) {
+        _bookmarks.remove(id);
+      } else {
+        _bookmarks.add(id);
+      }
+    });
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(
+      'maranatha_library_bookmarks_v1',
+      _bookmarks.toList(),
+    );
+  }
+
+  Future<void> _downloadItem(Map<String, dynamic> item) async {
+    final url = _media(item);
+    if (url.isEmpty) {
+      _message('Fichier indisponible.');
+      return;
+    }
+    final uri = Uri.tryParse(url);
+    if (uri == null) {
+      _message('Lien invalide.');
+      return;
+    }
+    final opened = await launchUrl(
+      uri,
+      mode: LaunchMode.externalApplication,
+      webOnlyWindowName: '_blank',
+    );
+    if (!opened && mounted) {
+      _message('Impossible d’ouvrir le téléchargement.');
+    }
+  }
+
+  void _selectLibraryTab(String value) {
+    setState(() {
+      _selected = value;
+      _query = '';
+      _search.clear();
+    });
+  }
+
+  void _showItemMenu(Map<String, dynamic> item) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return SafeArea(
+          top: false,
+          child: Container(
+            margin: const EdgeInsets.all(10),
+            padding: const EdgeInsets.fromLTRB(8, 9, 8, 10),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Container(
+                  width: 37,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFD5DAE2),
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                ),
+                ListTile(
+                  leading: const Icon(
+                    Icons.open_in_new_rounded,
+                    color: _premiumNavy,
+                  ),
+                  title: const Text(
+                    'Ouvrir',
+                    style: TextStyle(
+                      fontFamily: 'Manrope',
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _open(item);
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(
+                    Icons.download_rounded,
+                    color: _premiumNavy,
+                  ),
+                  title: const Text(
+                    'Télécharger',
+                    style: TextStyle(
+                      fontFamily: 'Manrope',
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _downloadItem(item);
+                  },
+                ),
+                ListTile(
+                  leading: Icon(
+                    _isBookmarked(item)
+                        ? Icons.bookmark_rounded
+                        : Icons.bookmark_border_rounded,
+                    color: _red,
+                  ),
+                  title: Text(
+                    _isBookmarked(item)
+                        ? 'Retirer des favoris'
+                        : 'Ajouter aux favoris',
+                    style: const TextStyle(
+                      fontFamily: 'Manrope',
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _toggleBookmark(item);
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: _premiumPage,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: Colors.white,
-        foregroundColor: _navy,
+        foregroundColor: _premiumNavy,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
-        titleSpacing: 0,
+        scrolledUnderElevation: 0,
+        titleSpacing: 13,
         title: const Text(
           'Bibliothèque',
           style: TextStyle(
             fontFamily: 'Manrope',
-            fontSize: 20,
+            color: _premiumNavy,
+            fontSize: 24,
+            height: 1,
             fontWeight: FontWeight.w800,
-            letterSpacing: -0.35,
+            letterSpacing: -0.6,
           ),
         ),
         actions: <Widget>[
@@ -401,109 +762,134 @@ class _LibraryPageState extends State<LibraryPage> {
                     height: 18,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      color: _blue,
+                      color: _red,
                     ),
                   )
-                : const Icon(Icons.refresh_rounded),
+                : const Icon(
+                    Icons.refresh_rounded,
+                    color: _premiumNavy,
+                    size: 25,
+                  ),
           ),
+          const SizedBox(width: 4),
         ],
         bottom: const PreferredSize(
           preferredSize: Size.fromHeight(1),
-          child: Divider(height: 1, color: _line),
+          child: Divider(height: 1, color: _premiumLine),
         ),
       ),
       body: _loading
-          ? const Center(
-              child: CircularProgressIndicator(color: _blue, strokeWidth: 2.3),
-            )
-          : SafeArea(
-              top: false,
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final desktop = constraints.maxWidth >= 820;
-
-                  return Align(
-                    alignment: Alignment.topCenter,
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 1180),
-                      child: Column(
-                        children: <Widget>[
-                          _filters(),
-                          _searchBar(),
-                          Padding(
-                            padding: EdgeInsets.fromLTRB(
-                              desktop ? 22 : 14,
-                              15,
-                              desktop ? 22 : 14,
-                              10,
-                            ),
-                            child: Row(
-                              children: <Widget>[
-                                Expanded(
-                                  child: Text(
-                                    _selected == 'recent'
-                                        ? 'Ajouts récents'
-                                        : _tabs
-                                              .firstWhere(
-                                                (tab) =>
-                                                    tab.keyName == _selected,
-                                              )
-                                              .label,
-                                    style: const TextStyle(
-                                      fontFamily: 'Manrope',
-                                      fontSize: 17,
-                                      fontWeight: FontWeight.w800,
-                                      color: _navy,
-                                      letterSpacing: -0.25,
-                                    ),
-                                  ),
-                                ),
-                                Text(
-                                  '${_items.length}',
-                                  style: const TextStyle(
-                                    fontFamily: 'Manrope',
-                                    color: _muted,
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Expanded(child: _content(constraints.maxWidth)),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
+          ? _premiumLoading()
+          : Column(
+              children: <Widget>[
+                _premiumTabs(),
+                _premiumSearch(),
+                Expanded(
+                  child: _query.trim().isNotEmpty
+                      ? _searchResultsView()
+                      : _selected == 'all'
+                      ? _premiumDashboard()
+                      : _premiumCategory(),
+                ),
+              ],
             ),
     );
   }
 
-  Widget _filters() {
+  Widget _premiumLoading() {
+    return ListView(
+      padding: const EdgeInsets.all(13),
+      children: <Widget>[
+        Container(
+          height: 40,
+          decoration: BoxDecoration(
+            color: const Color(0xFFF1F3F6),
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Container(
+          height: 49,
+          decoration: BoxDecoration(
+            color: const Color(0xFFF1F3F6),
+            borderRadius: BorderRadius.circular(14),
+          ),
+        ),
+        const SizedBox(height: 16),
+        Container(
+          height: 145,
+          decoration: BoxDecoration(
+            color: const Color(0xFFF1F3F6),
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _premiumTabs() {
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
       child: SizedBox(
-        height: 36,
+        height: 42,
         child: ListView.separated(
           scrollDirection: Axis.horizontal,
           itemCount: _tabs.length,
-          separatorBuilder: (_, __) => const SizedBox(width: 7),
+          separatorBuilder: (_, __) {
+            return const SizedBox(width: 6);
+          },
           itemBuilder: (context, index) {
             final tab = _tabs[index];
             final selected = tab.keyName == _selected;
-
-            return _FilterTab(
-              label: tab.label,
-              icon: tab.icon,
-              selected: selected,
-              onTap: () {
-                setState(() {
-                  _selected = tab.keyName;
-                });
-              },
+            return Material(
+              color: selected ? _red : const Color(0xFFF5F7FA),
+              borderRadius: BorderRadius.circular(10),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(10),
+                onTap: () {
+                  _selectLibraryTab(tab.keyName);
+                },
+                child: Container(
+                  height: 42,
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: selected ? _red : const Color(0xFFF0F2F6),
+                    ),
+                    boxShadow: selected
+                        ? const <BoxShadow>[
+                            BoxShadow(
+                              color: Color(0x20C9142D),
+                              blurRadius: 10,
+                              offset: Offset(0, 3),
+                            ),
+                          ]
+                        : null,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      Icon(
+                        tab.icon,
+                        size: 16,
+                        color: selected ? Colors.white : _premiumNavy,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        tab.label,
+                        style: TextStyle(
+                          fontFamily: 'Manrope',
+                          color: selected ? Colors.white : _premiumNavy,
+                          fontSize: 9,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             );
           },
         ),
@@ -511,11 +897,12 @@ class _LibraryPageState extends State<LibraryPage> {
     );
   }
 
-  Widget _searchBar() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 7, 14, 0),
+  Widget _premiumSearch() {
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.fromLTRB(12, 4, 12, 10),
       child: SizedBox(
-        height: 42,
+        height: 48,
         child: TextField(
           controller: _search,
           onChanged: (value) {
@@ -525,36 +912,37 @@ class _LibraryPageState extends State<LibraryPage> {
           },
           style: const TextStyle(
             fontFamily: 'Manrope',
-            color: _navy,
-            fontSize: 12.5,
+            color: _premiumNavy,
+            fontSize: 11,
             fontWeight: FontWeight.w600,
           ),
           decoration: InputDecoration(
             hintText: 'Rechercher un livre, une prédication, un auteur…',
             hintStyle: const TextStyle(
               fontFamily: 'Manrope',
-              color: Color(0xFF98A5B8),
-              fontSize: 11.5,
+              color: Color(0xFF97A3B5),
+              fontSize: 9.5,
+              fontWeight: FontWeight.w500,
             ),
             prefixIcon: const Icon(
               Icons.search_rounded,
+              color: _premiumNavy,
               size: 21,
-              color: _navy,
             ),
             filled: true,
-            fillColor: _soft,
+            fillColor: const Color(0xFFF7F9FC),
             contentPadding: EdgeInsets.zero,
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: _line),
+              borderRadius: BorderRadius.circular(13),
+              borderSide: const BorderSide(color: _premiumLine),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: _line),
+              borderRadius: BorderRadius.circular(13),
+              borderSide: const BorderSide(color: _premiumLine),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: _blue, width: 1.3),
+              borderRadius: BorderRadius.circular(13),
+              borderSide: const BorderSide(color: _red, width: 1.2),
             ),
           ),
         ),
@@ -562,185 +950,643 @@ class _LibraryPageState extends State<LibraryPage> {
     );
   }
 
-  Widget _content(double width) {
-    final items = _items;
-
-    if (items.isEmpty) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.all(30),
-          child: Text(
-            'Aucun contenu publié dans cette section.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontFamily: 'Manrope',
-              color: _muted,
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
+  Widget _premiumDashboard() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compact = constraints.maxWidth < 400;
+        return ListView(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(12, 5, 12, 26),
+          children: <Widget>[
+            if (_lastOpenedItem != null) ...<Widget>[
+              _resumeCard(_lastOpenedItem!),
+              const SizedBox(height: 13),
+            ],
+            _horizontalSection(
+              title: 'Nouveautés',
+              items: _newItems,
+              section: 'all',
+              itemBuilder: _newCard,
             ),
-          ),
-        ),
-      );
-    }
-
-    if (width < 720) {
-      return ListView.separated(
-        padding: const EdgeInsets.fromLTRB(14, 2, 14, 24),
-        itemCount: items.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 10),
-        itemBuilder: (context, index) {
-          return _mobileCard(items[index]);
-        },
-      );
-    }
-
-    final columns = width >= 1120
-        ? 4
-        : width >= 820
-        ? 3
-        : 2;
-
-    return GridView.builder(
-      padding: const EdgeInsets.fromLTRB(18, 4, 18, 28),
-      itemCount: items.length,
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: columns,
-        crossAxisSpacing: 14,
-        mainAxisSpacing: 14,
-        childAspectRatio: 0.66,
-      ),
-      itemBuilder: (context, index) {
-        return _gridCard(items[index]);
+            const SizedBox(height: 15),
+            _horizontalSection(
+              title: 'Livres',
+              items: _sectionItems('book'),
+              section: 'book',
+              itemBuilder: _bookCard,
+            ),
+            const SizedBox(height: 16),
+            if (compact) ...<Widget>[
+              _smallSection(
+                title: 'Prédications récentes',
+                section: 'live',
+                items: _sectionItems('live'),
+                audioStyle: false,
+              ),
+              const SizedBox(height: 13),
+              _smallSection(
+                title: 'Audios',
+                section: 'audio',
+                items: _sectionItems('audio'),
+                audioStyle: true,
+              ),
+            ] else
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Expanded(
+                    child: _smallSection(
+                      title: 'Prédications récentes',
+                      section: 'live',
+                      items: _sectionItems('live'),
+                      audioStyle: false,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _smallSection(
+                      title: 'Audios',
+                      section: 'audio',
+                      items: _sectionItems('audio'),
+                      audioStyle: true,
+                    ),
+                  ),
+                ],
+              ),
+          ],
+        );
       },
     );
   }
 
-  Widget _mobileCard(Map<String, dynamic> item) {
+  Widget _resumeCard(Map<String, dynamic> item) {
+    final image = _image(item);
     final title = _title(item);
     final author = _author(item);
-    final image = _image(item);
-    final kind = _kind(item);
-    final action = _actionLabel(kind);
-
-    final focused =
-        widget.focusId != null &&
-        widget.focusId!.isNotEmpty &&
-        _id(item) == widget.focusId;
-
     return Container(
-      height: 146,
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(13),
-        border: Border.all(
-          color: focused ? _blue : _line,
-          width: focused ? 1.4 : 1,
-        ),
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: _premiumLine),
         boxShadow: const <BoxShadow>[
           BoxShadow(
-            color: Color(0x090D2340),
-            blurRadius: 12,
-            offset: Offset(0, 5),
+            color: Color(0x0A081D43),
+            blurRadius: 14,
+            offset: Offset(0, 4),
           ),
         ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(9),
-        child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          const Text(
+            'Reprendre',
+            style: TextStyle(
+              fontFamily: 'Manrope',
+              color: _premiumNavy,
+              fontSize: 15,
+              height: 1,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 9),
+          Row(
+            children: <Widget>[
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: SizedBox(
+                  width: 58,
+                  height: 76,
+                  child: image.isEmpty
+                      ? Container(
+                          color: const Color(0xFFF0F3F7),
+                          alignment: Alignment.center,
+                          child: const Icon(
+                            Icons.menu_book_outlined,
+                            color: _premiumNavy,
+                          ),
+                        )
+                      : Image.network(image, fit: BoxFit.cover),
+                ),
+              ),
+              const SizedBox(width: 11),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      title.isEmpty ? 'Publication MARANATHA' : title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontFamily: 'Manrope',
+                        color: _premiumNavy,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    if (author.isNotEmpty) ...<Widget>[
+                      const SizedBox(height: 3),
+                      Text(
+                        author,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontFamily: 'Manrope',
+                          color: _premiumMuted,
+                          fontSize: 9,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 12),
+                    Container(
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE5E8ED),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              FilledButton(
+                style: FilledButton.styleFrom(
+                  backgroundColor: _red,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(9),
+                  ),
+                ),
+                onPressed: () {
+                  _open(item);
+                },
+                child: const Text(
+                  'Continuer',
+                  style: TextStyle(
+                    fontFamily: 'Manrope',
+                    fontSize: 9,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _horizontalSection({
+    required String title,
+    required List<Map<String, dynamic>> items,
+    required String section,
+    required Widget Function(Map<String, dynamic> item) itemBuilder,
+  }) {
+    if (items.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Row(
+          children: <Widget>[
+            Expanded(
+              child: Text(
+                title,
+                style: const TextStyle(
+                  fontFamily: 'Manrope',
+                  color: _premiumNavy,
+                  fontSize: 15.5,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.25,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                if (section == 'all') {
+                  return;
+                }
+                _selectLibraryTab(section);
+              },
+              style: TextButton.styleFrom(
+                foregroundColor: _red,
+                padding: const EdgeInsets.symmetric(horizontal: 7),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Text(
+                    'Voir tout',
+                    style: TextStyle(
+                      fontFamily: 'Manrope',
+                      fontSize: 8.5,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  SizedBox(width: 2),
+                  Icon(Icons.chevron_right_rounded, size: 16),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 7),
+        SizedBox(
+          height: title == 'Livres' ? 224 : 177,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            itemCount: items.length,
+            separatorBuilder: (_, __) {
+              return const SizedBox(width: 9);
+            },
+            itemBuilder: (context, index) {
+              return itemBuilder(items[index]);
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _newCard(Map<String, dynamic> item) {
+    final title = _title(item);
+    final author = _author(item);
+    final image = _image(item);
+    return SizedBox(
+      width: 91,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(9),
+        onTap: () {
+          _open(item);
+        },
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: SizedBox(
-                width: 86,
-                height: 128,
+                width: 91,
+                height: 125,
                 child: image.isEmpty
                     ? Container(
-                        color: const Color(0xFFEAF1FF),
+                        color: const Color(0xFFF0F3F7),
                         alignment: Alignment.center,
-                        child: Icon(_kindIcon(kind), size: 34, color: _blue),
+                        child: const Icon(
+                          Icons.menu_book_outlined,
+                          color: _premiumNavy,
+                          size: 27,
+                        ),
                       )
                     : Image.network(
                         image,
                         fit: BoxFit.cover,
-                        alignment: Alignment.topCenter,
                         errorBuilder: (_, __, ___) {
                           return Container(
-                            color: const Color(0xFFEAF1FF),
+                            color: const Color(0xFFF0F3F7),
                             alignment: Alignment.center,
-                            child: Icon(
-                              _kindIcon(kind),
-                              size: 34,
-                              color: _blue,
+                            child: const Icon(
+                              Icons.menu_book_outlined,
+                              color: _premiumNavy,
                             ),
                           );
                         },
                       ),
               ),
             ),
-            const SizedBox(width: 11),
+            const SizedBox(height: 5),
+            Text(
+              title.isEmpty ? 'MARANATHA' : title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontFamily: 'Manrope',
+                color: _premiumNavy,
+                fontSize: 8.2,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            if (author.isNotEmpty)
+              Text(
+                author,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontFamily: 'Manrope',
+                  color: _premiumMuted,
+                  fontSize: 7,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _bookCard(Map<String, dynamic> item) {
+    final title = _title(item);
+    final image = _image(item);
+    final bookmarked = _isBookmarked(item);
+    return Container(
+      width: 106,
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: _premiumLine),
+        boxShadow: const <BoxShadow>[
+          BoxShadow(
+            color: Color(0x0B081D43),
+            blurRadius: 11,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Expanded(
+            child: InkWell(
+              onTap: () {
+                _open(item);
+              },
+              child: SizedBox(
+                width: double.infinity,
+                child: image.isEmpty
+                    ? Container(
+                        color: const Color(0xFFF0F3F7),
+                        alignment: Alignment.center,
+                        child: const Icon(
+                          Icons.menu_book_outlined,
+                          color: _premiumNavy,
+                          size: 28,
+                        ),
+                      )
+                    : Image.network(
+                        image,
+                        fit: BoxFit.cover,
+                        alignment: Alignment.topCenter,
+                      ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(7, 5, 7, 3),
+            child: Text(
+              title.isEmpty ? 'Livre MARANATHA' : title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontFamily: 'Manrope',
+                color: _premiumNavy,
+                fontSize: 8,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+          SizedBox(
+            height: 34,
+            child: Row(
+              children: <Widget>[
+                Expanded(
+                  child: IconButton(
+                    tooltip: 'Favori',
+                    padding: EdgeInsets.zero,
+                    visualDensity: VisualDensity.compact,
+                    onPressed: () {
+                      _toggleBookmark(item);
+                    },
+                    icon: Icon(
+                      bookmarked
+                          ? Icons.bookmark_rounded
+                          : Icons.bookmark_border_rounded,
+                      color: bookmarked ? _red : _premiumNavy,
+                      size: 18,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: IconButton(
+                    tooltip: 'Télécharger',
+                    padding: EdgeInsets.zero,
+                    visualDensity: VisualDensity.compact,
+                    onPressed: () {
+                      _downloadItem(item);
+                    },
+                    icon: const Icon(
+                      Icons.download_rounded,
+                      color: _premiumNavy,
+                      size: 18,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: IconButton(
+                    tooltip: 'Plus',
+                    padding: EdgeInsets.zero,
+                    visualDensity: VisualDensity.compact,
+                    onPressed: () {
+                      _showItemMenu(item);
+                    },
+                    icon: const Icon(
+                      Icons.more_vert_rounded,
+                      color: _premiumNavy,
+                      size: 18,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _smallSection({
+    required String title,
+    required String section,
+    required List<Map<String, dynamic>> items,
+    required bool audioStyle,
+  }) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(10, 9, 10, 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: _premiumLine),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontFamily: 'Manrope',
+                    color: _premiumNavy,
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  _selectLibraryTab(section);
+                },
+                style: TextButton.styleFrom(
+                  foregroundColor: _red,
+                  padding: EdgeInsets.zero,
+                  minimumSize: const Size(45, 28),
+                ),
+                child: const Text(
+                  'Voir tout',
+                  style: TextStyle(
+                    fontFamily: 'Manrope',
+                    fontSize: 7.4,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          if (items.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 22),
+              child: Center(
+                child: Text(
+                  'Aucun contenu.',
+                  style: TextStyle(
+                    fontFamily: 'Manrope',
+                    color: _premiumMuted,
+                    fontSize: 8,
+                  ),
+                ),
+              ),
+            )
+          else
+            ...items.take(2).map((item) {
+              return _smallMediaItem(item, audioStyle: audioStyle);
+            }),
+        ],
+      ),
+    );
+  }
+
+  Widget _smallMediaItem(
+    Map<String, dynamic> item, {
+    required bool audioStyle,
+  }) {
+    final title = _title(item);
+    final author = _author(item);
+    final image = _image(item);
+    return InkWell(
+      onTap: () {
+        _open(item);
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: Row(
+          children: <Widget>[
+            ClipRRect(
+              borderRadius: BorderRadius.circular(7),
+              child: SizedBox(
+                width: 51,
+                height: 51,
+                child: audioStyle
+                    ? Container(
+                        color: const Color(0xFFF1F4FA),
+                        alignment: Alignment.center,
+                        child: const Icon(
+                          Icons.music_note_rounded,
+                          color: _premiumNavy,
+                          size: 24,
+                        ),
+                      )
+                    : image.isEmpty
+                    ? Container(
+                        color: const Color(0xFFF1F4FA),
+                        alignment: Alignment.center,
+                        child: const Icon(
+                          Icons.play_circle_outline_rounded,
+                          color: _premiumNavy,
+                        ),
+                      )
+                    : Stack(
+                        fit: StackFit.expand,
+                        children: <Widget>[
+                          Image.network(image, fit: BoxFit.cover),
+                          const Center(
+                            child: CircleAvatar(
+                              radius: 11,
+                              backgroundColor: Colors.white,
+                              child: Icon(
+                                Icons.play_arrow_rounded,
+                                color: _premiumNavy,
+                                size: 16,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+              ),
+            ),
+            const SizedBox(width: 8),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  _KindBadge(label: kind, icon: _kindIcon(kind)),
-                  const SizedBox(height: 7),
                   Text(
                     title.isEmpty ? 'Publication MARANATHA' : title,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontFamily: 'Manrope',
-                      color: _navy,
-                      fontSize: 13.5,
-                      height: 1.18,
+                      color: _premiumNavy,
+                      fontSize: 8.7,
+                      height: 1.2,
                       fontWeight: FontWeight.w800,
-                      letterSpacing: -0.18,
                     ),
                   ),
                   if (author.isNotEmpty) ...<Widget>[
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 2),
                     Text(
                       author,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontFamily: 'Manrope',
-                        color: _muted,
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.w600,
+                        color: _premiumMuted,
+                        fontSize: 7.2,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],
-                  const Spacer(),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: SizedBox(
-                      height: 34,
-                      child: FilledButton.icon(
-                        onPressed: () {
-                          _open(item);
-                        },
-                        style: FilledButton.styleFrom(
-                          backgroundColor: _blue,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(9),
-                          ),
-                        ),
-                        icon: Icon(_kindIcon(kind), size: 16),
-                        label: Text(
-                          action,
-                          style: const TextStyle(
-                            fontFamily: 'Manrope',
-                            fontSize: 10.5,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
                 ],
+              ),
+            ),
+            IconButton(
+              onPressed: () {
+                _showItemMenu(item);
+              },
+              visualDensity: VisualDensity.compact,
+              icon: const Icon(
+                Icons.more_vert_rounded,
+                color: _premiumNavy,
+                size: 17,
               ),
             ),
           ],
@@ -749,90 +1595,295 @@ class _LibraryPageState extends State<LibraryPage> {
     );
   }
 
-  Widget _gridCard(Map<String, dynamic> item) {
+  Widget _premiumCategory() {
+    final items = _items;
+    if (items.isEmpty) {
+      return _emptyCategory();
+    }
+    if (_selected == 'book') {
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          final columns = constraints.maxWidth >= 650
+              ? 4
+              : constraints.maxWidth >= 470
+              ? 3
+              : 2;
+          return GridView.builder(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(12, 10, 12, 26),
+            itemCount: items.length,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: columns,
+              crossAxisSpacing: 10,
+              mainAxisSpacing: 11,
+              childAspectRatio: .62,
+            ),
+            itemBuilder: (context, index) {
+              return _categoryBook(items[index]);
+            },
+          );
+        },
+      );
+    }
+    return ListView.separated(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(12, 9, 12, 26),
+      itemCount: items.length,
+      separatorBuilder: (_, __) {
+        return const SizedBox(height: 9);
+      },
+      itemBuilder: (context, index) {
+        return _categoryMedia(items[index]);
+      },
+    );
+  }
+
+  Widget _categoryBook(Map<String, dynamic> item) {
     final title = _title(item);
     final author = _author(item);
     final image = _image(item);
-    final kind = _kind(item);
-
-    return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(14),
-      child: InkWell(
-        onTap: () {
-          _open(item);
-        },
-        borderRadius: BorderRadius.circular(14),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: _line),
-            boxShadow: const <BoxShadow>[
-              BoxShadow(
-                color: Color(0x090D2340),
-                blurRadius: 12,
-                offset: Offset(0, 5),
+    final bookmarked = _isBookmarked(item);
+    return Container(
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: _premiumLine),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Expanded(
+            child: InkWell(
+              onTap: () {
+                _open(item);
+              },
+              child: SizedBox(
+                width: double.infinity,
+                child: image.isEmpty
+                    ? Container(
+                        color: const Color(0xFFF0F3F7),
+                        alignment: Alignment.center,
+                        child: const Icon(
+                          Icons.menu_book_outlined,
+                          color: _premiumNavy,
+                          size: 35,
+                        ),
+                      )
+                    : Image.network(
+                        image,
+                        fit: BoxFit.cover,
+                        alignment: Alignment.topCenter,
+                      ),
               ),
-            ],
+            ),
           ),
-          padding: const EdgeInsets.all(10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Expanded(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(9),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: image.isEmpty
-                        ? Container(
-                            color: const Color(0xFFEAF1FF),
-                            alignment: Alignment.center,
-                            child: Icon(
-                              _kindIcon(kind),
-                              size: 40,
-                              color: _blue,
-                            ),
-                          )
-                        : Image.network(
-                            image,
-                            fit: BoxFit.cover,
-                            alignment: Alignment.topCenter,
-                          ),
-                  ),
-                ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(8, 7, 8, 0),
+            child: Text(
+              title.isEmpty ? 'Livre MARANATHA' : title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontFamily: 'Manrope',
+                color: _premiumNavy,
+                fontSize: 9,
+                fontWeight: FontWeight.w800,
               ),
-              const SizedBox(height: 9),
-              _KindBadge(label: kind, icon: _kindIcon(kind)),
-              const SizedBox(height: 7),
-              Text(
-                title.isEmpty ? 'Publication MARANATHA' : title,
-                maxLines: 2,
+            ),
+          ),
+          if (author.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Text(
+                author,
+                maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
                   fontFamily: 'Manrope',
-                  color: _navy,
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w800,
+                  color: _premiumMuted,
+                  fontSize: 7.5,
                 ),
               ),
-              if (author.isNotEmpty) ...<Widget>[
-                const SizedBox(height: 4),
-                Text(
-                  author,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontFamily: 'Manrope',
-                    color: _muted,
-                    fontSize: 10.5,
+            ),
+          SizedBox(
+            height: 39,
+            child: Row(
+              children: <Widget>[
+                Expanded(
+                  child: IconButton(
+                    onPressed: () {
+                      _toggleBookmark(item);
+                    },
+                    icon: Icon(
+                      bookmarked
+                          ? Icons.bookmark_rounded
+                          : Icons.bookmark_border_rounded,
+                      size: 19,
+                      color: bookmarked ? _red : _premiumNavy,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: IconButton(
+                    onPressed: () {
+                      _downloadItem(item);
+                    },
+                    icon: const Icon(
+                      Icons.download_rounded,
+                      size: 19,
+                      color: _premiumNavy,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: IconButton(
+                    onPressed: () {
+                      _showItemMenu(item);
+                    },
+                    icon: const Icon(
+                      Icons.more_vert_rounded,
+                      size: 19,
+                      color: _premiumNavy,
+                    ),
                   ),
                 ),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _categoryMedia(Map<String, dynamic> item) {
+    final image = _image(item);
+    final title = _title(item);
+    final author = _author(item);
+    final kind = _kind(item);
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(13),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(13),
+        onTap: () {
+          _open(item);
+        },
+        child: Container(
+          height: 94,
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(13),
+            border: Border.all(color: _premiumLine),
+          ),
+          child: Row(
+            children: <Widget>[
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: SizedBox(
+                  width: 77,
+                  height: 77,
+                  child: image.isEmpty
+                      ? Container(
+                          color: const Color(0xFFF0F3F7),
+                          alignment: Alignment.center,
+                          child: Icon(
+                            _kindIcon(kind),
+                            color: _premiumNavy,
+                            size: 27,
+                          ),
+                        )
+                      : Image.network(image, fit: BoxFit.cover),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Text(
+                      title.isEmpty ? 'Publication MARANATHA' : title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontFamily: 'Manrope',
+                        color: _premiumNavy,
+                        fontSize: 11,
+                        height: 1.2,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    if (author.isNotEmpty) ...<Widget>[
+                      const SizedBox(height: 4),
+                      Text(
+                        author,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontFamily: 'Manrope',
+                          color: _premiumMuted,
+                          fontSize: 8.5,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              IconButton(
+                onPressed: () {
+                  _showItemMenu(item);
+                },
+                icon: const Icon(Icons.more_vert_rounded, color: _premiumNavy),
+              ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _searchResultsView() {
+    final items = _items;
+    if (items.isEmpty) {
+      return _emptyCategory(message: 'Aucun résultat pour cette recherche.');
+    }
+    return ListView.separated(
+      padding: const EdgeInsets.fromLTRB(12, 9, 12, 25),
+      itemCount: items.length,
+      separatorBuilder: (_, __) {
+        return const SizedBox(height: 8);
+      },
+      itemBuilder: (context, index) {
+        return _categoryMedia(items[index]);
+      },
+    );
+  }
+
+  Widget _emptyCategory({
+    String message = 'Aucun contenu publié dans cette section.',
+  }) {
+    return ListView(
+      children: <Widget>[
+        const SizedBox(height: 90),
+        const Icon(
+          Icons.video_library_outlined,
+          color: Color(0xFF9AA4B3),
+          size: 41,
+        ),
+        const SizedBox(height: 12),
+        Text(
+          message,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            fontFamily: 'Manrope',
+            color: _premiumMuted,
+            fontSize: 10,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
     );
   }
 }
