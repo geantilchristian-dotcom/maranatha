@@ -772,7 +772,7 @@ body,
 <link rel="stylesheet" href="/admin-members-v4.css?v=1">
 <link rel="stylesheet" href="/admin-dons-v2.css?v=1">
 <link rel="stylesheet" href="/admin-params-v2.css?v=2">
-  <link rel="stylesheet" href="/admin-app-v3.css?v=20260923-admin-v3">
+  <link rel="stylesheet" href="/admin-app-v3.css?v=20260923-admin-v3-fix1">
 </head>
 <body>
 
@@ -1562,11 +1562,44 @@ body,
     document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     const pane = document.getElementById('pane-' + name);
-    if (pane) pane.classList.add('active');
+    if (pane) {
+      pane.classList.add('active');
+    }
     const btn = document.querySelector(`.tab-btn[data-tab="${name}"]`);
     if (btn) {
       btn.classList.add('active');
-      btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      btn.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'center'
+      });
+    }
+    if (name === 'pilotage') {
+      window.setTimeout(() => {
+        try {
+          if (
+            window.AdminAppV3 &&
+            typeof window.AdminAppV3.show === 'function'
+          ) {
+            window.AdminAppV3.show('dashboard');
+            if (
+              typeof window.AdminAppV3.load === 'function'
+            ) {
+              const result = window.AdminAppV3.load();
+              if (
+                result &&
+                typeof result.catch === 'function'
+              ) {
+                result.catch(error => {
+                  console.error('[ADMIN V3 LOAD]', error);
+                });
+              }
+            }
+          }
+        } catch (error) {
+          console.error('[ADMIN V3]', error);
+        }
+      }, 60);
     }
   }
 
@@ -5537,6 +5570,233 @@ setTimeout(
 
 <script src="/admin-daily-verse.js?v=20260922-1"></script>
 <script src="/admin-daily-word.js?v=20260922-final"></script>
-<script src="/admin-app-v3.js?v=20260923-admin-v3"></script>
+<script src="/admin-app-v3.js?v=20260923-admin-v3-fix1"></script>
+<!-- MARANATHA_ADMIN_V3_BOOT_FIX_1 -->
+<script id="MARANATHA_ADMIN_V3_BOOT_FIX_1">
+(function () {
+  "use strict";
+  let retryCount = 0;
+  function renderFailure(message) {
+    const root =
+      document.getElementById(
+        "admin-app-v3-root"
+      );
+    if (!root) {
+      return;
+    }
+    root.innerHTML = `
+      <div style="
+        max-width:760px;
+        margin:30px auto;
+        padding:22px;
+        border:1px solid rgba(255,255,255,.12);
+        border-radius:14px;
+        background:#0d2d42;
+        color:#fff;
+        font-family:Inter,system-ui,sans-serif;">
+        <div style="
+          font-size:18px;
+          font-weight:800;
+          margin-bottom:8px;">
+          Pilotage App
+        </div>
+        <div style="
+          color:#a9b7c4;
+          font-size:12px;
+          line-height:1.55;">
+          ${String(message || "Chargement impossible.")}
+        </div>
+        <button
+          type="button"
+          id="admin-v3-retry-button"
+          style="
+            margin-top:16px;
+            border:0;
+            border-radius:8px;
+            background:#c20e28;
+            color:#fff;
+            padding:10px 14px;
+            font-weight:800;
+            cursor:pointer;">
+          Recharger Pilotage App
+        </button>
+      </div>
+    `;
+    const button =
+      document.getElementById(
+        "admin-v3-retry-button"
+      );
+    if (button) {
+      button.addEventListener(
+        "click",
+        function () {
+          start(true);
+        }
+      );
+    }
+  }
+  function display() {
+    const root =
+      document.getElementById(
+        "admin-app-v3-root"
+      );
+    if (!root) {
+      return false;
+    }
+    if (
+      !window.AdminAppV3 ||
+      typeof window.AdminAppV3.show !==
+        "function"
+    ) {
+      return false;
+    }
+    try {
+      window.AdminAppV3.show(
+        "dashboard"
+      );
+      if (
+        typeof window.AdminAppV3.load ===
+        "function"
+      ) {
+        const task =
+          window.AdminAppV3.load();
+        if (
+          task &&
+          typeof task.catch ===
+          "function"
+        ) {
+          task.catch(
+            function (error) {
+              console.error(
+                "[ADMIN V3 LOAD]",
+                error
+              );
+            }
+          );
+        }
+      }
+      return true;
+    } catch (error) {
+      console.error(
+        "[ADMIN V3 DISPLAY]",
+        error
+      );
+      renderFailure(
+        error &&
+        error.message
+          ? error.message
+          : "Erreur JavaScript."
+      );
+      return false;
+    }
+  }
+  function loadScript() {
+    retryCount += 1;
+    const old =
+      document.querySelector(
+        'script[data-admin-v3-retry="1"]'
+      );
+    if (old) {
+      old.remove();
+    }
+    const script =
+      document.createElement(
+        "script"
+      );
+    script.dataset.adminV3Retry =
+      "1";
+    script.src =
+      "/admin-app-v3.js?v=20260923-admin-v3-fix1-retry-" +
+      retryCount +
+      "-" +
+      Date.now();
+    script.onload =
+      function () {
+        window.setTimeout(
+          function () {
+            if (!display()) {
+              renderFailure(
+                "Le module Pilotage App a été téléchargé mais ne s'est pas initialisé."
+              );
+            }
+          },
+          80
+        );
+      };
+    script.onerror =
+      function () {
+        renderFailure(
+          "Impossible de télécharger admin-app-v3.js."
+        );
+      };
+    document.body.appendChild(
+      script
+    );
+  }
+  function start(forceReload) {
+    if (
+      !forceReload &&
+      display()
+    ) {
+      return;
+    }
+    if (
+      forceReload ||
+      !window.AdminAppV3
+    ) {
+      loadScript();
+      return;
+    }
+    if (!display()) {
+      renderFailure(
+        "Pilotage App n'est pas disponible."
+      );
+    }
+  }
+  function bind() {
+    const tab =
+      document.querySelector(
+        '[data-tab="pilotage"]'
+      );
+    if (tab) {
+      tab.addEventListener(
+        "click",
+        function () {
+          window.setTimeout(
+            function () {
+              start(false);
+            },
+            50
+          );
+        }
+      );
+    }
+    const pane =
+      document.getElementById(
+        "pane-pilotage"
+      );
+    if (
+      pane &&
+      pane.classList.contains(
+        "active"
+      )
+    ) {
+      start(false);
+    }
+  }
+  if (
+    document.readyState ===
+    "loading"
+  ) {
+    document.addEventListener(
+      "DOMContentLoaded",
+      bind
+    );
+  } else {
+    bind();
+  }
+})();
+</script>
+<!-- MARANATHA_ADMIN_V3_BOOT_FIX_1_END -->
 </body>
 </html>
