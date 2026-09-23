@@ -31,6 +31,22 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <!-- MARANATHA_BOOK_DEEP_LINK_V1 -->
+            <meta-data
+                android:name="flutter_deeplinking_enabled"
+                android:value="true" />
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:scheme="https"
+                    android:host="cemm-eglisemaranatha.site"
+                    android:pathPrefix="/livre/" />
+            </intent-filter>
+            <!-- MARANATHA_BOOK_DEEP_LINK_V1_END -->
         </activity>
 
         <meta-data

@@ -200,6 +200,55 @@ app.get('/', (_req, res) => {
   }
 });
 
+
+/* ==========================================================
+   MARANATHA_BOOK_PUBLIC_ROUTE_V1
+   ========================================================== */
+
+app.get('/livre/:id', (_req, res) => {
+  try {
+    const filePath =
+      path.join(
+        __dirname,
+        'public',
+        'index.html',
+      );
+
+    let html =
+      fs.readFileSync(
+        filePath,
+        'utf8',
+      );
+
+    html = html.replace(
+      '</body>',
+      `<script src="/flutter-audio.js?v=${VERSION}"></script></body>`,
+    );
+
+    res.setHeader(
+      'Cache-Control',
+      'no-cache, no-store, must-revalidate',
+    );
+
+    return res
+      .type('html')
+      .send(html);
+  } catch (error) {
+    console.error(
+      '[livre/public]',
+      error.message,
+    );
+
+    return res
+      .status(500)
+      .send(
+        'Livre temporairement indisponible',
+      );
+  }
+});
+
+/* MARANATHA_BOOK_PUBLIC_ROUTE_V1_END */
+
 // MARANATHA_KPAY_DONS
 
 app.use(express.static(path.join(__dirname, 'public'), { maxAge: '1h' }));

@@ -1,6 +1,7 @@
 import '../../../core/widgets/maranatha_cached_network_image.dart';
 import '../../home/widgets/loading_skeleton.dart';
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -54,6 +55,7 @@ class _LibraryPageState extends State<LibraryPage> {
   String _query = '';
   final Set<String> _bookmarks = <String>{};
   String _lastOpenedId = '';
+  bool _focusOpened = false;
 
   @override
   void initState() {
@@ -105,9 +107,44 @@ class _LibraryPageState extends State<LibraryPage> {
       setState(() {
         _loading = false;
       });
+
+      unawaited(
+        _openFocusIfNeeded(),
+      );
     }
 
     await _refresh();
+  }
+
+  Future<void> _openFocusIfNeeded() async {
+    if (_focusOpened || !mounted) {
+      return;
+    }
+
+    final focus =
+        widget.focusId?.trim() ?? '';
+
+    if (focus.isEmpty) {
+      return;
+    }
+
+    for (final item in _allLibraryItems) {
+      if (_id(item) == focus) {
+        _focusOpened = true;
+
+        await Future<void>.delayed(
+          const Duration(
+            milliseconds: 80,
+          ),
+        );
+
+        if (mounted) {
+          await _open(item);
+        }
+
+        return;
+      }
+    }
   }
 
   Future<void> _refresh() async {
@@ -156,6 +193,10 @@ class _LibraryPageState extends State<LibraryPage> {
         setState(() {
           _refreshing = false;
         });
+
+        unawaited(
+          _openFocusIfNeeded(),
+        );
       }
     }
   }
@@ -386,6 +427,7 @@ class _LibraryPageState extends State<LibraryPage> {
           builder: (_) => LibraryPdfPage(
             title: title,
             url: url,
+            itemId: _id(item),
           ),
         ),
       );
@@ -611,24 +653,64 @@ class _LibraryPageState extends State<LibraryPage> {
     );
   }
 
-  Future<void> _downloadItem(Map<String, dynamic> item) async {
+  Future<void> _downloadItem(
+    Map<String, dynamic> item,
+  ) async {
     final url = _media(item);
+
     if (url.isEmpty) {
-      _message('Fichier indisponible.');
+      _message(
+        'Fichier indisponible.',
+      );
       return;
     }
-    final uri = Uri.tryParse(url);
+
+    if (_kind(item) == 'LIVRE') {
+      try {
+        final saved =
+            await downloadLibraryPdf(
+          title: _title(item),
+          url: url,
+        );
+
+        if (mounted) {
+          _message(
+            'TÃ©lÃ©chargement lancÃ© : ' +
+                saved,
+          );
+        }
+      } catch (error) {
+        if (mounted) {
+          _message(
+            'TÃ©lÃ©chargement impossible : ' +
+                error.toString(),
+          );
+        }
+      }
+
+      return;
+    }
+
+    final uri =
+        Uri.tryParse(url);
+
     if (uri == null) {
       _message('Lien invalide.');
       return;
     }
-    final opened = await launchUrl(
+
+    final opened =
+        await launchUrl(
       uri,
-      mode: LaunchMode.externalApplication,
+      mode:
+          LaunchMode.externalApplication,
       webOnlyWindowName: '_blank',
     );
+
     if (!opened && mounted) {
-      _message('Impossible d’ouvrir le téléchargement.');
+      _message(
+        'Impossible dâ€™ouvrir le tÃ©lÃ©chargement.',
+      );
     }
   }
 

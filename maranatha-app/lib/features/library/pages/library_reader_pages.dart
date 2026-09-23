@@ -2,11 +2,20 @@
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
+import 'package:file_saver/file_saver.dart';
 import 'package:pdfrx/pdfrx.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 const String _libraryServer = 'https://maranatha-1-k6ro.onrender.com';
+
+const MethodChannel _libraryDownloadChannel =
+    MethodChannel(
+      'com.cemmmaranatha.maranatha/downloads',
+    );
+
 const String _libraryApi = '$_libraryServer/api';
 
 String _youtubeId(String raw) {
@@ -48,6 +57,113 @@ String youtubeThumbnailFromUrl(String raw) {
 Uri libraryPdfProxyUri(String source) {
   return Uri.parse(
     '$_libraryApi/library/read-pdf?url=${Uri.encodeQueryComponent(source)}',
+  );
+}
+
+String _safePdfName(String value) {
+  final cleaned = value
+      .trim()
+      .replaceAll(
+        RegExp(r'[\\/:*?"<>|]+'),
+        ' ',
+      )
+      .replaceAll(
+        RegExp(r'\s+'),
+        ' ',
+      )
+      .trim();
+
+  return cleaned.isEmpty
+      ? 'Livre MARANATHA'
+      : cleaned;
+}
+
+String libraryBookShareUrl(String itemId) {
+  final cleanId =
+      Uri.encodeComponent(
+        itemId.trim(),
+      );
+
+  if (cleanId.isEmpty) {
+    return 'https://cemm-eglisemaranatha.site/';
+  }
+
+  return 'https://cemm-eglisemaranatha.site/livre/' + cleanId;
+}
+
+Future<String> downloadLibraryPdf({
+  required String title,
+  required String url,
+}) async {
+  final safeName =
+      _safePdfName(title);
+
+  final fileName =
+      safeName + '.pdf';
+
+  final downloadUrl =
+      libraryPdfProxyUri(url).toString();
+
+  /*
+   * Android :
+   * DownloadManager place rÃ©ellement le PDF dans
+   * le dossier public TÃ©lÃ©chargements du tÃ©lÃ©phone.
+   */
+  if (
+    !kIsWeb &&
+    defaultTargetPlatform ==
+        TargetPlatform.android
+  ) {
+    await _libraryDownloadChannel
+        .invokeMethod<Object?>(
+      'downloadPdf',
+      <String, Object?>{
+        'url': downloadUrl,
+        'fileName': fileName,
+      },
+    );
+
+    return 'TÃ©lÃ©chargements/' + fileName;
+  }
+
+  /*
+   * Web / desktop :
+   * tÃ©lÃ©chargement via file_saver.
+   */
+  return FileSaver.instance.saveFile(
+    name: safeName,
+    link: LinkDetails(
+      link: downloadUrl,
+      headers: const <String, String>{
+        'Accept': 'application/pdf',
+        'Cache-Control': 'no-cache',
+      },
+    ),
+    fileExtension: 'pdf',
+    mimeType: MimeType.pdf,
+  );
+}
+
+Future<void> shareLibraryBook({
+  required String title,
+  required String itemId,
+}) async {
+  final cleanTitle =
+      title.trim().isEmpty
+          ? 'Livre MARANATHA'
+          : title.trim();
+
+  final pageUrl =
+      libraryBookShareUrl(itemId);
+
+  await SharePlus.instance.share(
+    ShareParams(
+      title: cleanTitle,
+      text:
+          cleanTitle +
+          '\n' +
+          pageUrl,
+    ),
   );
 }
 
@@ -193,24 +309,49 @@ class LibraryPdfPage extends StatelessWidget {
     super.key,
     required this.title,
     required this.url,
+    required this.itemId,
   });
 
   final String title;
   final String url;
+  final String itemId;
 
-  Future<void> _download(BuildContext context) async {
-    final uri = Uri.tryParse(url);
-    if (uri == null) return;
+  Future<void> _download(
+    BuildContext context,
+  ) async {
+    try {
+      final saved =
+          await downloadLibraryPdf(
+        title: title,
+        url: url,
+      );
 
-    final ok = await launchUrl(
-      uri,
-      mode: LaunchMode.externalApplication,
-      webOnlyWindowName: '_blank',
-    );
+      if (!context.mounted) {
+        return;
+      }
 
-    if (!ok && context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('TÃ©lÃ©chargement impossible.')),
+      ScaffoldMessenger.of(context)
+          .showSnackBar(
+        SnackBar(
+          content: Text(
+            'TÃ©lÃ©chargement lancÃ© : ' +
+                saved,
+          ),
+        ),
+      );
+    } catch (error) {
+      if (!context.mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context)
+          .showSnackBar(
+        SnackBar(
+          content: Text(
+            'TÃ©lÃ©chargement impossible : ' +
+                error.toString(),
+          ),
+        ),
       );
     }
   }

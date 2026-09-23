@@ -8,7 +8,7 @@ const { uploadImage } = require('../utils/cloudinary');
 const { notifierPublicationNouvelle } = require('../utils/publicationNotifications');
 
 
-// GET /api/settings — public summary (compatibility for older interfaces)
+// GET /api/settings â€” public summary (compatibility for older interfaces)
 router.get('/', async (_req, res) => {
   try {
     const [home, don, programme] = await Promise.all([
@@ -31,7 +31,7 @@ router.get('/', async (_req, res) => {
   }
 });
 
-// GET /api/settings/splash — public
+// GET /api/settings/splash â€” public
 router.get('/splash', async (req, res) => {
   try {
     let s = await Settings.findOne({ key: 'splash' });
@@ -42,7 +42,7 @@ router.get('/splash', async (req, res) => {
   }
 });
 
-// PUT /api/settings/splash — admin only
+// PUT /api/settings/splash â€” admin only
 router.put('/splash', adminOnly, async (req, res) => {
   try {
     const allowed = ['nomEglise', 'verset', 'sousTitre', 'logoUrl', 'couleurFond', 'couleurAccent', 'dureeSplash'];
@@ -61,7 +61,7 @@ router.put('/splash', adminOnly, async (req, res) => {
   }
 });
 
-// GET /api/settings/home — public
+// GET /api/settings/home â€” public
 router.get('/home', async (req, res) => {
   try {
     let s = await Settings.findOne({ key: 'home' });
@@ -72,8 +72,8 @@ router.get('/home', async (req, res) => {
   }
 });
 
-// PUT /api/settings/home — admin only
-// Accepte youtubeLinks (tableau [{url, label}]) + rétrocompatibilité youtubeUrl/ytLabel
+// PUT /api/settings/home â€” admin only
+// Accepte youtubeLinks (tableau [{url, label}]) + rÃ©trocompatibilitÃ© youtubeUrl/ytLabel
 router.put('/home', adminOnly, async (req, res) => {
   try {
     const update = {};
@@ -85,7 +85,7 @@ router.put('/home', adminOnly, async (req, res) => {
         .map(l => ({ url: l.url.trim(), label: (l.label || '').trim() || 'Regarder sur YouTube' }));
     }
 
-    // Rétrocompatibilité : ancien format champ unique
+    // RÃ©trocompatibilitÃ© : ancien format champ unique
     if (req.body.youtubeUrl !== undefined) update.youtubeUrl = req.body.youtubeUrl;
     if (req.body.ytLabel   !== undefined) update.ytLabel    = req.body.ytLabel;
     if (req.body.facebookUrl       !== undefined) update.facebookUrl       = req.body.facebookUrl;
@@ -209,7 +209,7 @@ router.put('/home', adminOnly, async (req, res) => {
   }
 });
 
-// GET /api/settings/don — public
+// GET /api/settings/don â€” public
 router.get('/don', async (req, res) => {
   try {
     let s = await Settings.findOne({ key: 'don' });
@@ -218,7 +218,7 @@ router.get('/don', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// PUT /api/settings/don — admin only
+// PUT /api/settings/don â€” admin only
 router.put('/don', adminOnly, async (req, res) => {
   try {
     const allowed = ['airtel','orange','vodacom','nomTitulaire','nomBanque','numeroCompte','iban','bic','instructions','telephone1','telephone2'];
@@ -356,7 +356,7 @@ router.post(
 /* MARANATHA_PROGRAMME_IMAGE_ROUTE_V1_END */
 
 
-// GET /api/settings/programme — public
+// GET /api/settings/programme â€” public
 router.get('/programme', async (req, res) => {
   try {
     let s = await Settings.findOne({ key: 'programme' });
@@ -364,7 +364,7 @@ router.get('/programme', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// PUT /api/settings/programme — admin only
+// PUT /api/settings/programme â€” admin only
 router.put('/programme', adminOnly, async (req, res) => {
   try {
     const items = Array.isArray(req.body.items) ? req.body.items : [];
@@ -380,20 +380,20 @@ router.put('/programme', adminOnly, async (req, res) => {
 
 /* ==========================================================
    MARANATHA_APP_CONFIG_PRODUCTION_V1
-   Configuration générale utilisée par :
-   - Admin Paramètres V2
-   - Interface fidèle
+   Configuration gÃ©nÃ©rale utilisÃ©e par :
+   - Admin ParamÃ¨tres V2
+   - Interface fidÃ¨le
    ========================================================== */
 
 const APP_CONFIG_DEFAULT = {
   identity: {
     churchName: "CEMM MARANATHA",
     ministryName:
-      "Communauté des Églises Missionnaires Maranatha",
+      "CommunautÃ© des Ã‰glises Missionnaires Maranatha",
     appName: "MARANATHA",
     version: "1.2.4",
     description:
-      "Application officielle de la communauté CEMM MARANATHA."
+      "Application officielle de la communautÃ© CEMM MARANATHA."
   },
 
   contact: {
@@ -522,7 +522,7 @@ function cleanAppConfig(input) {
 /*
  * GET public
  * L'utilisateur doit pouvoir lire :
- * À propos, confidentialité, conditions, support, etc.
+ * Ã€ propos, confidentialitÃ©, conditions, support, etc.
  */
 router.get(
   "/app-config",
@@ -569,7 +569,7 @@ router.get(
 
       return res.status(500).json({
         error:
-          "Impossible de charger les paramètres."
+          "Impossible de charger les paramÃ¨tres."
       });
     }
   }
@@ -636,7 +636,7 @@ router.put(
       return res.status(500).json({
         success: false,
         error:
-          "Impossible d'enregistrer les paramètres."
+          "Impossible d'enregistrer les paramÃ¨tres."
       });
     }
   }
@@ -894,6 +894,57 @@ router.put(
             setDefaultsOnInsert: true
           }
         );
+
+      /*
+       * MARANATHA_DAILY_WORD_HOME_SYNC_V1
+       * Compatibilite avec les anciennes versions qui lisent
+       * encore /api/settings/home -> dailyVerse.
+       */
+      await Settings.findOneAndUpdate(
+        {
+          key: 'home'
+        },
+        {
+          $set: {
+            dailyVerse: {
+              active:
+                publication.active === true,
+              text:
+                publication.parole,
+              reference:
+                publication.reference,
+              backgroundColor:
+                '#F5F9FF',
+              textColor:
+                '#102A56'
+            },
+            dailyWord: {
+              active:
+                publication.active === true,
+              title:
+                publication.sujet ||
+                'Parole du jour',
+              text:
+                publication.parole,
+              reference:
+                publication.reference,
+              period,
+              publishedAt:
+                new Date(),
+              backgroundColor:
+                '#003DF0',
+              textColor:
+                '#FFFFFF'
+            }
+          }
+        },
+        {
+          new: true,
+          upsert: true,
+          setDefaultsOnInsert: true
+        }
+      );
+      /* MARANATHA_DAILY_WORD_HOME_SYNC_V1_END */
       let notification =
         null;
       if (

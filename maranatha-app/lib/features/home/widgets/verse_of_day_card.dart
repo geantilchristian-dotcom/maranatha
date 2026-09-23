@@ -1,38 +1,79 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 import '../../../core/constants/app_icons.dart';
+import '../../content/data/maranatha_sync_service.dart';
+import 'loading_skeleton.dart';
 
 class VerseOfDayCard extends StatefulWidget {
   const VerseOfDayCard({super.key, this.height = 185});
-
   final double height;
-
   @override
   State<VerseOfDayCard> createState() => _VerseOfDayCardState();
 }
 
 class _VerseOfDayCardState extends State<VerseOfDayCard> {
-  static const String _endpoint =
-      'https://maranatha-1-k6ro.onrender.com/api/settings/home';
-
+  final MaranathaSyncService _sync = MaranathaSyncService.instance;
   Map<String, dynamic>? _verse;
-  bool _loading = true;
+  bool _loadingDailyWord = true;
+  bool _officialDailyWordLoaded = false;
 
+  static const String _dailyWordEndpoint =
+      'https://maranatha-1-k6ro.onrender.com/api/settings/daily-word';
   @override
   void initState() {
     super.initState();
-    _load();
+
+    /*
+     * Afficher tout de suite la derniere valeur synchronisee
+     * si elle existe, puis interroger la source officielle.
+     */
+    _verse = _readVerse();
+
+    _sync.addListener(_syncChanged);
+
+    unawaited(_sync.sync());
+    unawaited(_loadOfficialDailyWord());
   }
 
-  Future<void> _load() async {
+  @override
+  void dispose() {
+    _sync.removeListener(_syncChanged);
+    super.dispose();
+  }
+
+  void _syncChanged() {
+    if (!mounted) {
+      return;
+    }
+
+    /*
+     * dailyVerse reste un secours pour compatibilite/offline.
+     * Une reponse officielle de /daily-word reste prioritaire.
+     */
+    if (!_officialDailyWordLoaded) {
+      setState(() {
+        _verse = _readVerse();
+      });
+    }
+  }
+
+  Future<void> _loadOfficialDailyWord() async {
     try {
+      final uri = Uri.parse(
+        '$_dailyWordEndpoint?ts=${DateTime.now().millisecondsSinceEpoch}',
+      );
+
       final response = await http
           .get(
-            Uri.parse(_endpoint),
-            headers: const <String, String>{'Accept': 'application/json'},
+            uri,
+            headers: const <String, String>{
+              'Accept': 'application/json',
+              'Cache-Control': 'no-cache',
+            },
           )
           .timeout(const Duration(seconds: 18));
 
@@ -40,61 +81,121 @@ class _VerseOfDayCardState extends State<VerseOfDayCard> {
         throw Exception('HTTP ${response.statusCode}');
       }
 
-      final decoded = jsonDecode(utf8.decode(response.bodyBytes));
+      final decoded = jsonDecode(
+        utf8.decode(response.bodyBytes),
+      );
 
-      Map<String, dynamic>? value;
+      Map<String, dynamic>? next;
 
-      if (decoded is Map && decoded['dailyVerse'] is Map) {
-        value = Map<String, dynamic>.from(decoded['dailyVerse'] as Map);
+      if (decoded is Map) {
+        final now = DateTime.now();
+
+        /*
+         * Matin jusqu'a 17:59.
+         * Soir a partir de 18:00.
+         * Si la periode courante n'existe pas, on utilise l'autre.
+         */
+        final preferred =
+            now.hour >= 18 ? 'soir' : 'matin';
+
+        final fallback =
+            preferred == 'matin' ? 'soir' : 'matin';
+
+        Object? raw =
+            decoded[preferred];
+
+        if (raw is! Map) {
+          raw = decoded[fallback];
+        }
+
+        if (raw is Map) {
+          final publication =
+              Map<String, dynamic>.from(raw);
+
+          next = <String, dynamic>{
+            ...publication,
+            'active':
+                publication['active'] != false,
+            'text':
+                publication['parole'] ??
+                publication['text'] ??
+                '',
+            'reference':
+                publication['reference'] ??
+                '',
+            'backgroundColor':
+                publication['backgroundColor'] ??
+                '#F5F9FF',
+            'textColor':
+                publication['textColor'] ??
+                '#102A56',
+          };
+        }
       }
 
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
 
       setState(() {
-        _verse = value;
-        _loading = false;
+        _officialDailyWordLoaded = true;
+        _loadingDailyWord = false;
+
+        /*
+         * Si rien n'est publie dans la nouvelle API,
+         * on garde la valeur offline/ancienne deja chargee.
+         */
+        if (next != null) {
+          _verse = next;
+        }
       });
     } catch (_) {
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
 
       setState(() {
-        _verse = null;
-        _loading = false;
+        _loadingDailyWord = false;
+
+        /*
+         * En cas de reseau absent, _verse conserve la valeur
+         * de MaranathaSyncService.
+         */
       });
     }
   }
 
+  Map<String, dynamic>? _readVerse() {
+    final home = _sync.home;
+    final value = home['dailyVerse'];
+    if (value is! Map) {
+      return null;
+    }
+    return Map<String, dynamic>.from(value);
+  }
+
   String _text(String key) {
-    final value = _verse?[key];
-
-    if (value == null) return '';
-
-    return value.toString().trim();
+    return (_verse?[key]?.toString() ?? '').trim();
   }
 
   Color _parseColor(String raw, Color fallback) {
     var value = raw.trim();
-
-    if (value.isEmpty) return fallback;
-
+    if (value.isEmpty) {
+      return fallback;
+    }
     if (value.startsWith('#')) {
       value = value.substring(1);
     }
-
     if (value.length == 6) {
       value = 'FF$value';
     }
-
     if (value.length != 8) {
       return fallback;
     }
-
     final parsed = int.tryParse(value, radix: 16);
-
     if (parsed == null) {
       return fallback;
     }
-
     return Color(parsed);
   }
 
@@ -113,9 +214,7 @@ class _VerseOfDayCardState extends State<VerseOfDayCard> {
       'NOV.',
       'DÉC.',
     ];
-
     final now = DateTime.now();
-
     return '${now.day.toString().padLeft(2, '0')} '
         '${months[now.month - 1]}\n'
         '${now.year}';
@@ -123,74 +222,52 @@ class _VerseOfDayCardState extends State<VerseOfDayCard> {
 
   @override
   Widget build(BuildContext context) {
-    if (_loading) {
-      return SizedBox(
-        height: widget.height,
-        child: const Center(
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            color: Color(0xFF0B5CFF),
-          ),
-        ),
-      );
+    if (_verse == null && (_sync.isSyncing || _loadingDailyWord)) {
+      return MaranathaSkeleton(height: widget.height, radius: 0);
     }
-
     final active = _verse?['active'] == true;
     final verseText = _text('text');
     final reference = _text('reference');
-
-    // Aucun verset de test : si l'admin ne publie rien, la carte disparaît.
     if (!active || verseText.isEmpty) {
       return const SizedBox.shrink();
     }
-
     final backgroundColor = _parseColor(
       _text('backgroundColor'),
       const Color(0xFFF5F9FF),
     );
-
     final textColor = _parseColor(_text('textColor'), const Color(0xFF102A56));
-
     final sideColor =
         Color.lerp(backgroundColor, Colors.black, 0.16) ?? backgroundColor;
-
     return LayoutBuilder(
       builder: (context, constraints) {
         final width = constraints.maxWidth;
-
         final desktop = width >= 900;
         final tablet = width >= 600 && width < 900;
-
         final sideWidth = desktop
             ? 155.0
             : tablet
             ? 125.0
             : 82.0;
-
         final quoteSize = desktop
             ? 15.5
             : tablet
             ? 13.5
             : 10.7;
-
         final titleSize = desktop
             ? 8.5
             : tablet
             ? 8.0
             : 7.2;
-
         final refSize = desktop
             ? 9.5
             : tablet
             ? 8.7
             : 7.8;
-
         final dateSize = desktop
             ? 7.0
             : tablet
             ? 6.7
             : 6.2;
-
         return Container(
           width: double.infinity,
           height: widget.height,
@@ -224,25 +301,19 @@ class _VerseOfDayCardState extends State<VerseOfDayCard> {
                         letterSpacing: 1.5,
                       ),
                     ),
-
                     SizedBox(height: desktop ? 8 : 9),
-
                     Container(
                       width: desktop ? 24 : 20,
                       height: 2,
                       color: textColor,
                     ),
-
                     const Spacer(),
-
                     Icon(
                       AppIcons.bible,
                       color: textColor,
                       size: desktop ? 25 : 23,
                     ),
-
                     const Spacer(),
-
                     Text(
                       _todayText(),
                       style: TextStyle(
@@ -257,7 +328,6 @@ class _VerseOfDayCardState extends State<VerseOfDayCard> {
                   ],
                 ),
               ),
-
               Expanded(
                 child: Padding(
                   padding: EdgeInsets.fromLTRB(
@@ -282,10 +352,8 @@ class _VerseOfDayCardState extends State<VerseOfDayCard> {
                           fontStyle: FontStyle.italic,
                         ),
                       ),
-
-                      if (reference.isNotEmpty) ...<Widget>[
+                      if (reference.isNotEmpty) ...[
                         SizedBox(height: desktop ? 8 : 7),
-
                         Text(
                           reference,
                           style: TextStyle(
@@ -296,9 +364,7 @@ class _VerseOfDayCardState extends State<VerseOfDayCard> {
                           ),
                         ),
                       ],
-
                       const Spacer(),
-
                       Text(
                         'UNE FOI  •  UN PEUPLE  •  UNE MISSION',
                         maxLines: 1,

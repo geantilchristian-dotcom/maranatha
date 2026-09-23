@@ -1,9 +1,1 @@
-{
-  "app_name": "MARANATHA",
-  "version": "1.3.3",
-  "build_number": "11",
-  "android_package": "com.cemmmaranatha.maranatha",
-  "apk_size": 91805446,
-  "apk_sha256": "40C6164C4C4E0E9AF2EF601F0A4D21F9850B0777641F263E7A8E4B885DCE6ED1",
-  "web_and_apk_same_source": true
-}
+{"app_name":"maranatha","version":"1.3.3","build_number":"11","package_name":"maranatha"}
